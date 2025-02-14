@@ -138,10 +138,12 @@
 
   &__hover-card {
     @include hover-lift;
-    padding: var(--spacing-4);
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
+    & {
+      padding: var(--spacing-4);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+    }
   }
 
   &__interactive-grid {
@@ -152,12 +154,16 @@
   &__fade-card {
     @include card-base;
     @include fade-in(0.5s);
-    padding: var(--spacing-6);
+    & {
+      padding: var(--spacing-6);
+    }
   }
 
   &__hover-scale {
     @include card-base;
-    transition: var(--transition-transform);
+    & {
+      transition: var(--transition-transform);
+    }
 
     &:hover {
       transform: scale(1.05);
@@ -166,10 +172,12 @@
 
   &__link-card {
     @include card-base;
-    text-decoration: none;
-    color: var(--color-text);
-    position: relative;
-    overflow: hidden;
+    & {
+      text-decoration: none;
+      color: var(--color-text);
+      position: relative;
+      overflow: hidden;
+    }
 
     &::after {
       content: '';
@@ -294,7 +302,9 @@
 
   &__emotion-card {
     @include card-base;
-    transition: var(--transition-all);
+    & {
+      transition: var(--transition-all);
+    }
 
     &--happy {
       @include card-emotion("positive");

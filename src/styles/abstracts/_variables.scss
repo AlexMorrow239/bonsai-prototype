@@ -1,12 +1,12 @@
 @use "sass:color";
 
-// Base color palette
+/* Color palette */
 $color-primary-300: #A9D698;
 $color-primary-400: #7EC265;
 $color-primary-500: #69B84C;
 $color-primary-600: #445C35;
 
-// Neutral tones
+/* Neutral tones */
 $color-gray-50: #FAFAFA;
 $color-gray-100: #F5F5F5;
 $color-gray-200: #E5E5E5;
@@ -18,7 +18,7 @@ $color-gray-700: #343435;
 $color-gray-800: #262626;
 $color-gray-900: #171717;
 
-// Semantic colors
+/* Semantic colors */
 $color-success-300: #86EFAC;
 $color-success-500: #22C55E;
 $color-success-700: #15803D;
@@ -36,37 +36,37 @@ $color-info-500: #3B82F6;
 $color-info-700: #1D4ED8;
 
 :root {
-  // Brand Colors
+  /* Brand Colors */
   --color-primary-light: #{$color-primary-300};
   --color-primary: #{$color-primary-500};
   --color-primary-dark: #{$color-primary-600};
 
-  // Background System
+  /* Background System */
   --color-background: #ffffff;
   --color-background-alt: #{$color-gray-50};
   --color-background-subtle: #{color.adjust($color-primary-300, $alpha: -0.95)};
   --color-background-bold: #{color.adjust($color-primary-600, $alpha: -0.92)};
 
-  // Surface Colors - For cards and elevated elements
+  /* Surface Colors - For cards and elevated elements */
   --color-surface: #ffffff;
   --color-surface-hover: #{$color-gray-50};
   --color-surface-active: #{$color-gray-100};
   --color-surface-selected: #{color.adjust($color-primary-300, $alpha: -0.9)};
 
-  // Text Colors
+  /* Text Colors */
   --color-text: #{$color-gray-700};
   --color-text-dark: #{$color-gray-900};
   --color-text-light: #{$color-gray-500};
   --color-text-lighter: #{$color-gray-400};
   --color-text-primary: #{$color-primary-600};
 
-  // Border Colors - Subtle differentiation
+  /* Border Colors - Subtle differentiation */
   --color-border: #{$color-gray-200};
   --color-border-light: #{$color-gray-100};
   --color-border-dark: #{$color-gray-300};
   --color-border-focus: #{color.adjust($color-primary-500, $alpha: -0.5)};
 
-  // Status Colors - With semantic meaning
+  /* Status Colors - With semantic meaning */
   --color-success: #{$color-success-500};
   --color-success-light: #{$color-success-300};
   --color-success-dark: #{$color-success-700};
@@ -83,19 +83,19 @@ $color-info-700: #1D4ED8;
   --color-info-light: #{$color-info-300};
   --color-info-dark: #{$color-info-700};
 
-  // Typography System
+  /* Typography System */
   --font-primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, monospace;
 
-  // Font weights
+  /* Font weights */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  // Type scale
+  /* Type scale */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -107,7 +107,7 @@ $color-info-700: #1D4ED8;
   --font-size-5xl: 3rem;
   --font-size-6xl: 3.75rem;
 
-  // Line heights
+  /* Line heights */
   --line-height-none: 1;
   --line-height-tight: 1.25;
   --line-height-snug: 1.375;
@@ -115,7 +115,7 @@ $color-info-700: #1D4ED8;
   --line-height-relaxed: 1.625;
   --line-height-loose: 2;
 
-  // Spacing Scale - Based on 4px grid
+  /* Spacing Scale - Based on 4px grid */
   --spacing-px: 1px;
   --spacing-0: 0;
   --spacing-0-5: 0.125rem;
@@ -152,7 +152,7 @@ $color-info-700: #1D4ED8;
   --spacing-80: 20rem;
   --spacing-96: 24rem;
 
-  // Border Radius
+  /* Border Radius */
   --radius-none: 0;
   --radius-sm: 0.125rem;
   --radius-base: 0.25rem;
@@ -163,7 +163,7 @@ $color-info-700: #1D4ED8;
   --radius-3xl: 1.5rem;
   --radius-full: 9999px;
 
-  // Shadows
+  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1),
     0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -176,7 +176,7 @@ $color-info-700: #1D4ED8;
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 
-  // Transitions
+  /* Transitions */
   --transition-all: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-colors: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
@@ -185,7 +185,7 @@ $color-info-700: #1D4ED8;
   --transition-shadow: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-transform: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-  // Z-index scale
+  /* Z-index scale */
   --z-negative: -1;
   --z-0: 0;
   --z-10: 10;

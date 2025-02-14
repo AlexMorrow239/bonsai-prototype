@@ -15,7 +15,10 @@ body {
   line-height: var(--line-height-normal);
   color: var(--color-text);
   background-color: var(--color-background);
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "calt" 1;
 }
 
 // Heading System
@@ -101,7 +104,7 @@ a {
   position: relative;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 100%;
     height: 1px;
@@ -172,7 +175,10 @@ pre,
 .mono {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  font-feature-settings: "calt" 1, "ss01" 1, "ss02" 1;
+  font-feature-settings:
+    "calt" 1,
+    "ss01" 1,
+    "ss02" 1;
 }
 
 pre {

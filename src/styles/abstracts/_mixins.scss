@@ -6,26 +6,18 @@
   @return $result;
 }
 
-// Emotion-based color overlay
+/* Emotion-based color overlay */
 @mixin emotion-overlay($base-color, $emotion: "neutral") {
   @if $emotion == "happy" {
-    background: linear-gradient(
-      to right,
-      var(--color-primary-light),
-      var(--color-primary)
-    );
+    background: linear-gradient(to right, var(--color-primary-light), var(--color-primary));
   } @else if $emotion == "calm" {
-    background: linear-gradient(
-      to right,
-      var(--color-primary-dark),
-      var(--color-primary)
-    );
+    background: linear-gradient(to right, var(--color-primary-dark), var(--color-primary));
   } @else {
     background: $base-color;
   }
 }
 
-// glassmorphism effect
+/* Glassmorphism Effect */
 @mixin glass-effect($style: "default") {
   @if $style == "heavy" {
     background: rgba(255, 255, 255, 0.2);
@@ -59,11 +51,15 @@
 // Gradient Background Mixins
 @mixin gradient-bg($style: "default") {
   @if $style == "blue" {
-    background: linear-gradient(135deg, #63B3ED 0%, #3182CE 100%);
+    background: linear-gradient(135deg, #63b3ed 0%, #3182ce 100%);
   } @else if $style == "purple" {
-    background: linear-gradient(135deg, #B794F4 0%, #805AD5 100%);
+    background: linear-gradient(135deg, #b794f4 0%, #805ad5 100%);
   } @else {
-    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-dark) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-light) 0%,
+      var(--color-primary-dark) 100%
+    );
   }
 }
 
@@ -97,7 +93,6 @@
   cursor: pointer;
   transition: var(--transition-all);
 
-  // Default color scheme (can be overridden)
   background-color: var(--color-primary);
   color: white;
 
@@ -176,8 +171,6 @@
   box-shadow: var(--shadow-md);
   padding: var(--spacing-6);
   transition: var(--transition-all);
-
-  // Subtle border for definition
   border: 1px solid var(--color-border-light);
 
   // Hover state
@@ -198,7 +191,11 @@
   }
 
   // Heading styles within card
-  h2, h3, h4, h5, h6 {
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: var(--color-text-dark);
     margin-bottom: var(--spacing-2);
   }
@@ -223,7 +220,7 @@
   }
 
   // Responsive adjustments
-  @include respond-to('md') {
+  @include respond-to("md") {
     padding: var(--spacing-8);
   }
 }
@@ -231,13 +228,14 @@
 // Card styles with emotional context
 @mixin card-emotion($emotion: "neutral") {
   @include card-base;
-
-  @if $emotion == "positive" {
-    border-left: 4px solid var(--color-success);
-  } @else if $emotion == "negative" {
-    border-left: 4px solid var(--color-error);
-  } @else {
-    border-left: 4px solid var(--color-primary);
+  & {
+    @if $emotion == "positive" {
+      border-left: 4px solid var(--color-success);
+    } @else if $emotion == "negative" {
+      border-left: 4px solid var(--color-error);
+    } @else {
+      border-left: 4px solid var(--color-primary);
+    }
   }
 }
 
@@ -257,15 +255,25 @@
 // Enhanced responsive design mixins
 @mixin respond-to($breakpoint) {
   @if $breakpoint == "sm" {
-    @media (min-width: 640px) { @content; }
+    @media (min-width: 640px) {
+      @content;
+    }
   } @else if $breakpoint == "md" {
-    @media (min-width: 768px) { @content; }
+    @media (min-width: 768px) {
+      @content;
+    }
   } @else if $breakpoint == "lg" {
-    @media (min-width: 1024px) { @content; }
+    @media (min-width: 1024px) {
+      @content;
+    }
   } @else if $breakpoint == "xl" {
-    @media (min-width: 1280px) { @content; }
+    @media (min-width: 1280px) {
+      @content;
+    }
   } @else if $breakpoint == "2xl" {
-    @media (min-width: 1536px) { @content; }
+    @media (min-width: 1536px) {
+      @content;
+    }
   }
 }
 
@@ -291,16 +299,23 @@
 
 // Animation mixins
 @mixin fade-in($duration: 0.3s) {
-  animation: fadeIn $duration ease-in;
-
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  & {
+    animation: fadeIn $duration ease-in;
   }
 }
 
 @mixin hover-lift {
-  transition: var(--transition-transform);
+  & {
+    transition: var(--transition-transform);
+  }
   &:hover {
     transform: translateY(-4px);
   }
@@ -317,7 +332,7 @@
     padding-left: var(--spacing-4);
     padding-right: var(--spacing-4);
 
-    @include respond-to('md') {
+    @include respond-to("md") {
       padding-left: var(--spacing-6);
       padding-right: var(--spacing-6);
     }
