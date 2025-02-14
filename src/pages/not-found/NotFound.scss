@@ -1,0 +1,98 @@
+@use "@/styles/abstracts" as *;
+
+.not-found-page {
+  background-color: var(--color-background);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+
+  .hero-section {
+    position: relative;
+    width: 100%;
+    padding: var(--spacing-20) 0;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-dark) 0%,
+      var(--color-primary) 100%
+    );
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      animation: shine 3s infinite;
+      transform-origin: 0 0;
+    }
+  }
+
+  .content-wrapper {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    text-align: center;
+    color: var(--color-background);
+
+    h1 {
+      font-size: 8rem;
+      font-weight: var(--font-weight-bold);
+      line-height: 1;
+      margin-bottom: var(--spacing-4);
+
+      span {
+        display: block;
+        font-size: 2.5rem;
+        margin-top: var(--spacing-4);
+      }
+
+      @include respond-to("md", "down") {
+        font-size: 6rem;
+
+        span {
+          font-size: 2rem;
+        }
+      }
+
+      @include respond-to("sm", "down") {
+        font-size: 4rem;
+
+        span {
+          font-size: 1.5rem;
+        }
+      }
+    }
+
+    .subtitle {
+      font-size: var(--font-size-xl);
+      margin-bottom: var(--spacing-8);
+      opacity: 0.9;
+
+      @include respond-to("md", "down") {
+        font-size: var(--font-size-lg);
+      }
+    }
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-50%) skewX(-45deg);
+  }
+  100% {
+    transform: translateX(150%) skewX(-45deg);
+  }
+}

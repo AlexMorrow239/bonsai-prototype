@@ -1,0 +1,26 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-2);
+  max-width: var(--container-width);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

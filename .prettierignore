@@ -1,0 +1,30 @@
+# Build output
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Cache
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.d.ts
+
+# Logs
+*.log
+
+# Editor directories
+.idea/
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Generated files
+coverage/
