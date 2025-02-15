@@ -55,13 +55,14 @@
       letter-spacing: 0.05em;
     }
 
+    .toggle {
+      font-size: var(--font-size-lg);
+      color: var(--color-text-light);
+      margin-top: -22px;
+    }
+
     &.archived {
       margin-top: var(--spacing-4);
-
-      .toggle {
-        font-size: var(--font-size-lg);
-        color: var(--color-text-light);
-      }
     }
   }
 

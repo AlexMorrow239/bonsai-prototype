@@ -1,35 +1,9 @@
 import { create } from "zustand";
 
 import { mockChatData, mockChatsListData } from "@/data";
+import type { Chat, ChatListItem, Message } from "@/types";
 
 import { useProjectStore } from "./projectStore";
-
-// Types
-interface Chat {
-  chatInfo: {
-    chat_id: number;
-    project_id: number;
-    title: string;
-    is_active: boolean;
-  };
-  messages: Message[];
-}
-
-interface Message {
-  message_id: number;
-  content: string;
-  created_at: string;
-  is_ai_response: boolean;
-}
-
-interface ChatListItem {
-  chat_id: number;
-  project_id: number;
-  title: string;
-  last_message_at: string;
-  is_active: boolean;
-  preview: string;
-}
 
 interface ChatState {
   // Current active chat
@@ -49,8 +23,10 @@ interface ChatState {
   addMessage: (chatId: number, message: Omit<Message, "message_id">) => void;
   archiveChat: (chatId: number) => void;
   unarchiveChat: (chatId: number) => void;
-  createNewChat: (projectId: number, title: string) => void;
+  createNewChat: (title: string, projectId?: number) => void;
   updateChatTitle: (chatId: number, newTitle: string) => void;
+  shouldFocusInput: boolean;
+  setShouldFocusInput: (value: boolean) => void;
 
   // Helper functions
   getChatById: (chatId: number) => Chat | undefined;
@@ -68,6 +44,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     chatInfo: chat.chatInfo,
     messages: chat.messages,
   })),
+  shouldFocusInput: false,
+  setShouldFocusInput: (value) => set({ shouldFocusInput: value }),
 
   // Actions
   setCurrentChat: (chatId) => {
@@ -160,18 +138,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  createNewChat: (projectId, title) => {
+  createNewChat: (title: string, projectId?: number) => {
     set((state) => {
       const newChatId =
         Math.max(...state.chats.map((c) => c.chatInfo.chat_id)) + 1;
-      const project = useProjectStore.getState().getProjectById(projectId);
 
-      if (!project) return state;
+      // Only validate project if projectId is provided
+      if (projectId) {
+        const project = useProjectStore.getState().getProjectById(projectId);
+        if (!project) return state;
+      }
 
       const newChat: Chat = {
         chatInfo: {
           chat_id: newChatId,
-          project_id: projectId,
+          project_id: projectId, // This can be undefined
           title,
           is_active: true,
         },
@@ -191,6 +172,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         chats: [...state.chats, newChat],
         activeChats: [...state.activeChats, newChatListItem],
         currentChat: newChat,
+        shouldFocusInput: true,
       };
     });
   },

@@ -12,13 +12,27 @@ import { useUIStore } from "@/stores/uiStore";
 import "./ChatTopbar.scss";
 
 export default function ChatTopbar() {
-  const { currentChat, archiveChat, setIsRenamingChat } = useChatStore();
+  const {
+    currentChat,
+    archiveChat,
+    unarchiveChat,
+    setIsRenamingChat,
+    createNewChat,
+  } = useChatStore();
   const { currentProject, deleteProject } = useProjectStore();
   const { addToast } = useUIStore();
 
   const [isDeleteChatModalOpen, setIsDeleteChatModalOpen] = useState(false);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] =
     useState(false);
+
+  const handleNewChat = () => {
+    if (currentProject) {
+      createNewChat("New Chat", currentProject.project_id);
+    } else {
+      createNewChat("New Chat");
+    }
+  };
 
   const handleDeleteChat = () => {
     if (!currentChat) return;
@@ -37,22 +51,43 @@ export default function ChatTopbar() {
   return (
     <div className="chat-topbar">
       <div className="dropdown-section">
-        <Dropdown trigger="Edit Chat">
-          <button
-            className="dropdown__item"
-            onClick={() =>
-              currentChat && setIsRenamingChat(currentChat.chatInfo.chat_id)
-            }
-          >
-            Rename Chat
-          </button>
-          <button
-            className="dropdown__item dropdown__item--danger"
-            onClick={() => setIsDeleteChatModalOpen(true)}
-          >
-            Delete Chat
-          </button>
-        </Dropdown>
+        {currentChat && (
+          <Dropdown trigger="Edit Chat">
+            <button
+              className="dropdown__item"
+              onClick={() =>
+                currentChat && setIsRenamingChat(currentChat.chatInfo.chat_id)
+              }
+            >
+              Rename
+            </button>
+            {currentChat.chatInfo.is_active ? (
+              <button
+                className="dropdown__item"
+                onClick={() => {
+                  archiveChat(currentChat?.chatInfo.chat_id);
+                }}
+              >
+                Archive
+              </button>
+            ) : (
+              <button
+                className="dropdown__item"
+                onClick={() => {
+                  unarchiveChat(currentChat?.chatInfo.chat_id);
+                }}
+              >
+                Unarchive
+              </button>
+            )}
+            <button
+              className="dropdown__item dropdown__item--danger"
+              onClick={() => setIsDeleteChatModalOpen(true)}
+            >
+              Delete
+            </button>
+          </Dropdown>
+        )}
 
         {currentProject && (
           <Dropdown trigger="Edit Project">
@@ -67,7 +102,11 @@ export default function ChatTopbar() {
         )}
       </div>
 
-      <button className="new-chat-button" title="Start new chat">
+      <button
+        className="new-chat-button"
+        title="Start new chat"
+        onClick={handleNewChat}
+      >
         <Plus size={20} />
       </button>
 

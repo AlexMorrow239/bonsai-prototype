@@ -42,6 +42,9 @@
       align-self: flex-end;
       background-color: var(--color-primary-light);
       color: var(--color-text-dark);
+      box-shadow:
+        0 4px 6px -1px rgba(var(--color-primary), 0.1),
+        0 2px 4px -2px rgba(var(--color-primary), 0.1);
     }
 
     &.ai {

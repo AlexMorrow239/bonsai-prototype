@@ -21,6 +21,7 @@ export default function ChatSidebar() {
   } = useChatStore();
   const { projects, currentProject, setCurrentProject } = useProjectStore();
   const [showArchived, setShowArchived] = React.useState(false);
+  const [showActive, setShowActive] = React.useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -63,7 +64,9 @@ export default function ChatSidebar() {
 
   const handleNewChat = () => {
     if (currentProject) {
-      createNewChat(currentProject.project_id, "New Chat");
+      createNewChat("New Chat", currentProject.project_id);
+    } else {
+      createNewChat("New Chat");
     }
   };
 
@@ -75,24 +78,22 @@ export default function ChatSidebar() {
 
     return (
       <div className="project-chats" key={projectId}>
-        <div className="list-header">
-          <h3>{projects.find((p) => p.project_id === projectId)?.name}</h3>
-        </div>
-        {projectChats.map((chat) => (
-          <button
-            key={chat.chatInfo.chat_id}
-            className={`chat-item ${
-              currentChat?.chatInfo.chat_id === chat.chatInfo.chat_id
-                ? "active"
-                : ""
-            }`}
-            onClick={() =>
-              isRenamingChat ? null : setCurrentChat(chat.chatInfo.chat_id)
-            }
-          >
-            {renderChatTitle(chat)}
-          </button>
-        ))}
+        {showActive &&
+          projectChats.map((chat) => (
+            <button
+              key={chat.chatInfo.chat_id}
+              className={`chat-item ${
+                currentChat?.chatInfo.chat_id === chat.chatInfo.chat_id
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() =>
+                isRenamingChat ? null : setCurrentChat(chat.chatInfo.chat_id)
+              }
+            >
+              {renderChatTitle(chat)}
+            </button>
+          ))}
       </div>
     );
   };
@@ -119,7 +120,6 @@ export default function ChatSidebar() {
           size="md"
           className="new-chat-btn"
           onClick={handleNewChat}
-          disabled={!currentProject}
         >
           New Chat
         </Button>
@@ -131,23 +131,35 @@ export default function ChatSidebar() {
             <div className="list-header">
               <h3>Active Chats</h3>
             </div>
-            {activeChats.map((chat) => (
-              <Button
-                key={chat.chat_id}
-                variant="ghost"
-                className={`chat-item ${
-                  currentChat?.chatInfo.chat_id === chat.chat_id ? "active" : ""
-                }`}
-                onClick={() =>
-                  isRenamingChat ? null : setCurrentChat(chat.chat_id)
-                }
-              >
-                {renderChatTitle({ chatInfo: chat })}
-              </Button>
-            ))}
+            {showActive &&
+              activeChats.map((chat) => (
+                <Button
+                  key={chat.chat_id}
+                  variant="ghost"
+                  className={`chat-item ${
+                    currentChat?.chatInfo.chat_id === chat.chat_id
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    isRenamingChat ? null : setCurrentChat(chat.chat_id)
+                  }
+                >
+                  {renderChatTitle({ chatInfo: chat })}
+                </Button>
+              ))}
           </>
         ) : (
-          renderProjectChats(currentProject.project_id)
+          <>
+            <div
+              className="list-header"
+              onClick={() => setShowActive(!showActive)}
+            >
+              <h3>Project Chats</h3>
+              <span className="toggle">{showActive ? "−" : "+"}</span>
+            </div>
+            {showActive && renderProjectChats(currentProject.project_id)}
+          </>
         )}
 
         <div

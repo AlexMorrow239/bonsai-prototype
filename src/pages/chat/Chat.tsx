@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 import { useChatStore } from "@/stores/chatStore";
 
 import "./Chat.scss";
 
 export default function Chat() {
-  const { currentChat, addMessage } = useChatStore();
+  const { currentChat, addMessage, shouldFocusInput, setShouldFocusInput } =
+    useChatStore();
   const [message, setMessage] = React.useState("");
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +35,13 @@ export default function Chat() {
     setMessage("");
   };
 
+  useEffect(() => {
+    if (shouldFocusInput && textareaRef.current) {
+      textareaRef.current.focus();
+      setShouldFocusInput(false);
+    }
+  }, [shouldFocusInput, setShouldFocusInput]);
+
   return (
     <main className="chat-main">
       {currentChat ? (
@@ -51,6 +61,7 @@ export default function Chat() {
           </div>
           <form className="chat-input" onSubmit={handleSubmit}>
             <textarea
+              ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your message..."
