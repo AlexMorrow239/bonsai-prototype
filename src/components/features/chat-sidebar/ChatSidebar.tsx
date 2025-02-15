@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import { Button } from "@/components/common/button/Button";
+import { FilterDropdown } from "@/components/common/filter-dropdown/FilterDropdown";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -22,8 +23,31 @@ export default function ChatSidebar() {
   const { projects, currentProject, setCurrentProject } = useProjectStore();
   const [showArchived, setShowArchived] = React.useState(false);
   const [showActive, setShowActive] = React.useState(true);
+  const [projectSearchValue, setProjectSearchValue] = React.useState("");
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] =
+    React.useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleProjectSelect = (projectName: string) => {
+    const project = projects.find((p) => p.name === projectName);
+    setCurrentProject(project ? project.project_id : 0);
+  };
+
+  const selectedProject = currentProject
+    ? projects.find((p) => p.project_id === currentProject.project_id)?.name ||
+      ""
+    : "";
+
+  const filteredProjects = projects
+    .map((p) => p.name)
+    .filter((name) =>
+      name.toLowerCase().includes(projectSearchValue.toLowerCase())
+    );
+
+  const unselectedProjects = filteredProjects.filter(
+    (name) => !selectedProject.includes(name)
+  );
 
   useEffect(() => {
     if (isRenamingChat && inputRef.current) {
@@ -101,20 +125,18 @@ export default function ChatSidebar() {
   return (
     <aside className="chat-sidebar">
       <div className="sidebar-header">
-        <select
-          value={currentProject?.project_id || "all"}
-          onChange={(e) => {
-            const value = e.target.value;
-            setCurrentProject(value === "all" ? 0 : Number(value));
-          }}
-        >
-          <option value="all">All Projects</option>
-          {projects.map((project) => (
-            <option key={project.project_id} value={project.project_id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
+        <FilterDropdown
+          isOpen={isProjectDropdownOpen}
+          selected={selectedProject}
+          searchValue={projectSearchValue}
+          onSearchChange={setProjectSearchValue}
+          onToggle={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+          onSelect={handleProjectSelect}
+          selectedItem={selectedProject}
+          unselectedItems={unselectedProjects}
+          placeholder="Select Project"
+          searchPlaceholder="Search projects..."
+        />
         <Button
           variant="primary"
           size="md"
