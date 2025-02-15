@@ -1,0 +1,27 @@
+@use "@/styles/abstracts" as *;
+
+.topbar {
+  height: var(--topbar-height);
+  border-bottom: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-light);
+  width: 100%;
+
+  // Base layout for default view
+  &__info {
+    @include flex(row, flex-start, center);
+    gap: var(--spacing-4);
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+  }
+
+  &__actions {
+    @include flex(row, flex-end, center);
+    gap: var(--spacing-2);
+  }
+
+  // When containing a feature-specific topbar
+  > * {
+    height: 100%;
+    width: 100%;
+  }
+}

@@ -1,14 +1,15 @@
-import type { ReactNode } from "react"
-import "./Home.scss"
+import type { ReactNode } from "react";
 
-function Home(): ReactNode {
+import "./Demo.scss";
+
+function Demo(): ReactNode {
   return (
     <div className="home">
       <section className="home__section">
         <h1 className="gradient-heading">Design System Demo</h1>
         <p>
-          Welcome to our comprehensive design system showcase. This page demonstrates our typography, colors,
-          components, and utility classes.
+          Welcome to our comprehensive design system showcase. This page
+          demonstrates our typography, colors, components, and utility classes.
         </p>
       </section>
 
@@ -22,8 +23,9 @@ function Home(): ReactNode {
         <h6>Heading 6 - Sphinx of black quartz, judge my vow</h6>
 
         <p>
-          Regular paragraph text with <strong>bold text</strong>, <em>italic text</em>, and <a href="#">linked text</a>.
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          Regular paragraph text with <strong>bold text</strong>,{" "}
+          <em>italic text</em>, and <a href="#">linked text</a>. Lorem ipsum
+          dolor sit amet, consectetur adipiscing elit.
         </p>
 
         <code>This is inline code</code>
@@ -39,9 +41,15 @@ function Home(): ReactNode {
         <h2>Components</h2>
 
         <div className="home__buttons">
-          <button className="home__button home__button--primary">Primary Button</button>
-          <button className="home__button home__button--positive">Success Button</button>
-          <button className="home__button home__button--negative">Danger Button</button>
+          <button className="home__button home__button--primary">
+            Primary Button
+          </button>
+          <button className="home__button home__button--positive">
+            Success Button
+          </button>
+          <button className="home__button home__button--negative">
+            Danger Button
+          </button>
         </div>
 
         <div className="home__grid">
@@ -71,22 +79,40 @@ function Home(): ReactNode {
       <section className="home__section">
         <h2>Colors</h2>
         <div className="home__color-grid">
-          <div className="color-box" style={{ background: "var(--color-primary)" }}>
+          <div
+            className="color-box"
+            style={{ background: "var(--color-primary)" }}
+          >
             Primary
           </div>
-          <div className="color-box" style={{ background: "var(--color-primary-light)" }}>
+          <div
+            className="color-box"
+            style={{ background: "var(--color-primary-light)" }}
+          >
             Primary Light
           </div>
-          <div className="color-box" style={{ background: "var(--color-primary-dark)" }}>
+          <div
+            className="color-box"
+            style={{ background: "var(--color-primary-dark)" }}
+          >
             Primary Dark
           </div>
-          <div className="color-box" style={{ background: "var(--color-success)" }}>
+          <div
+            className="color-box"
+            style={{ background: "var(--color-success)" }}
+          >
             Success
           </div>
-          <div className="color-box" style={{ background: "var(--color-error)" }}>
+          <div
+            className="color-box"
+            style={{ background: "var(--color-error)" }}
+          >
             Error
           </div>
-          <div className="color-box" style={{ background: "var(--color-warning)" }}>
+          <div
+            className="color-box"
+            style={{ background: "var(--color-warning)" }}
+          >
             Warning
           </div>
         </div>
@@ -95,9 +121,13 @@ function Home(): ReactNode {
       <section className="home__section">
         <h2>Gradient Backgrounds</h2>
         <div className="home__gradient-grid">
-          <div className="gradient-box gradient-box--default">Default Gradient</div>
+          <div className="gradient-box gradient-box--default">
+            Default Gradient
+          </div>
           <div className="gradient-box gradient-box--blue">Blue Gradient</div>
-          <div className="gradient-box gradient-box--purple">Purple Gradient</div>
+          <div className="gradient-box gradient-box--purple">
+            Purple Gradient
+          </div>
           <div className="gradient-box gradient-box--happy">Happy Gradient</div>
           <div className="gradient-box gradient-box--calm">Calm Gradient</div>
         </div>
@@ -129,7 +159,10 @@ function Home(): ReactNode {
             <p>This card scales up</p>
           </div>
 
-          <div className="home__emotion-card home__emotion-card--happy" role="article">
+          <div
+            className="home__emotion-card home__emotion-card--happy"
+            role="article"
+          >
             <h3>Emotional Context</h3>
             <p>Card with emotional styling</p>
           </div>
@@ -156,20 +189,24 @@ function Home(): ReactNode {
           <div className="focus-demo-group">
             <h4>Focus States</h4>
             <button className="focus-demo-button">Tab to me!</button>
-            <input type="text" className="focus-demo-input" placeholder="Click or tab to focus..." />
+            <input
+              type="text"
+              className="focus-demo-input"
+              placeholder="Click or tab to focus..."
+            />
           </div>
 
           <div className="selection-demo-group">
             <h4>Selection Effect</h4>
             <p className="selection-demo-text">
-              Try selecting this text to see the custom selection styling. The background and text colors will change to
-              match our design system.
+              Try selecting this text to see the custom selection styling. The
+              background and text colors will change to match our design system.
             </p>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default Home
+export default Demo;

@@ -1,0 +1,105 @@
+@use "@/styles/abstracts" as *;
+
+.chat-title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  outline: none;
+
+  &:focus {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.chat-sidebar {
+  width: var(--sidebar-width);
+  height: 100%;
+  border-right: 1px solid var(--color-border);
+  background-color: var(--color-background-alt);
+  @include flex(column, flex-start, stretch);
+}
+
+.sidebar-header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+
+  select {
+    @include input-base;
+    width: 100%;
+    margin-bottom: var(--spacing-3);
+  }
+
+  .new-chat-btn {
+    @include button-base;
+    width: 100%;
+  }
+}
+
+.chats-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-2);
+
+  .list-header {
+    @include flex(row, space-between, center);
+    padding: var(--spacing-2) var(--spacing-3);
+    cursor: pointer;
+
+    h3 {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    &.archived {
+      margin-top: var(--spacing-4);
+
+      .toggle {
+        font-size: var(--font-size-lg);
+        color: var(--color-text-light);
+      }
+    }
+  }
+
+  .chat-item {
+    @include button-emotion("neutral");
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+
+    &.active {
+      background: var(--color-surface-selected);
+      border-color: var(--color-primary);
+    }
+
+    &.archived {
+      opacity: 0.7;
+    }
+
+    .chat-title {
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-dark);
+      @include truncate(1);
+    }
+  }
+}
+
+.project-chats {
+  margin-bottom: var(--spacing-4);
+
+  .list-header {
+    h3 {
+      color: var(--color-primary);
+    }
+  }
+}

@@ -1,63 +1,137 @@
+@use "@/styles/abstracts" as *;
+
 .button {
   @include button-base;
+  position: relative;
+  overflow: hidden;
 
-  &--full-width {
-    width: 100%;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  // Disabled state
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    &:hover {
+      transform: none;
+    }
   }
 
   // Size variants
   &--sm {
-    height: var(--button-height-sm);
-    padding: 0 var(--spacing-3);
+    padding: var(--spacing-1) var(--spacing-3);
     font-size: var(--font-size-sm);
+    .button__icon {
+      width: 16px;
+      height: 16px;
+    }
   }
 
   &--md {
-    height: var(--button-height-base);
-    padding: 0 var(--spacing-4);
+    padding: var(--spacing-2) var(--spacing-4);
     font-size: var(--font-size-base);
+    .button__icon {
+      width: 18px;
+      height: 18px;
+    }
   }
 
   &--lg {
-    height: var(--button-height-lg);
-    padding: 0 var(--spacing-6);
+    padding: var(--spacing-3) var(--spacing-6);
     font-size: var(--font-size-lg);
+    .button__icon {
+      width: 20px;
+      height: 20px;
+    }
   }
 
-  // Style variants
+  // Variant styles
   &--primary {
-    @include button-variant(--color-primary, --color-background);
+    background-color: var(--color-primary);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-primary-dark);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-surface-active);
+    }
   }
 
   &--secondary {
-    @include button-variant(--color-accent, --color-background);
+    background-color: var(--color-surface);
+    color: var(--color-text-dark);
+    border: 1px solid var(--color-border);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-surface-hover);
+      border-color: var(--color-border-dark);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-surface-active);
+    }
   }
 
   &--outline {
     background-color: transparent;
-    border: 1px solid var(--color-primary);
     color: var(--color-primary);
-    transition: var(--transition-colors);
+    border: 2px solid currentColor;
 
     &:hover:not(:disabled) {
-      background-color: var(--color-primary);
-      color: var(--color-background);
+      background-color: var(--color-surface-selected);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-surface-active);
     }
   }
 
   &--ghost {
     background-color: transparent;
-    color: var(--color-primary);
-    transition: var(--transition-colors);
+    color: var(--color-text-dark);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-primary-transparent);
+      background-color: var(--color-surface-hover);
     }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-surface-active);
+    }
+  }
+
+  &--danger {
+    background-color: var(--color-error);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-error-dark);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-error-darker);
+    }
+  }
+
+  // Full width modifier
+  &--full-width {
+    width: 100%;
   }
 
   // Loading state
   &--loading {
-    position: relative;
     cursor: wait;
 
     .button__text {
@@ -65,25 +139,80 @@
     }
 
     .button__spinner {
-      @include position-absolute(50%, null, null, 50%);
+      position: absolute;
+      left: 50%;
+      top: 50%;
       transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
-      border: 2px solid currentColor;
-      border-radius: var(--radius-full);
-      border-right-color: transparent;
-      animation: spin 0.75s linear infinite;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-right-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
     }
   }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  // Icon handling
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-transform);
+
+    &--left {
+      margin-right: var(--spacing-2);
+    }
+
+    &--right {
+      margin-left: var(--spacing-2);
+    }
+  }
+
+  // Interactive feedback
+  &:hover:not(:disabled) {
+    .button__icon--right {
+      transform: translateX(2px);
+    }
+
+    .button__icon--left {
+      transform: translateX(-2px);
+    }
   }
 }
 
+// Loading spinner animation
 @keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
   to {
     transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+// Ripple effect for touch feedback
+.button:not(:disabled):active::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background-color: currentColor;
+  border-radius: 50%;
+  opacity: 0.2;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  from {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.2;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
   }
 }

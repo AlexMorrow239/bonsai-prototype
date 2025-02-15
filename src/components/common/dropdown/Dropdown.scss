@@ -1,0 +1,75 @@
+@use "@/styles/abstracts" as *;
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+
+  &__trigger {
+    @include button-base;
+    @include flex(row, center, center);
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--color-text-dark);
+    font-weight: var(--font-weight-medium);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    transition: var(--transition-colors);
+
+    &:hover {
+      background: var(--color-surface);
+    }
+  }
+
+  &__chevron {
+    transition: transform 0.2s ease;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    top: 100%;
+    margin-top: var(--spacing-1);
+    min-width: 160px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-md);
+    z-index: var(--z-dropdown);
+    padding: var(--spacing-1);
+
+    &--left {
+      left: 0;
+    }
+
+    &--right {
+      right: 0;
+    }
+  }
+
+  &__item {
+    @include button-reset;
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--color-text-dark);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-base);
+    transition: var(--transition-colors);
+
+    &:hover {
+      background: var(--color-background-subtle);
+    }
+
+    &--danger {
+      color: var(--color-error);
+
+      &:hover {
+        background: var(--color-error-light);
+      }
+    }
+  }
+}

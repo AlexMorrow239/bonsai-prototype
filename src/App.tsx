@@ -1,17 +1,45 @@
-import Home from '@/pages/home/Home';
-import { type ReactNode } from 'react'
+import { type ReactNode } from "react";
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import '@/styles/main.scss'
+
+import { Toast } from "@components/common/toast/Toast";
+
+import { MainLayout } from "@/components/layout/main-layout/MainLayout";
+
+import "@/styles/main.scss";
+
+import Chat from "@/pages/chat/Chat";
+import Demo from "@/pages/demo/Demo";
+import { ErrorBoundary } from "@/pages/error-boundary/ErrorBoundary";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    element: <MainLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Chat />,
+      },
+      {
+        path: "/chat",
+        element: <Chat />,
+      },
+      {
+        path: "/files",
+        element: <Demo />,
+      },
+    ],
   },
 ]);
 
 function App(): ReactNode {
-  return <RouterProvider router={router} />;
+  return (
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+      <Toast />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

@@ -6,17 +6,24 @@
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--color-background);
+  overflow-x: hidden;
+  width: 100%;
 }
 
 #root {
   width: 100%;
   margin: 0 auto;
-  padding: var(--spacing-2);
-  max-width: var(--container-width);
+  padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 img {
