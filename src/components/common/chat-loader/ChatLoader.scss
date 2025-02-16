@@ -1,0 +1,51 @@
+@use "@/styles/abstracts" as *;
+
+.chat-loading {
+  padding: var(--spacing-4);
+  margin-left: var(--spacing-4);
+  max-width: 150px;
+
+  &__content {
+    @include flex(row, flex-start, center);
+    gap: var(--spacing-1);
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--color-background-bold);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+  }
+
+  &__text {
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+  }
+
+  &__dots {
+    display: inline-flex;
+
+    span {
+      opacity: 0;
+      animation: dotFade 1.4s infinite;
+      animation-fill-mode: both;
+
+      &:nth-child(1) {
+        animation-delay: 0.2s;
+      }
+      &:nth-child(2) {
+        animation-delay: 0.4s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.6s;
+      }
+    }
+  }
+}
+
+@keyframes dotFade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+}

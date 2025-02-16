@@ -44,7 +44,14 @@ export function UploadedFiles({ chatId }: UploadedFilesProps): ReactNode {
         {files.map((file) => (
           <div key={file.file_id} className="uploaded-files__item">
             <span className="uploaded-files__filename">{file.name}</span>
-            {renderUploadStatus(file.file_id)}
+            {file.uploadStatus.status === "uploading" && (
+              <div className="uploaded-files__progress">
+                <div
+                  className="uploaded-files__progress-bar"
+                  style={{ width: `${file.uploadStatus.progress}%` }}
+                />
+              </div>
+            )}
             <button
               type="button"
               className="uploaded-files__remove"

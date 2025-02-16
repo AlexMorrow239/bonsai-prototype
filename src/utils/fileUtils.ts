@@ -1,3 +1,8 @@
+import { FILE_CONSTRAINTS } from "@/common/constants";
+
+import { isFileTypeSupported } from "@/services/geminiService";
+import { UploadedFile } from "@/types";
+
 export async function getAllFilesFromDataTransfer(
   dataTransfer: DataTransfer
 ): Promise<File[]> {
@@ -69,6 +74,63 @@ function readDirectoryEntries(
   return new Promise((resolve, reject) => {
     dirReader.readEntries(resolve, reject);
   });
+}
+
+export function validateFiles(
+  newFiles: File[],
+  existingFiles: UploadedFile[] = []
+) {
+  const totalFiles = existingFiles.length + newFiles.length;
+
+  // Check total number of files
+  if (totalFiles > FILE_CONSTRAINTS.MAX_FILES) {
+    return {
+      valid: false,
+      error: `Maximum ${FILE_CONSTRAINTS.MAX_FILES} files allowed`,
+    };
+  }
+
+  // Calculate total size including existing files
+  const existingSize = existingFiles.reduce((sum, file) => sum + file.size, 0);
+  const newSize = newFiles.reduce((sum, file) => sum + file.size, 0);
+  const totalSize = existingSize + newSize;
+
+  // Check total size
+  if (totalSize > FILE_CONSTRAINTS.MAX_TOTAL_SIZE) {
+    return {
+      valid: false,
+      error: `Total upload size cannot exceed ${formatFileSize(FILE_CONSTRAINTS.MAX_TOTAL_SIZE)}`,
+    };
+  }
+
+  // Validate each new file
+  for (const file of newFiles) {
+    // Check individual file size
+    if (file.size > FILE_CONSTRAINTS.MAX_SIZE) {
+      return {
+        valid: false,
+        error: `File ${file.name} exceeds maximum size of ${formatFileSize(FILE_CONSTRAINTS.MAX_SIZE)}`,
+      };
+    }
+
+    // Check file type
+    if (!FILE_CONSTRAINTS.ALLOWED_TYPES.includes(file.type as any)) {
+      return {
+        valid: false,
+        error: `File type ${file.type} is not supported. Allowed types: ${FILE_CONSTRAINTS.ALLOWED_TYPES.join(", ")}`,
+      };
+    }
+
+    // Additional Gemini-specific validation
+    if (!isFileTypeSupported(file.type)) {
+      return {
+        valid: false,
+        error: `File type ${file.type} is not supported by the AI model`,
+      };
+    }
+  }
+
+  return { valid: true };
 }
 
 export function formatFileSize(bytes: number): string {

@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useRef, useState } from "react";
+import { FormEvent, ReactNode, RefObject, useState } from "react";
 
 import { Send } from "lucide-react";
 
@@ -13,12 +13,16 @@ import "./ChatPrompt.scss";
 
 interface ChatPromptProps {
   chatId: number;
-  onSubmit: (message: string, files: UploadedFile[]) => void;
+  onSubmit: (message: string, files?: UploadedFile[]) => void;
+  textareaRef: RefObject<HTMLTextAreaElement>;
 }
 
-export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
+export function ChatPrompt({
+  chatId,
+  onSubmit,
+  textareaRef,
+}: ChatPromptProps): ReactNode {
   const [message, setMessage] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { getFilesByChatId, clearFiles } = useFileStore();
   const files = getFilesByChatId(chatId);
   const hasContent = message.trim().length > 0 || files.length > 0;
@@ -28,7 +32,7 @@ export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
     const trimmedMessage = message.trim();
     if (!hasContent) return;
 
-    onSubmit(trimmedMessage, files);
+    onSubmit(trimmedMessage, files.length > 0 ? files : undefined);
     setMessage("");
     clearFiles(chatId);
 
@@ -44,7 +48,15 @@ export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
     // Auto-adjust height
     const textarea = e.target;
     textarea.style.height = "44px"; // Reset height
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    const maxHeight = 200;
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as unknown as FormEvent);
+    }
   };
 
   return (
@@ -59,14 +71,9 @@ export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
             ref={textareaRef}
             value={message}
             onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             rows={1}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
           />
           <div className="actions">
             <FileUpload chatId={chatId} variant="compact" />

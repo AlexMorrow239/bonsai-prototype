@@ -4,8 +4,11 @@ import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
+import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
+import { useLoadingStore } from "@/stores/loadingStore";
+import { useUIStore } from "@/stores/uiStore";
 import { Message, UploadedFile } from "@/types";
 
 import "./Chat.scss";
@@ -14,10 +17,13 @@ export default function Chat() {
   const { currentChat, addMessage, shouldFocusInput, setShouldFocusInput } =
     useChatStore();
   const { isDragging, setDragging, handleFileDrop } = useFileStore();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
 
-  const handleMessageSubmit = (message: string, files?: UploadedFile[]) => {
+  const handleMessageSubmit = async (
+    message: string,
+    files?: UploadedFile[]
+  ) => {
     if (!currentChat) return;
 
     const hasContent = message.trim().length > 0 || (files && files.length > 0);
@@ -36,17 +42,31 @@ export default function Chat() {
 
     addMessage(currentChat.chatInfo.chat_id, userMessage);
 
-    // Simulate AI response
-    setTimeout(() => {
+    const { setLoading } = useLoadingStore.getState();
+    const { addToast } = useUIStore.getState();
+
+    try {
+      setLoading(true);
+
+      // Generate AI response with files
+      const aiContent = await generateGeminiResponse(message.trim(), files);
+
       const aiResponse: Message = {
         message_id: newMessageId + 1,
-        content:
-          "This is a simulated AI response. The actual AI integration will be implemented later.",
+        content: aiContent,
         created_at: new Date().toISOString(),
         is_ai_response: true,
       };
+
       addMessage(currentChat.chatInfo.chat_id, aiResponse);
-    }, 1000);
+    } catch (error) {
+      addToast({
+        type: "error",
+        message: "Failed to generate AI response",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
@@ -117,6 +137,7 @@ export default function Chat() {
           <ChatPrompt
             chatId={currentChat.chatInfo.chat_id}
             onSubmit={handleMessageSubmit}
+            textareaRef={textareaRef}
           />
           <FileUpload
             chatId={currentChat.chatInfo.chat_id}

@@ -4,8 +4,7 @@
   position: relative;
   height: 60px;
   padding: 0 var(--spacing-4);
-  border-bottom: 1px solid var(--color-border);
-  @include glass-effect("light");
+  background-color: var(--color-background);
   @include flex(row, space-between, center);
 
   .dropdown-section {
@@ -24,8 +23,6 @@
       color: var(--color-text-dark);
       font-weight: var(--font-weight-medium);
       background: transparent;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-base);
       transition: var(--transition-colors);
 
       &:hover {
@@ -41,8 +38,6 @@
       margin-top: var(--spacing-1);
       min-width: 160px;
       background: var(--color-background);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-base);
       box-shadow: var(--shadow-md);
       z-index: var(--z-dropdown);
     }

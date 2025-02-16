@@ -11,6 +11,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   fullWidth?: boolean;
+  isIconButton?: boolean;
 }
 
 export function Button({
@@ -21,6 +22,7 @@ export function Button({
   leftIcon,
   rightIcon,
   fullWidth = false,
+  isIconButton = false,
   className,
   disabled,
   type = "button",
@@ -36,6 +38,7 @@ export function Button({
         {
           "button--loading": isLoading,
           "button--full-width": fullWidth,
+          "button--icon": isIconButton,
         },
         className
       )}

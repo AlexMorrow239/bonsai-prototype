@@ -56,6 +56,24 @@
     }
   }
 
+  // Icon button modifier
+  &--icon {
+    aspect-ratio: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .button__icon {
+      margin: 0;
+    }
+
+    &:hover:not(:disabled) {
+      .button__icon {
+        transform: none;
+      }
+    }
+  }
+
   // Variant styles
   &--primary {
     background-color: var(--color-primary);

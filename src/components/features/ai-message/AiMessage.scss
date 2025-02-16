@@ -1,0 +1,46 @@
+@use "@/styles/abstracts" as *;
+
+.message.ai {
+  align-self: flex-start;
+  max-width: 80%;
+  margin-left: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-xl);
+  position: relative;
+
+  .message-icon {
+    position: absolute;
+    left: var(--spacing-4);
+    top: var(--spacing-5);
+    color: var(--color-text-light);
+  }
+
+  .message-content {
+    margin-left: var(--spacing-6);
+    white-space: pre-wrap;
+    color: var(--color-text);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .message-timestamp {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    margin-top: var(--spacing-2);
+    margin-left: var(--spacing-5);
+  }
+
+  .message-file {
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+
+    &:hover {
+      background-color: var(--color-surface);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .message {
+    max-width: 90%;
+  }
+}

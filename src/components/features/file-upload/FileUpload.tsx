@@ -2,6 +2,8 @@ import React, { useRef } from "react";
 
 import { Upload } from "lucide-react";
 
+import { Button } from "@/components/common/button/Button";
+
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
 import { FILE_CONSTRAINTS, validateFiles } from "@/utils/fileValidation";
@@ -79,14 +81,15 @@ export function FileUpload({
         className="file-upload__input"
       />
       {variant === "compact" ? (
-        <button
-          type="button"
-          className="file-upload__button"
+        <Button
+          variant="ghost"
+          size="sm"
+          isIconButton
           onClick={() => fileInputRef.current?.click()}
           title={`Upload files (max ${maxFiles})`}
         >
           <Upload size={16} />
-        </button>
+        </Button>
       ) : (
         <div
           className="file-upload__dropzone"
