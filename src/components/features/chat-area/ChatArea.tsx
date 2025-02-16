@@ -4,7 +4,7 @@ import { ChatLoadingIndicator } from "@/components/common/chat-loader/ChatLoader
 import { AIMessage } from "@/components/features/ai-message/AiMessage";
 import { UserMessage } from "@/components/features/user-message/UserMessage";
 
-import { useLoadingStore } from "@/stores/loadingStore";
+import { useChatStore } from "@/stores/chatStore";
 import { Message } from "@/types";
 
 import "./ChatArea.scss";
@@ -14,7 +14,7 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ messages }: ChatAreaProps): React.ReactNode {
-  const { isLoading } = useLoadingStore();
+  const { isResponseLoading } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -23,7 +23,7 @@ export function ChatArea({ messages }: ChatAreaProps): React.ReactNode {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isResponseLoading]);
 
   return (
     <div className="chat-messages">
@@ -34,7 +34,7 @@ export function ChatArea({ messages }: ChatAreaProps): React.ReactNode {
           <UserMessage key={message.message_id} message={message} />
         )
       )}
-      {isLoading && <ChatLoadingIndicator />}
+      {isResponseLoading && <ChatLoadingIndicator />}
       <div ref={messagesEndRef} />
     </div>
   );

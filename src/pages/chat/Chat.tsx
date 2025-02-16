@@ -7,7 +7,6 @@ import { FileUpload } from "@/components/features/file-upload/FileUpload";
 import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
-import { useLoadingStore } from "@/stores/loadingStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Message, UploadedFile } from "@/types";
 
@@ -16,6 +15,7 @@ import "./Chat.scss";
 export default function Chat() {
   const { currentChat, addMessage, shouldFocusInput, setShouldFocusInput } =
     useChatStore();
+  const { addToast } = useUIStore();
   const { isDragging, setDragging, handleFileDrop } = useFileStore();
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
@@ -42,11 +42,10 @@ export default function Chat() {
 
     addMessage(currentChat.chatInfo.chat_id, userMessage);
 
-    const { setLoading } = useLoadingStore.getState();
-    const { addToast } = useUIStore.getState();
+    const { setResponseLoading } = useChatStore.getState();
 
     try {
-      setLoading(true);
+      setResponseLoading(true);
 
       // Generate AI response with files
       const aiContent = await generateGeminiResponse(message.trim(), files);
@@ -65,7 +64,7 @@ export default function Chat() {
         message: "Failed to generate AI response",
       });
     } finally {
-      setLoading(false);
+      setResponseLoading(false);
     }
   };
 

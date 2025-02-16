@@ -27,11 +27,13 @@ interface ChatState {
   updateChatTitle: (chatId: number, newTitle: string) => void;
   shouldFocusInput: boolean;
   setShouldFocusInput: (value: boolean) => void;
+  isResponseLoading: boolean;
 
   // Helper functions
   getChatById: (chatId: number) => Chat | undefined;
   getChatsByProject: (projectId: number) => Chat[];
   getLastMessage: (chatId: number) => Message | undefined;
+  setResponseLoading: (loading: boolean) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -44,8 +46,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     chatInfo: chat.chatInfo,
     messages: chat.messages,
   })),
+  isResponseLoading: false,
   shouldFocusInput: false,
   setShouldFocusInput: (value) => set({ shouldFocusInput: value }),
+  setResponseLoading: (loading) => set({ isResponseLoading: loading }),
 
   // Actions
   setCurrentChat: (chatId) => {

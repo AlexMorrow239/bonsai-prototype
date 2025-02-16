@@ -1,7 +1,21 @@
 export interface FileUploadStatus {
+  // Basic status
+  status: "idle" | "uploading" | "completed" | "error";
   progress: number;
   error?: string;
-  status: "idle" | "uploading" | "completed" | "error";
+
+  // Size metrics
+  totalSize?: number; // Total file size in bytes
+  uploadedSize?: number; // Bytes uploaded so far
+
+  // Speed metrics
+  uploadSpeed?: number; // Bytes per second
+  remainingTime?: number; // Milliseconds remaining
+
+  // Timestamps
+  startTime?: number;
+  completedAt?: number;
+  failedAt?: number;
 }
 
 export interface UploadedFile {
