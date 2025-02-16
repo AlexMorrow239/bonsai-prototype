@@ -1,3 +1,5 @@
+import { UploadedFile } from "@/types";
+
 export interface Chat {
   chatInfo: ChatInfo;
   messages: Message[];
@@ -15,6 +17,7 @@ export interface Message {
   content: string;
   created_at: string;
   is_ai_response: boolean;
+  files?: UploadedFile[];
 }
 
 export interface ChatListItem {

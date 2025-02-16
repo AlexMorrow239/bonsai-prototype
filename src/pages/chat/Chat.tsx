@@ -6,6 +6,7 @@ import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
+import { Message, UploadedFile } from "@/types";
 
 import "./Chat.scss";
 
@@ -16,24 +17,35 @@ export default function Chat() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dragCounter = useRef(0);
 
-  const handleMessageSubmit = (message: string) => {
-    if (!message.trim() || !currentChat) return;
+  const handleMessageSubmit = (message: string, files?: UploadedFile[]) => {
+    if (!currentChat) return;
 
-    // Add user message
-    addMessage(currentChat.chatInfo.chat_id, {
+    const hasContent = message.trim().length > 0 || (files && files.length > 0);
+    if (!hasContent) return;
+
+    const newMessageId =
+      Math.max(0, ...currentChat.messages.map((m) => m.message_id)) + 1;
+
+    const userMessage: Message = {
+      message_id: newMessageId,
       content: message.trim(),
       created_at: new Date().toISOString(),
       is_ai_response: false,
-    });
+      files,
+    };
+
+    addMessage(currentChat.chatInfo.chat_id, userMessage);
 
     // Simulate AI response
     setTimeout(() => {
-      addMessage(currentChat.chatInfo.chat_id, {
+      const aiResponse: Message = {
+        message_id: newMessageId + 1,
         content:
           "This is a simulated AI response. The actual AI integration will be implemented later.",
         created_at: new Date().toISOString(),
         is_ai_response: true,
-      });
+      };
+      addMessage(currentChat.chatInfo.chat_id, aiResponse);
     }, 1000);
   };
 

@@ -7,27 +7,35 @@ import { FileUpload } from "@/components/features/file-upload/FileUpload";
 import { UploadedFiles } from "@/components/features/uploaded-files/UploadedFiles";
 
 import { useFileStore } from "@/stores/fileStore";
+import { UploadedFile } from "@/types";
 
 import "./ChatPrompt.scss";
 
 interface ChatPromptProps {
   chatId: number;
-  onSubmit: (message: string) => void;
+  onSubmit: (message: string, files: UploadedFile[]) => void;
 }
 
 export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { getFilesByChatId } = useFileStore();
-  const hasFiles = getFilesByChatId(chatId).length > 0;
+  const { getFilesByChatId, clearFiles } = useFileStore();
+  const files = getFilesByChatId(chatId);
+  const hasContent = message.trim().length > 0 || files.length > 0;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmedMessage = message.trim();
-    if (!trimmedMessage) return;
+    if (!hasContent) return;
 
-    onSubmit(trimmedMessage);
+    onSubmit(trimmedMessage, files);
     setMessage("");
+    clearFiles(chatId);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "44px";
+    }
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -40,7 +48,9 @@ export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
   };
 
   return (
-    <div className={`chat-prompt-wrapper ${hasFiles ? "has-files" : ""}`}>
+    <div
+      className={`chat-prompt-wrapper ${files.length > 0 ? "has-files" : ""}`}
+    >
       <UploadedFiles chatId={chatId} />
 
       <form className="chat-prompt" onSubmit={handleSubmit}>
@@ -63,7 +73,7 @@ export function ChatPrompt({ chatId, onSubmit }: ChatPromptProps): ReactNode {
             <Button
               className="send-button"
               type="submit"
-              disabled={!message.trim()}
+              disabled={!hasContent}
               size="md"
               variant="primary"
               rightIcon={<Send size={18} />}
