@@ -1,12 +1,14 @@
 import { useState } from "react";
 
-import { Plus } from "lucide-react";
+import { Moon, Plus, Sun } from "lucide-react";
 
 import { ActionModal } from "@/components/common/action-modal/ActionModal";
+import { Button } from "@/components/common/button/Button";
 import { Dropdown } from "@/components/common/dropdown/Dropdown";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
+import { useThemeStore } from "@/stores/themeStore";
 import { useUIStore } from "@/stores/uiStore";
 
 import "./ChatTopbar.scss";
@@ -21,6 +23,7 @@ export default function ChatTopbar() {
   } = useChatStore();
   const { currentProject, deleteProject } = useProjectStore();
   const { addToast } = useUIStore();
+  const { theme, toggleTheme } = useThemeStore();
 
   const [isDeleteChatModalOpen, setIsDeleteChatModalOpen] = useState(false);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] =
@@ -66,49 +69,71 @@ export default function ChatTopbar() {
       <div className="dropdown-section">
         {currentChat && (
           <Dropdown trigger="Edit Chat">
-            <button
-              className="dropdown__item"
+            <Button
+              variant="ghost"
+              fullWidth
               onClick={() =>
                 currentChat && setIsRenamingChat(currentChat.chatInfo.chat_id)
               }
             >
               Rename
-            </button>
-            <button
-              className="dropdown__item"
+            </Button>
+            <Button
+              variant="ghost"
+              fullWidth
               onClick={() => setIsArchiveModalOpen(true)}
             >
               {currentChat.chatInfo.is_active ? "Archive" : "Unarchive"}
-            </button>
-            <button
-              className="dropdown__item dropdown__item--danger"
+            </Button>
+            <Button
+              variant="ghost"
+              fullWidth
+              className="dropdown__item--danger"
               onClick={() => setIsDeleteChatModalOpen(true)}
             >
               Delete
-            </button>
+            </Button>
           </Dropdown>
         )}
 
         {currentProject && (
           <Dropdown trigger="Edit Project">
-            <button className="dropdown__item">Rename Project</button>
-            <button
-              className="dropdown__item dropdown__item--danger"
+            <Button variant="ghost" fullWidth>
+              Rename
+            </Button>
+            <Button
+              variant="ghost"
+              fullWidth
+              className="dropdown__item--danger"
               onClick={() => setIsDeleteProjectModalOpen(true)}
             >
-              Delete Project
-            </button>
+              Delete
+            </Button>
           </Dropdown>
         )}
       </div>
 
-      <button
-        className="new-chat-button"
-        title="Start new chat"
-        onClick={handleNewChat}
-      >
-        <Plus size={20} />
-      </button>
+      <div className="topbar-actions">
+        <Button
+          variant="ghost"
+          size="sm"
+          isIconButton
+          title={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+          onClick={toggleTheme}
+        >
+          {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+        </Button>
+
+        <Button
+          variant="primary"
+          size="sm"
+          isIconButton
+          title="Start new chat"
+          onClick={handleNewChat}
+        >
+          <Plus size={20} />
+        </Button>
+      </div>
 
       <ActionModal
         isOpen={isDeleteChatModalOpen}

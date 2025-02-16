@@ -27,9 +27,10 @@ $color-warning-300: #fde68a;
 $color-warning-500: #f59e0b;
 $color-warning-700: #b45309;
 
-$color-error-300: #fca5a5;
-$color-error-500: #ef4444;
-$color-error-700: #b91c1c;
+$color-error-300: #ef4444;
+$color-error-400: #cc1d2b;
+$color-error-500: #a90014;
+$color-error-600: #860000;
 
 $color-info-300: #93c5fd;
 $color-info-500: #3b82f6;
@@ -72,8 +73,13 @@ $color-info-700: #1d4ed8;
   --color-success-dark: #{$color-success-700};
 
   --color-error: #{$color-error-500};
-  --color-error-light: #{$color-error-300};
-  --color-error-dark: #{$color-error-700};
+  --color-error-text: #{$color-error-300};
+  --color-error-hover: #{$color-error-400};
+  --color-error-active: #{$color-error-500};
+  --color-error-disabled: #{$color-error-600};
+  --color-error-soft: #{color.adjust($color-error-300, $alpha: -0.9)};
+  --color-error-muted: #{color.adjust($color-error-500, $alpha: -0.7)};
+  --color-error-subtle: #{color.adjust($color-error-500, $alpha: -0.9)};
 
   --color-warning: #{$color-warning-500};
   --color-warning-light: #{$color-warning-300};
@@ -195,4 +201,47 @@ $color-info-700: #1d4ed8;
   --sidebar-width: 280px;
   --topbar-height: 60px;
   --container-width: 1440px;
+}
+
+/* Light theme colors */
+:root[data-theme="light"] {
+  /* Brand Colors - keeping these consistent across themes */
+  --color-primary-light: #{$color-primary-300};
+  --color-primary: #{$color-primary-500};
+  --color-primary-dark: #{$color-primary-600};
+
+  /* Status Colors */
+  --color-error: #{$color-error-400};
+  --color-error-text: #{$color-error-500};
+  --color-error-hover: #{$color-error-500};
+  --color-error-active: #{$color-error-600};
+  --color-error-disabled: #{color.adjust($color-error-400, $saturation: -30%)};
+  --color-error-soft: #{color.adjust($color-error-300, $alpha: -0.8)};
+  --color-error-muted: #{color.adjust($color-error-300, $alpha: -0.6)};
+  --color-error-subtle: #{color.adjust($color-error-300, $alpha: -0.9)};
+
+  /* Background System */
+  --color-background: #{$color-gray-50};
+  --color-background-alt: #{$color-gray-100};
+  --color-background-subtle: #{color.adjust($color-primary-300, $alpha: -0.95)};
+  --color-background-bold: #{color.adjust($color-primary-600, $alpha: -0.9)};
+
+  /* Surface Colors */
+  --color-surface: #{$color-gray-100};
+  --color-surface-hover: #{$color-gray-200};
+  --color-surface-active: #{$color-gray-300};
+  --color-surface-selected: #{color.adjust($color-primary-500, $alpha: -0.9)};
+
+  /* Text Colors */
+  --color-text: #{$color-gray-900};
+  --color-text-dark: #{$color-gray-800};
+  --color-text-light: #{$color-gray-700};
+  --color-text-lighter: #{$color-gray-600};
+  --color-text-primary: #{$color-primary-500};
+
+  /* Border Colors */
+  --color-border: #{$color-gray-200};
+  --color-border-light: #{$color-gray-100};
+  --color-border-dark: #{$color-gray-300};
+  --color-border-focus: #{color.adjust($color-primary-500, $alpha: -0.5)};
 }

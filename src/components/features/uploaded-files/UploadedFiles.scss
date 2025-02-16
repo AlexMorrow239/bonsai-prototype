@@ -222,7 +222,7 @@
 }
 
 // Media queries
-@media (max-width: 768px) {
+@include respond-to("md") {
   .uploaded-files {
     margin: 0 var(--spacing-4);
 
@@ -242,7 +242,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@include respond-to("sm") {
   .uploaded-files {
     &__filename {
       max-width: 100px;

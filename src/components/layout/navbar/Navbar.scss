@@ -168,7 +168,7 @@
   }
 
   /* Mobile Responsive Styles */
-  @media (max-width: 767px) {
+  @include respond-to("md") {
     &__menu-toggle {
       display: flex;
     }

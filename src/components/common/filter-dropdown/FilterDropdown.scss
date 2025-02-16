@@ -10,7 +10,7 @@
   user-select: none;
   font-size: var(--font-size-sm);
 
-  @media (min-width: 768px) {
+  @include respond-to("md") {
     font-size: var(--font-size-base);
   }
 
@@ -49,13 +49,13 @@
     display: flex;
     flex-direction: column;
 
-    @media (max-width: 639px) {
-      position: fixed;
-      top: 50%;
-      left: var(--spacing-4);
-      right: var(--spacing-4);
-      transform: translateY(-50%);
-      max-height: 80vh;
+    @include respond-to("sm") {
+      position: static;
+      top: calc(100% + var(--spacing-1));
+      left: 0;
+      right: 0;
+      transform: none;
+      max-height: 300px;
     }
   }
 
@@ -93,8 +93,8 @@
     padding: var(--spacing-1);
     max-height: 240px;
 
-    @media (max-width: 639px) {
-      max-height: calc(80vh - 120px);
+    @include respond-to("sm") {
+      max-height: 240px;
     }
 
     &::-webkit-scrollbar {

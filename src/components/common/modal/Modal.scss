@@ -96,7 +96,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@include respond-to("sm") {
   .modal {
     &__header,
     &__content,

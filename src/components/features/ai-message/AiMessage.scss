@@ -39,7 +39,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@include respond-to("md") {
   .message {
     max-width: 90%;
   }

@@ -63,7 +63,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@include respond-to("md") {
   .message-file {
     padding: var(--spacing-2);
 

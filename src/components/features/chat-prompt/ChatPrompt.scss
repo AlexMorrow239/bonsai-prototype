@@ -80,7 +80,7 @@
   transition: all 0.2s ease;
 }
 
-@media (max-width: 768px) {
+@include respond-to("md") {
   .chat-prompt-wrapper {
     margin: 0 var(--spacing-4);
   }

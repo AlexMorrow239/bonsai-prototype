@@ -1,11 +1,6 @@
 @use "sass:color";
 @use "./variables";
 
-@function color-mix($color1, $color2, $weight: 0.5) {
-  $result: color.mix($color1, $color2, $weight * 100%);
-  @return $result;
-}
-
 /* Emotion-based color overlay */
 @mixin emotion-overlay($base-color, $emotion: "neutral") {
   @if $emotion == "happy" {
@@ -181,13 +176,13 @@
     background-color: var(--color-error);
     color: white;
     &:hover {
-      background-color: var(--color-error-dark);
+      background-color: var(--color-error-hover);
     }
   } @else {
     background-color: var(--color-primary);
     color: white;
     &:hover {
-      background-color: var(--color-primary-dark);
+      background-color: var(--color-primary-hover);
     }
   }
 }

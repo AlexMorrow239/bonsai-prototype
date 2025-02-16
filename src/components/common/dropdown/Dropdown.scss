@@ -48,10 +48,10 @@
     }
 
     &--danger {
-      color: var(--color-error);
+      color: var(--color-error-text);
 
       &:hover {
-        background: var(--color-error-light);
+        background: var(--color-error-hover);
       }
     }
   }

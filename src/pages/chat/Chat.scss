@@ -63,7 +63,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@include respond-to("md") {
   .file-upload-overlay {
     padding: 0 var(--spacing-2);
   }

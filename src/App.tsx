@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -11,6 +11,7 @@ import "@/styles/main.scss";
 import Chat from "@/pages/chat/Chat";
 import Demo from "@/pages/demo/Demo";
 import { ErrorBoundary } from "@/pages/error-boundary/ErrorBoundary";
+import { useThemeStore } from "@/stores/themeStore";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,13 @@ const router = createBrowserRouter([
 ]);
 
 function App(): ReactNode {
+  const { theme } = useThemeStore();
+
+  useEffect(() => {
+    // Set initial theme
+    document.documentElement.setAttribute("data-theme", theme);
+  }, []);
+
   return (
     <ErrorBoundary>
       <RouterProvider router={router} />
