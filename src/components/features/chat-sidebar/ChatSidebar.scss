@@ -74,6 +74,7 @@
     min-height: 48px;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
 
     &.active {
       background: var(--color-surface-selected);
@@ -85,9 +86,14 @@
     }
 
     .chat-title {
+      font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
       color: var(--color-text-dark);
-      @include truncate(1);
+      @include truncate();
+      & {
+        width: 100%;
+        min-width: 0;
+      }
     }
   }
 }

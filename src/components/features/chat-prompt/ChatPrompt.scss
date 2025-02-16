@@ -1,0 +1,103 @@
+.chat-prompt-wrapper {
+  position: relative;
+  margin: 0 var(--spacing-12) 0 var(--spacing-4);
+
+  &.has-files {
+    .chat-prompt {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom: none;
+    }
+  }
+}
+
+.chat-prompt {
+  padding: var(--spacing-4);
+  background-color: var(--color-background-bold);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.05);
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+
+  .input-row {
+    @include flex(row, space-between, flex-end);
+    gap: var(--spacing-2);
+    position: relative;
+    border: none;
+    padding: var(--spacing-2);
+    transition: var(--transition-all);
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 44px;
+      max-height: 200px;
+      padding: var(--spacing-2) var(--spacing-3);
+      border: none;
+      background: none;
+      font-family: var(--font-primary);
+      font-size: var(--font-size-base);
+      line-height: var(--line-height-relaxed);
+      outline: none;
+      box-shadow: none;
+
+      &::placeholder {
+        color: var(--color-text-lighter);
+      }
+    }
+
+    .actions {
+      @include flex(row, flex-end, center);
+      gap: var(--spacing-3);
+      padding-left: var(--spacing-3);
+      padding-right: var(--spacing-1);
+      border-left: 1px solid var(--color-border);
+      height: 44px;
+      align-self: flex-start;
+
+      &:hover {
+        border-left-color: var(--color-border-hover);
+      }
+    }
+
+    .send-button {
+      min-width: 90px;
+      transition: opacity 0.2s ease;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.uploaded-files {
+  margin-top: -1px;
+  border-top: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .chat-prompt-wrapper {
+    margin: 0 var(--spacing-4);
+  }
+
+  .chat-prompt {
+    padding: var(--spacing-3);
+
+    .input-row {
+      padding: var(--spacing-1);
+
+      .actions {
+        padding-left: var(--spacing-2);
+        gap: var(--spacing-2);
+      }
+
+      .send-button {
+        min-width: 70px;
+      }
+    }
+  }
+}
