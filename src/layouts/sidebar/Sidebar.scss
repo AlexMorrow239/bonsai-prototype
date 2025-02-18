@@ -3,30 +3,95 @@
 .sidebar {
   height: 100%;
   @include flex(column, flex-start, stretch);
+  position: relative;
+  width: var(--sidebar-collapsed-width);
+  transition: width var(--sidebar-transition);
+  background-color: var(--color-background-alt);
+  overflow: hidden;
 
   &__header {
-    @include flex(row, space-between, center);
-    height: var(--topbar-height);
+    @include flex(row, flex-start, center);
+    height: var(--sidebar-header-height);
     padding: var(--spacing-4);
-    border-bottom: 1px solid var(--color-border-light);
+    gap: var(--spacing-2);
     flex-shrink: 0;
   }
 
-  &__content {
-    flex: 1;
-    overflow-y: auto;
-  }
+  &__toggle,
+  &__pin {
+    max-width: 32px;
+    max-height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 8px;
+    border-radius: 50%;
+    background-color: var(--color-background);
+    @include flex(row, center, center);
 
-  &__section {
-    padding: var(--spacing-4);
+    &:hover {
+      background-color: var(--color-background-bold);
+    }
 
-    & + & {
-      border-top: 1px solid var(--color-border-light);
+    &.is-pinned::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border: 2px solid var(--color-primary);
+      border-radius: inherit;
+      opacity: 0.5;
     }
   }
 
-  &__nav {
-    @include flex(column, flex-start, stretch);
-    height: 100%;
+  &__toggle-chevron {
+    transition: transform var(--sidebar-transition);
+  }
+
+  &__content {
+    position: absolute;
+    top: var(--sidebar-header-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background-color: var(--color-background-alt);
+    overflow-y: auto;
+    transition:
+      transform var(--sidebar-transition),
+      visibility var(--sidebar-transition);
+  }
+
+  // Collapsed state
+  &.collapsed {
+    width: var(--sidebar-collapsed-width);
+
+    .sidebar__content {
+      transform: translateX(-100%);
+      visibility: hidden;
+    }
+
+    .sidebar__pin {
+      display: none;
+    }
+
+    .sidebar__toggle-chevron {
+      transform: rotate(0deg);
+    }
+  }
+
+  // Expanded state
+  &.expanded {
+    width: var(--sidebar-width);
+
+    .sidebar__content {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .sidebar__pin {
+      display: flex;
+    }
+
+    .sidebar__toggle-chevron {
+      transform: rotate(180deg);
+    }
   }
 }

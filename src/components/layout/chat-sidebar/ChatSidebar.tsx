@@ -115,8 +115,8 @@ export default function ChatSidebar() {
   };
 
   return (
-    <aside className="chat-sidebar">
-      <div className="sidebar-header">
+    <div className="chat-sidebar">
+      <div className="chat-sidebar__controls">
         <FilterDropdown
           isOpen={isProjectDropdownOpen}
           selected={selectedProject}
@@ -138,7 +138,7 @@ export default function ChatSidebar() {
         </Button>
       </div>
 
-      <div className="chats-list">
+      <div className="chat-sidebar__list">
         {!currentProject ? (
           <ChatSection
             title="Active Chats"
@@ -170,6 +170,6 @@ export default function ChatSidebar() {
           isArchived
         />
       </div>
-    </aside>
+    </div>
   );
 }
