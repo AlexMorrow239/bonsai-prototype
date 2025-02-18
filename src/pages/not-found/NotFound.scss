@@ -10,11 +10,7 @@
     position: relative;
     width: 100%;
     padding: var(--spacing-20) 0;
-    background: linear-gradient(
-      135deg,
-      var(--color-primary-dark) 0%,
-      var(--color-primary) 100%
-    );
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
     overflow: hidden;
 
     &::after {
@@ -24,12 +20,7 @@
       left: 0;
       width: 200%;
       height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-      );
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
       animation: shine 3s infinite;
       transform-origin: 0 0;
     }
@@ -40,7 +31,7 @@
     margin: 0 auto;
     padding: 0 var(--spacing-6);
     position: relative;
-    z-index: 1;
+    z-index: var(--z-10);
   }
 
   .hero-content {

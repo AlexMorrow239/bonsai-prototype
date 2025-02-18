@@ -197,7 +197,16 @@ $color-info-700: #1d4ed8;
   --z-30: 30;
   --z-40: 40;
   --z-50: 50;
-  --z-auto: auto;
+
+  /* Component-specific z-indices */
+  --z-navbar: 100;
+  --z-dropdown: 200;
+  --z-toast: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+
+  /* Special cases */
+  --z-auto: auto; /* Reset stacking context */
 
   /* Layout Dimensions */
   --sidebar-width: 280px;
