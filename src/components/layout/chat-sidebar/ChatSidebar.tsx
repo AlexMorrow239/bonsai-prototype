@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 
 import { Button } from "@/components/common/button/Button";
 import { FilterDropdown } from "@/components/common/filter-dropdown/FilterDropdown";
+import { ChatSection } from "@/components/layout/chat-sidebar/chat-section/ChatSection";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -98,27 +99,18 @@ export default function ChatSidebar() {
     const projectChats = getChatsByProject(projectId).filter(
       (chat) => chat.chatInfo.is_active
     );
-    if (projectChats.length === 0) return null;
 
     return (
-      <div className="project-chats" key={projectId}>
-        {showActive &&
-          projectChats.map((chat) => (
-            <button
-              key={chat.chatInfo.chat_id}
-              className={`chat-item ${
-                currentChat?.chatInfo.chat_id === chat.chatInfo.chat_id
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() =>
-                isRenamingChat ? null : setCurrentChat(chat.chatInfo.chat_id)
-              }
-            >
-              {renderChatTitle(chat)}
-            </button>
-          ))}
-      </div>
+      <ChatSection
+        title="Project Chats"
+        chats={projectChats.map((chat) => chat.chatInfo)}
+        isExpanded={showActive}
+        onToggleExpand={() => setShowActive(!showActive)}
+        currentChatId={currentChat?.chatInfo.chat_id}
+        isRenamingChat={isRenamingChat}
+        onChatSelect={setCurrentChat}
+        renderChatTitle={renderChatTitle}
+      />
     );
   };
 
@@ -148,63 +140,35 @@ export default function ChatSidebar() {
 
       <div className="chats-list">
         {!currentProject ? (
-          <>
-            <div className="list-header">
-              <h3>Active Chats</h3>
-            </div>
-            {showActive &&
-              activeChats.map((chat) => (
-                <Button
-                  key={chat.chat_id}
-                  variant="ghost"
-                  className={`chat-item ${
-                    currentChat?.chatInfo.chat_id === chat.chat_id
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    isRenamingChat ? null : setCurrentChat(chat.chat_id)
-                  }
-                >
-                  {renderChatTitle({ chatInfo: chat })}
-                </Button>
-              ))}
-          </>
+          <ChatSection
+            title="Active Chats"
+            chats={activeChats}
+            isExpanded={showActive}
+            onToggleExpand={() => setShowActive(!showActive)}
+            currentChatId={currentChat?.chatInfo.chat_id}
+            isRenamingChat={isRenamingChat}
+            onChatSelect={setCurrentChat}
+            renderChatTitle={(chat) =>
+              renderChatTitle({ chatInfo: chat.chatInfo })
+            }
+          />
         ) : (
-          <>
-            <div
-              className="list-header"
-              onClick={() => setShowActive(!showActive)}
-            >
-              <h3>Project Chats</h3>
-              <span className="toggle">{showActive ? "−" : "+"}</span>
-            </div>
-            {showActive && renderProjectChats(currentProject.project_id)}
-          </>
+          renderProjectChats(currentProject.project_id)
         )}
 
-        <div
-          className="list-header archived"
-          onClick={() => setShowArchived(!showArchived)}
-        >
-          <h3>Archived Chats</h3>
-          <span className="toggle">{showArchived ? "−" : "+"}</span>
-        </div>
-        {showArchived &&
-          archivedChats.map((chat) => (
-            <Button
-              key={chat.chat_id}
-              variant="ghost"
-              className={`chat-item archived ${
-                currentChat?.chatInfo.chat_id === chat.chat_id ? "active" : ""
-              }`}
-              onClick={() =>
-                isRenamingChat ? null : setCurrentChat(chat.chat_id)
-              }
-            >
-              {renderChatTitle({ chatInfo: chat })}
-            </Button>
-          ))}
+        <ChatSection
+          title="Archived Chats"
+          chats={archivedChats}
+          isExpanded={showArchived}
+          onToggleExpand={() => setShowArchived(!showArchived)}
+          currentChatId={currentChat?.chatInfo.chat_id}
+          isRenamingChat={isRenamingChat}
+          onChatSelect={setCurrentChat}
+          renderChatTitle={(chat) =>
+            renderChatTitle({ chatInfo: chat.chatInfo })
+          }
+          isArchived
+        />
       </div>
     </aside>
   );

@@ -2,9 +2,9 @@ import { ReactElement } from "react";
 
 import { Outlet } from "react-router-dom";
 
-import { Sidebar } from "../sidebar/Sidebar";
-import { Topbar } from "../topbar/Topbar";
 import "./MainLayout.scss";
+import { Sidebar } from "./sidebar/Sidebar";
+import { Topbar } from "./topbar/Topbar";
 
 export const MainLayout = (): ReactElement => {
   return (

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { MessageFiles } from "@/components/features/message-files/MessageFiles";
+import { MessageFiles } from "@/components/features/chat-area/message-files/MessageFiles";
 
 import { Message } from "@/types";
 

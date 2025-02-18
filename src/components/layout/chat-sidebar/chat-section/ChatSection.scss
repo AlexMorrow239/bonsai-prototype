@@ -1,0 +1,75 @@
+@use "@/styles/abstracts" as *;
+
+.list-header {
+  @include flex(row, space-between, center);
+  padding: var(--spacing-2) var(--spacing-3);
+  cursor: pointer;
+
+  h3 {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .toggle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-light);
+    margin-top: -22px;
+  }
+
+  &.archived {
+    margin-top: var(--spacing-4);
+  }
+}
+
+.chat-item {
+  width: 100%;
+  text-align: left;
+  padding: var(--spacing-3);
+  margin-bottom: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  &.active {
+    background: var(--color-surface-selected);
+    border-color: var(--color-primary);
+  }
+
+  &.archived {
+    opacity: 0.7;
+  }
+
+  .chat-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-dark);
+    @include truncate();
+    & {
+      width: 100%;
+      min-width: 0;
+      line-height: 1.2;
+    }
+  }
+
+  &:hover {
+    background-color: var(--color-backround-bold);
+  }
+}
+
+.chat-title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  outline: none;
+
+  &:focus {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}

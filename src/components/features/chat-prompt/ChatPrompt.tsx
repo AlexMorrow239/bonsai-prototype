@@ -3,8 +3,8 @@ import { FormEvent, ReactNode, RefObject, useState } from "react";
 import { Send } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
-import { FileUpload } from "@/components/features/file-upload/FileUpload";
-import { UploadedFiles } from "@/components/features/uploaded-files/UploadedFiles";
+import { UploadedFiles } from "@/components/features/chat-prompt/uploaded-files/UploadedFiles";
+import { FileUpload } from "@/components/layout/file-upload/FileUpload";
 
 import { useFileStore } from "@/stores/fileStore";
 import { UploadedFile } from "@/types";

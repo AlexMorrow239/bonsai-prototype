@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
 
 import { ChatLoadingIndicator } from "@/components/common/chat-loader/ChatLoader";
-import { AIMessage } from "@/components/features/ai-message/AiMessage";
-import { UserMessage } from "@/components/features/user-message/UserMessage";
+import { AIMessage } from "@/components/features/chat-area/ai-message/AiMessage";
+import { UserMessage } from "@/components/features/chat-area/user-message/UserMessage";
 
 import { useChatStore } from "@/stores/chatStore";
 import { Message } from "@/types";

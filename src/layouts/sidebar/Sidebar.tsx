@@ -2,8 +2,8 @@ import { ReactElement } from "react";
 
 import { useLocation } from "react-router-dom";
 
-import ChatSidebar from "@/components/features/chat-sidebar/ChatSidebar";
-import FileSidebar from "@/components/features/file-sidebar/FileSidebar";
+import ChatSidebar from "@/components/layout/chat-sidebar/ChatSidebar";
+import FileSidebar from "@/components/layout/file-sidebar/FileSidebar";
 
 import "./Sidebar.scss";
 

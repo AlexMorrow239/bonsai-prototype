@@ -5,7 +5,7 @@ $color-primary-300: #a9d698;
 $color-primary-400: #7ec265;
 $color-primary-500: #69b84c;
 $color-primary-600: #54912f;
-$color-primary-550: mix($color-primary-500, $color-primary-600, 50%);
+$color-primary-550: color.mix($color-primary-500, $color-primary-600, 50%);
 
 /* Neutral tones */
 $color-gray-50: #fafafa;

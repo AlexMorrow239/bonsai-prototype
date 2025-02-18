@@ -2,7 +2,7 @@ import { ReactElement } from "react";
 
 import { useLocation } from "react-router-dom";
 
-import ChatTopbar from "@/components/features/chat-topbar/ChatTopbar";
+import ChatTopbar from "@/components/layout/chat-topbar/ChatTopbar";
 
 // import FileTopbar from "@/components/features/file-topbar/FileTopbar";
 
