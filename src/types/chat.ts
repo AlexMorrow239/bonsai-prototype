@@ -7,9 +7,10 @@ export interface Chat {
 
 export interface ChatInfo {
   chat_id: number;
-  project_id?: number;
+  project_id?: number | null;
   title: string;
-  is_active: boolean;
+  last_message_at?: string; // Optional since new chats won't have messages
+  preview?: string; // Optional since new chats won't have messages
 }
 
 export interface Message {
@@ -18,13 +19,4 @@ export interface Message {
   created_at: string;
   is_ai_response: boolean;
   files?: UploadedFile[];
-}
-
-export interface ChatListItem {
-  chat_id: number;
-  project_id?: number;
-  title: string;
-  last_message_at: string;
-  is_active: boolean;
-  preview: string;
 }

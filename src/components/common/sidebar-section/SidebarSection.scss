@@ -59,17 +59,3 @@
     background-color: var(--color-backround-bold);
   }
 }
-
-.chat-title-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  outline: none;
-
-  &:focus {
-    background: rgba(0, 0, 0, 0.1);
-  }
-}

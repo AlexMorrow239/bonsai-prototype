@@ -5,7 +5,6 @@ export const mockChatData = [
       chat_id: 1,
       project_id: 101,
       title: "Website Redesign Discussion",
-      is_active: true,
     },
 
     // Project context
@@ -67,7 +66,6 @@ export const mockChatData = [
       chat_id: 2,
       project_id: 101,
       title: "Frontend Component Architecture",
-      is_active: true,
     },
     projectContext: {
       project_id: 101,
@@ -118,7 +116,6 @@ export const mockChatData = [
       chat_id: 3,
       project_id: 102,
       title: "API Integration Planning",
-      is_active: true,
     },
     projectContext: {
       project_id: 102,
@@ -161,7 +158,6 @@ export const mockChatData = [
       chat_id: 4,
       project_id: 101,
       title: "Initial Project Setup",
-      is_active: false,
     },
     projectContext: {
       project_id: 101,
@@ -211,7 +207,6 @@ export const mockChatData = [
       chat_id: 5,
       project_id: 102,
       title: "Database Schema Review",
-      is_active: false,
     },
     projectContext: {
       project_id: 102,
@@ -248,16 +243,59 @@ export const mockChatData = [
       },
     ],
   },
+  {
+    chatInfo: {
+      chat_id: 6,
+      project_id: null,
+      title: "General Programming Questions",
+    },
+    messages: [
+      {
+        message_id: 1,
+        content: "What's the difference between let and const in JavaScript?",
+        created_at: "2024-03-16T10:00:00Z",
+        is_ai_response: false,
+      },
+      {
+        message_id: 2,
+        content:
+          "Let me explain the key differences between let and const:\n\n1. let allows reassignment of values\n2. const creates constants that cannot be reassigned\n3. Both provide block scope\n\nWould you like to see some examples?",
+        created_at: "2024-03-16T10:01:00Z",
+        is_ai_response: true,
+      },
+    ],
+  },
+  {
+    chatInfo: {
+      chat_id: 7,
+      project_id: null,
+      title: "Code Review Tips",
+    },
+    messages: [
+      {
+        message_id: 1,
+        content: "Can you share some best practices for code reviews?",
+        created_at: "2024-03-16T11:00:00Z",
+        is_ai_response: false,
+      },
+      {
+        message_id: 2,
+        content:
+          "Here are some key code review best practices:\n\n1. Review code in small chunks\n2. Focus on logic and architecture first\n3. Use automated tools for style checks\n4. Be constructive in feedback\n\nWould you like more specific examples?",
+        created_at: "2024-03-16T11:01:00Z",
+        is_ai_response: true,
+      },
+    ],
+  },
 ];
 
 export const mockChatsListData = {
-  activeChats: [
+  chats: [
     {
       chat_id: 1,
       project_id: 101,
       title: "Website Redesign Discussion",
       last_message_at: "2024-03-15T09:05:00Z",
-      is_active: true,
       preview: "Would you like me to create a basic wireframe for this layout?",
     },
     {
@@ -265,7 +303,6 @@ export const mockChatsListData = {
       project_id: 101,
       title: "Frontend Component Architecture",
       last_message_at: "2024-03-15T14:30:00Z",
-      is_active: true,
       preview:
         "Let's break down the component structure for the product catalog.",
     },
@@ -274,17 +311,13 @@ export const mockChatsListData = {
       project_id: 102,
       title: "API Integration Planning",
       last_message_at: "2024-03-14T16:45:00Z",
-      is_active: true,
       preview: "Here's the proposed authentication flow using JWT tokens.",
     },
-  ],
-  archivedChats: [
     {
       chat_id: 4,
       project_id: 101,
       title: "Initial Project Setup",
       last_message_at: "2024-03-10T11:20:00Z",
-      is_active: false,
       preview:
         "Great! The development environment is now configured correctly.",
     },
@@ -293,9 +326,22 @@ export const mockChatsListData = {
       project_id: 102,
       title: "Database Schema Review",
       last_message_at: "2024-03-08T13:15:00Z",
-      is_active: false,
       preview:
         "The updated schema looks good. All the necessary relationships are in place.",
+    },
+    {
+      chat_id: 6,
+      project_id: null,
+      title: "General Programming Questions",
+      last_message_at: "2024-03-16T10:01:00Z",
+      preview: "Let me explain the key differences between let and const:",
+    },
+    {
+      chat_id: 7,
+      project_id: null,
+      title: "Code Review Tips",
+      last_message_at: "2024-03-16T11:01:00Z",
+      preview: "Here are some key code review best practices:",
     },
   ],
   projects: [

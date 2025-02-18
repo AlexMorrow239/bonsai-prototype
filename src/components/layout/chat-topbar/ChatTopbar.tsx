@@ -14,13 +14,7 @@ import { useUIStore } from "@/stores/uiStore";
 import "./ChatTopbar.scss";
 
 export default function ChatTopbar() {
-  const {
-    currentChat,
-    archiveChat,
-    unarchiveChat,
-    setIsRenamingChat,
-    createNewChat,
-  } = useChatStore();
+  const { currentChat, setIsRenamingChat, createNewChat } = useChatStore();
   const { currentProject, deleteProject } = useProjectStore();
   const { addToast } = useUIStore();
   const { theme, toggleTheme } = useThemeStore();
@@ -28,7 +22,6 @@ export default function ChatTopbar() {
   const [isDeleteChatModalOpen, setIsDeleteChatModalOpen] = useState(false);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] =
     useState(false);
-  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
 
   const handleNewChat = () => {
     if (currentProject) {
@@ -38,21 +31,8 @@ export default function ChatTopbar() {
     }
   };
 
-  const handleArchiveAction = () => {
-    if (!currentChat) return;
-    if (currentChat.chatInfo.is_active) {
-      archiveChat(currentChat.chatInfo.chat_id);
-      addToast({ type: "success", message: "Chat archived successfully" });
-    } else {
-      unarchiveChat(currentChat.chatInfo.chat_id);
-      addToast({ type: "success", message: "Chat unarchived successfully" });
-    }
-    setIsArchiveModalOpen(false);
-  };
-
   const handleDeleteChat = () => {
     if (!currentChat) return;
-    archiveChat(currentChat.chatInfo.chat_id);
     addToast({ type: "success", message: "Chat deleted successfully" });
     setIsDeleteChatModalOpen(false);
   };
@@ -77,13 +57,6 @@ export default function ChatTopbar() {
               }
             >
               Rename
-            </Button>
-            <Button
-              variant="ghost"
-              fullWidth
-              onClick={() => setIsArchiveModalOpen(true)}
-            >
-              {currentChat.chatInfo.is_active ? "Archive" : "Unarchive"}
             </Button>
             <Button
               variant="ghost"
@@ -153,22 +126,6 @@ export default function ChatTopbar() {
         confirmLabel="Delete"
         onConfirm={handleDeleteProject}
         confirmVariant="danger"
-      />
-
-      <ActionModal
-        isOpen={isArchiveModalOpen}
-        onClose={() => setIsArchiveModalOpen(false)}
-        title={
-          currentChat?.chatInfo.is_active ? "Archive Chat" : "Unarchive Chat"
-        }
-        description={
-          currentChat?.chatInfo.is_active
-            ? "You can unarchive this chat later from the archived chats section."
-            : "This chat will be moved back to your active chats."
-        }
-        confirmLabel={currentChat?.chatInfo.is_active ? "Archive" : "Unarchive"}
-        onConfirm={handleArchiveAction}
-        confirmVariant="secondary"
       />
     </div>
   );

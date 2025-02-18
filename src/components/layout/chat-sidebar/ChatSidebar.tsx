@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import { Button } from "@/components/common/button/Button";
-import { FilterDropdown } from "@/components/common/filter-dropdown/FilterDropdown";
-import { ChatSection } from "@/components/layout/chat-sidebar/chat-section/ChatSection";
+import { SidebarSection } from "@/components/common/sidebar-section/SidebarSection";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -11,44 +10,19 @@ import "./ChatSidebar.scss";
 
 export default function ChatSidebar() {
   const {
-    activeChats,
-    archivedChats,
     currentChat,
     setCurrentChat,
     createNewChat,
-    getChatsByProject,
     isRenamingChat,
     setIsRenamingChat,
     updateChatTitle,
+    getUnassociatedChats,
   } = useChatStore();
   const { projects, currentProject, setCurrentProject } = useProjectStore();
-  const [showArchived, setShowArchived] = React.useState(false);
   const [showActive, setShowActive] = React.useState(true);
-  const [projectSearchValue, setProjectSearchValue] = React.useState("");
-  const [isProjectDropdownOpen, setIsProjectDropdownOpen] =
-    React.useState(false);
+  const [showProjects, setShowProjects] = React.useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleProjectSelect = (projectName: string) => {
-    const project = projects.find((p) => p.name === projectName);
-    setCurrentProject(project ? project.project_id : 0);
-  };
-
-  const selectedProject = currentProject
-    ? projects.find((p) => p.project_id === currentProject.project_id)?.name ||
-      ""
-    : "";
-
-  const filteredProjects = projects
-    .map((p) => p.name)
-    .filter((name) =>
-      name.toLowerCase().includes(projectSearchValue.toLowerCase())
-    );
-
-  const unselectedProjects = filteredProjects.filter(
-    (name) => !selectedProject.includes(name)
-  );
 
   useEffect(() => {
     if (isRenamingChat && inputRef.current) {
@@ -95,39 +69,16 @@ export default function ChatSidebar() {
     }
   };
 
-  const renderProjectChats = (projectId: number) => {
-    const projectChats = getChatsByProject(projectId).filter(
-      (chat) => chat.chatInfo.is_active
-    );
-
-    return (
-      <ChatSection
-        title="Project Chats"
-        chats={projectChats.map((chat) => chat.chatInfo)}
-        isExpanded={showActive}
-        onToggleExpand={() => setShowActive(!showActive)}
-        currentChatId={currentChat?.chatInfo.chat_id}
-        isRenamingChat={isRenamingChat}
-        onChatSelect={setCurrentChat}
-        renderChatTitle={renderChatTitle}
-      />
-    );
-  };
+  const renderProjectContent = (project: any) => (
+    <div className="project-item-content">
+      <span className="project-icon">📁</span>
+      <div className="project-title">{project.name}</div>
+    </div>
+  );
 
   return (
     <div className="chat-sidebar">
       <div className="chat-sidebar__controls">
-        <FilterDropdown
-          isOpen={isProjectDropdownOpen}
-          selected={selectedProject}
-          searchValue={projectSearchValue}
-          onSearchChange={setProjectSearchValue}
-          onToggle={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-          onSelect={handleProjectSelect}
-          unselectedItems={unselectedProjects}
-          placeholder="Select Project"
-          searchPlaceholder="Search projects..."
-        />
         <Button
           variant="primary"
           size="md"
@@ -139,35 +90,36 @@ export default function ChatSidebar() {
       </div>
 
       <div className="chat-sidebar__list">
-        {!currentProject ? (
-          <ChatSection
-            title="Active Chats"
-            chats={activeChats}
-            isExpanded={showActive}
-            onToggleExpand={() => setShowActive(!showActive)}
-            currentChatId={currentChat?.chatInfo.chat_id}
-            isRenamingChat={isRenamingChat}
-            onChatSelect={setCurrentChat}
-            renderChatTitle={(chat) =>
-              renderChatTitle({ chatInfo: chat.chatInfo })
-            }
-          />
-        ) : (
-          renderProjectChats(currentProject.project_id)
-        )}
-
-        <ChatSection
-          title="Archived Chats"
-          chats={archivedChats}
-          isExpanded={showArchived}
-          onToggleExpand={() => setShowArchived(!showArchived)}
-          currentChatId={currentChat?.chatInfo.chat_id}
-          isRenamingChat={isRenamingChat}
-          onChatSelect={setCurrentChat}
-          renderChatTitle={(chat) =>
-            renderChatTitle({ chatInfo: chat.chatInfo })
+        <SidebarSection
+          title="Projects"
+          items={projects.map((project) => ({
+            id: project.project_id,
+            title: project.name,
+          }))}
+          isExpanded={showProjects}
+          onToggleExpand={() => setShowProjects(!showProjects)}
+          currentItemId={currentProject?.project_id}
+          isRenaming={null}
+          onItemClick={setCurrentProject}
+          renderItemContent={renderProjectContent}
+          disableClickWhenRenaming={false}
+        />
+        <SidebarSection
+          title="All Chats"
+          items={getUnassociatedChats().map((chat) => ({
+            id: chat.chatInfo.chat_id,
+            title: chat.chatInfo.title,
+          }))}
+          isExpanded={showActive}
+          onToggleExpand={() => setShowActive(!showActive)}
+          currentItemId={currentChat?.chatInfo.chat_id}
+          isRenaming={isRenamingChat}
+          onItemClick={setCurrentChat}
+          renderItemContent={(item) =>
+            renderChatTitle({
+              chatInfo: { chat_id: item.id, title: item.title },
+            })
           }
-          isArchived
         />
       </div>
     </div>
