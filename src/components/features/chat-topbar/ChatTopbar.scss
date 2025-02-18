@@ -17,6 +17,7 @@
       &--danger {
         &:hover {
           background-color: var(--color-error-soft);
+          color: var(--color-error-text);
         }
       }
     }

@@ -68,7 +68,7 @@ export default function ChatTopbar() {
     <div className="chat-topbar">
       <div className="dropdown-section">
         {currentChat && (
-          <Dropdown trigger="Edit Chat">
+          <Dropdown trigger="Edit Chat" variant="ghost">
             <Button
               variant="ghost"
               fullWidth
@@ -97,7 +97,7 @@ export default function ChatTopbar() {
         )}
 
         {currentProject && (
-          <Dropdown trigger="Edit Project">
+          <Dropdown trigger="Edit Project" variant="ghost">
             <Button variant="ghost" fullWidth>
               Rename
             </Button>

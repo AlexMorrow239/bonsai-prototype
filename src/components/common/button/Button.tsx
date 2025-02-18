@@ -1,10 +1,12 @@
-import { type ButtonHTMLAttributes, ReactElement, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import clsx from "clsx";
+import { HTMLMotionProps, motion } from "framer-motion";
 
 import "./Button.scss";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
+  children: ReactNode;
   variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
@@ -27,9 +29,9 @@ export function Button({
   disabled,
   type = "button",
   ...props
-}: ButtonProps): ReactElement {
+}: ButtonProps): ReactNode {
   return (
-    <button
+    <motion.button
       type={type}
       className={clsx(
         "button",
@@ -43,16 +45,44 @@ export function Button({
         className
       )}
       disabled={disabled || isLoading}
+      whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
+      whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       {...props}
     >
-      {isLoading && <span className="button__spinner" />}
+      {isLoading && (
+        <motion.span
+          className="button__spinner"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+        />
+      )}
       {!isLoading && leftIcon && (
-        <span className="button__icon button__icon--left">{leftIcon}</span>
+        <motion.span
+          className="button__icon button__icon--left"
+          initial={{ x: -5, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+        >
+          {leftIcon}
+        </motion.span>
       )}
-      <span className="button__text">{children}</span>
+      <motion.span
+        className="button__text"
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+      >
+        {children}
+      </motion.span>
       {!isLoading && rightIcon && (
-        <span className="button__icon button__icon--right">{rightIcon}</span>
+        <motion.span
+          className="button__icon button__icon--right"
+          initial={{ x: 5, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+        >
+          {rightIcon}
+        </motion.span>
       )}
-    </button>
+    </motion.button>
   );
 }

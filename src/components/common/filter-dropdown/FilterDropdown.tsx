@@ -12,7 +12,6 @@ interface FilterDropdownProps {
   onSearchChange: (value: string) => void;
   onToggle: () => void;
   onSelect: (value: string) => void;
-  selectedItem: string;
   unselectedItems: string[];
   placeholder: string;
   searchPlaceholder: string;
@@ -25,7 +24,6 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
   onSearchChange,
   onToggle,
   onSelect,
-  selectedItem,
   unselectedItems,
   placeholder,
   searchPlaceholder,
@@ -75,52 +73,32 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
           </div>
 
           <div className="categories-dropdown__options">
-            {selectedItem && (
-              <>
-                <div className="categories-dropdown__section-label">
-                  Selected
-                </div>
+            <div
+              className="categories-dropdown__option"
+              onClick={() => {
+                onSelect(""); // Empty string to indicate "All Projects"
+                onToggle();
+              }}
+            >
+              <span>All Projects</span>
+            </div>
+
+            {unselectedItems
+              .filter((item) =>
+                item.toLowerCase().includes(searchValue.toLowerCase())
+              )
+              .map((item) => (
                 <div
+                  key={item}
                   className="categories-dropdown__option"
                   onClick={() => {
-                    onSelect(selectedItem);
+                    onSelect(item);
                     onToggle();
                   }}
                 >
-                  <span>{selectedItem}</span>
+                  <span>{item}</span>
                 </div>
-                <div className="categories-dropdown__divider" />
-              </>
-            )}
-
-            <div className="categories-dropdown__options">
-              <div
-                className="categories-dropdown__option"
-                onClick={() => {
-                  onSelect(""); // Empty string to indicate "All Projects"
-                  onToggle();
-                }}
-              >
-                <span>All Projects</span>
-              </div>
-
-              {unselectedItems
-                .filter((item) =>
-                  item.toLowerCase().includes(searchValue.toLowerCase())
-                )
-                .map((item) => (
-                  <div
-                    key={item}
-                    className="categories-dropdown__option"
-                    onClick={() => {
-                      onSelect(item);
-                      onToggle();
-                    }}
-                  >
-                    <span>{item}</span>
-                  </div>
-                ))}
-            </div>
+              ))}
           </div>
         </div>
       )}

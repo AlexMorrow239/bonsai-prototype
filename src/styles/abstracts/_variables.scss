@@ -5,6 +5,7 @@ $color-primary-300: #a9d698;
 $color-primary-400: #7ec265;
 $color-primary-500: #69b84c;
 $color-primary-600: #54912f;
+$color-primary-550: mix($color-primary-500, $color-primary-600, 50%);
 
 /* Neutral tones */
 $color-gray-50: #fafafa;
@@ -39,7 +40,7 @@ $color-info-700: #1d4ed8;
 :root {
   /* Brand Colors */
   --color-primary-light: #{$color-primary-300};
-  --color-primary: #{$color-primary-500};
+  --color-primary: #{$color-primary-550};
   --color-primary-dark: #{$color-primary-600};
 
   /* Background System */
@@ -47,6 +48,7 @@ $color-info-700: #1d4ed8;
   --color-background-alt: #{$color-gray-800};
   --color-background-subtle: #{color.adjust($color-primary-600, $alpha: -0.95)};
   --color-background-bold: #{color.adjust($color-primary-300, $alpha: -0.9)};
+  --color-background-bolder: #{color.adjust($color-primary-300, $alpha: -0.8)};
 
   /* Surface Colors - For cards and elevated elements */
   --color-surface: #{$color-gray-700};
@@ -225,6 +227,7 @@ $color-info-700: #1d4ed8;
   --color-background-alt: #{$color-gray-100};
   --color-background-subtle: #{color.adjust($color-primary-300, $alpha: -0.95)};
   --color-background-bold: #{color.adjust($color-primary-600, $alpha: -0.9)};
+  --color-background-bolder: #{color.adjust($color-primary-600, $alpha: -0.8)};
 
   /* Surface Colors */
   --color-surface: #{$color-gray-100};

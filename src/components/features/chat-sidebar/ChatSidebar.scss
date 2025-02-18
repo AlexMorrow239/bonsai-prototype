@@ -64,12 +64,10 @@
   }
 
   .chat-item {
-    @include button-emotion("neutral");
     width: 100%;
     text-align: left;
     padding: var(--spacing-3);
     margin-bottom: var(--spacing-2);
-    background: var(--color-surface);
     border: 1px solid var(--color-border);
     min-height: 48px;
     display: flex;
@@ -93,8 +91,13 @@
       & {
         width: 100%;
         min-width: 0;
+        line-height: 1.2;
       }
     }
+  }
+
+  &:hover {
+    background-color: var(--color-backround-bold);
   }
 }
 

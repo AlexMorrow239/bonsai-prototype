@@ -132,7 +132,6 @@ export default function ChatSidebar() {
           onSearchChange={setProjectSearchValue}
           onToggle={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
           onSelect={handleProjectSelect}
-          selectedItem={selectedProject}
           unselectedItems={unselectedProjects}
           placeholder="Select Project"
           searchPlaceholder="Search projects..."
