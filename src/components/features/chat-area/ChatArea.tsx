@@ -27,11 +27,18 @@ export function ChatArea({ messages }: ChatAreaProps): React.ReactNode {
 
   return (
     <div className="chat-messages">
-      {messages.map((message) =>
+      {messages.map((message, index) =>
         message.is_ai_response ? (
-          <AIMessage key={message.message_id} message={message} />
+          <AIMessage
+            key={`ai-${message.message_id || index}`}
+            message={message}
+            index={index}
+          />
         ) : (
-          <UserMessage key={message.message_id} message={message} />
+          <UserMessage
+            key={`user-${message.message_id || index}`}
+            message={message}
+          />
         )
       )}
       {isResponseLoading && <ChatLoadingIndicator />}

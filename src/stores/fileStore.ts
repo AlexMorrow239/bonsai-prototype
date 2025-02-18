@@ -66,11 +66,11 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   uploadFile: async (file: File, fileId: string) => {
     try {
-      const chunkSize = 1024 * 1024; // 1MB chunks
-      const totalChunks = Math.ceil(file.size / chunkSize);
+      const CHUNK_SIZE = 256 * 1024; // 256KB chunks for more frequent updates
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       let uploadedChunks = 0;
 
-      // Initialize upload status
+      // Initialize upload status immediately
       set((state) => ({
         currentUploads: {
           ...state.currentUploads,
@@ -80,34 +80,46 @@ export const useFileStore = create<FileState>((set, get) => ({
             totalSize: file.size,
             uploadedSize: 0,
             startTime: Date.now(),
+            uploadSpeed: 0,
           },
         },
       }));
 
-      // Process each chunk
+      // Simulate network conditions
+      const minSpeed = 500 * 1024; // 500KB/s minimum
+      const maxSpeed = 2 * 1024 * 1024; // 2MB/s maximum
+      let currentSpeed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
+
+      // Process each chunk with variable speed
       for (let chunk = 0; chunk < totalChunks; chunk++) {
-        const start = chunk * chunkSize;
-        const end = Math.min(start + chunkSize, file.size);
-        const fileChunk = file.slice(start, end);
+        const startByte: number = chunk * CHUNK_SIZE;
+        const endByte: number = Math.min(startByte + CHUNK_SIZE, file.size);
+        const currentChunkSize: number = endByte - startByte;
 
-        // Simulate chunk upload with delay
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        // Calculate dynamic delay based on simulated speed
+        const delay = (currentChunkSize / currentSpeed) * 1000;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        // Simulate speed variations
+        currentSpeed = Math.max(
+          minSpeed,
+          Math.min(
+            maxSpeed,
+            currentSpeed * (0.8 + Math.random() * 0.4) // Speed varies by ±20%
+          )
+        );
+
         uploadedChunks++;
-
-        // Calculate metrics
-        const uploadedSize = uploadedChunks * chunkSize;
+        const uploadedSize = Math.min(uploadedChunks * CHUNK_SIZE, file.size);
         const currentTime = Date.now();
         const status = get().currentUploads[fileId];
         const elapsedTime = currentTime - status.startTime!;
 
-        // Calculate speed (bytes per second)
-        const uploadSpeed = uploadedSize / (elapsedTime / 1000);
-
-        // Calculate progress (0-100)
+        // Calculate metrics
         const progress = Math.round((uploadedSize / file.size) * 100);
-
-        // Calculate remaining time (ms)
-        const remainingTime = ((file.size - uploadedSize) / uploadSpeed) * 1000;
+        const uploadSpeed = uploadedSize / (elapsedTime / 1000);
+        const remainingSize = file.size - uploadedSize;
+        const remainingTime = (remainingSize / uploadSpeed) * 1000;
 
         // Update status with calculated metrics
         set((state) => ({
@@ -123,6 +135,9 @@ export const useFileStore = create<FileState>((set, get) => ({
           },
         }));
       }
+
+      // Add small delay before marking as completed
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Mark as completed
       set((state) => ({
@@ -140,7 +155,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
       return URL.createObjectURL(file);
     } catch (error) {
-      // Update error status
+      // Error handling remains the same
       set((state) => ({
         currentUploads: {
           ...state.currentUploads,
@@ -153,8 +168,6 @@ export const useFileStore = create<FileState>((set, get) => ({
           },
         },
       }));
-
-      // Instead of returning undefined, throw the error
       throw error;
     }
   },
@@ -165,9 +178,10 @@ export const useFileStore = create<FileState>((set, get) => ({
     try {
       set({ isLoading: true });
 
-      const filePromises = newFiles.map(async (file) => {
+      // Create initial file entries immediately
+      const initialFiles = newFiles.map((file) => {
         const fileId = crypto.randomUUID();
-        const uploadedFile: UploadedFile = {
+        return {
           file_id: fileId,
           chat_id: chatId,
           name: file.name,
@@ -176,42 +190,60 @@ export const useFileStore = create<FileState>((set, get) => ({
           created_at: new Date().toISOString(),
           uploadStatus: {
             progress: 0,
-            status: "idle" as const,
+            status: "uploading" as const,
           },
-        };
+        } satisfies UploadedFile;
+      });
 
+      // Add files to state immediately
+      set((state) => ({
+        files: {
+          ...state.files,
+          [chatId]: [...(state.files[chatId] || []), ...initialFiles],
+        },
+      }));
+
+      // Start uploads in parallel
+      const uploadPromises = initialFiles.map(async (uploadedFile) => {
         try {
-          const uploadedUrl = await get().uploadFile(file, fileId);
+          const uploadedUrl = await get().uploadFile(
+            newFiles.find((f) => f.name === uploadedFile.name)!,
+            uploadedFile.file_id
+          );
           return {
             ...uploadedFile,
             url: uploadedUrl,
             uploadStatus: {
               progress: 100,
-              status: "completed",
+              status: "completed" as const,
             },
           } satisfies UploadedFile;
         } catch (error) {
           console.error("🔴 File upload error:", {
-            fileId,
-            fileName: file.name,
+            fileId: uploadedFile.file_id,
+            fileName: uploadedFile.name,
             error,
           });
           throw error;
         }
       });
 
-      const uploadedFiles = await Promise.all(filePromises);
+      const completedFiles = await Promise.all(uploadPromises);
 
+      // Update state with completed files
       set((state) => ({
         files: {
           ...state.files,
-          [chatId]: [...(state.files[chatId] || []), ...uploadedFiles],
+          [chatId]: state.files[chatId].map(
+            (file) =>
+              completedFiles.find((f) => f.file_id === file.file_id) || file
+          ),
         },
       }));
 
       addToast({
         type: "success",
-        message: `Successfully uploaded ${uploadedFiles.length} file(s)`,
+        message: `Successfully uploaded ${completedFiles.length} file(s)`,
       });
     } catch (error) {
       console.error("Upload error:", error);

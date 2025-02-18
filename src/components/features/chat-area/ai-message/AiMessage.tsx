@@ -10,11 +10,12 @@ import "./AiMessage.scss";
 
 interface AIMessageProps {
   message: Message;
+  index: number;
 }
 
-export function AIMessage({ message }: AIMessageProps): ReactNode {
+export function AIMessage({ message, index }: AIMessageProps): ReactNode {
   return (
-    <div className="message ai">
+    <div key={message.message_id || index} className="message ai">
       <Bot className="message-icon" size={16} />
       {message.content && (
         <div className="message-content">{message.content}</div>
