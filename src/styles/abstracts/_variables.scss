@@ -189,6 +189,14 @@ $color-info-700: #1d4ed8;
   --transition-shadow: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-transform: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* Sidebar Animation */
+  --sidebar-animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-animation-duration: 300ms;
+  --sidebar-transition:
+    width var(--sidebar-animation-duration) var(--sidebar-animation-timing),
+    transform var(--sidebar-animation-duration) var(--sidebar-animation-timing),
+    opacity var(--sidebar-animation-duration) var(--sidebar-animation-timing);
+
   /* Z-index scale */
   --z-negative: -1;
   --z-0: 0;
@@ -209,9 +217,15 @@ $color-info-700: #1d4ed8;
   --z-auto: auto; /* Reset stacking context */
 
   /* Layout Dimensions */
-  --sidebar-width: 280px;
   --topbar-height: 60px;
   --container-width: 1440px;
+
+  /* Sidebar System */
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 60px;
+  --sidebar-header-height: 60px;
+  --sidebar-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-toggle-size: 32px;
 }
 
 /* Light theme colors */
