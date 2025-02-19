@@ -4,6 +4,8 @@ import { Outlet } from "react-router-dom";
 
 import clsx from "clsx";
 
+import { Toast } from "@/components/common/toast/Toast";
+
 import { Sidebar } from "../components/layout/sidebar/Sidebar";
 import { Topbar } from "../components/layout/topbar/Topbar";
 import "./MainLayout.scss";
@@ -36,6 +38,7 @@ export const MainLayout = (): ReactElement => {
           <Outlet />
         </main>
       </div>
+      <Toast />
     </div>
   );
 };

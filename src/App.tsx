@@ -2,8 +2,6 @@ import { type ReactNode, useEffect } from "react";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { Toast } from "@components/common/toast/Toast";
-
 import "@/styles/main.scss";
 
 import { MainLayout } from "@/layouts/MainLayout";
@@ -49,7 +47,6 @@ function App(): ReactNode {
   return (
     <ErrorBoundary>
       <RouterProvider router={router} />
-      <Toast />
     </ErrorBoundary>
   );
 }

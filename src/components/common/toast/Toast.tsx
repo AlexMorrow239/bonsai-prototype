@@ -18,13 +18,14 @@ export function Toast(): ReactElement {
   const { toasts, removeToast } = useUIStore();
 
   return (
-    <RadixToast.Provider swipeDirection="right">
+    <RadixToast.Provider duration={5000} swipeDirection="right">
       {toasts.map((toast) => {
         const Icon = icons[toast.type];
         return (
           <RadixToast.Root
             key={toast.id}
             className={`toast toast--${toast.type}`}
+            duration={toast.duration}
             onOpenChange={(open) => !open && removeToast(toast.id)}
           >
             <Icon className="toast__icon" aria-hidden="true" />

@@ -20,9 +20,9 @@ $color-gray-800: #262626;
 $color-gray-900: #171717;
 
 /* Semantic colors */
-$color-success-300: #86efac;
-$color-success-500: #22c55e;
-$color-success-700: #15803d;
+$color-success-300: #a9d698;
+$color-success-500: color.mix(#69b84c, #7ec265, 50%);
+$color-success-700: #54912f;
 
 $color-warning-300: #fde68a;
 $color-warning-500: #f59e0b;
@@ -215,6 +215,12 @@ $color-info-700: #1d4ed8;
 
   /* Special cases */
   --z-auto: auto; /* Reset stacking context */
+
+  /* Toast System */
+  --toast-transition-duration: 150ms;
+  --toast-transition-timing: cubic-bezier(0.16, 1, 0.3, 1);
+  --toast-max-width: 400px;
+  --toast-min-width: 200px;
 
   /* Layout Dimensions */
   --topbar-height: 60px;
