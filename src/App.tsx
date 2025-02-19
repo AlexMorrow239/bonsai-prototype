@@ -9,6 +9,8 @@ import "@/styles/main.scss";
 import { MainLayout } from "@/layouts/MainLayout";
 import Chat from "@/pages/chat/Chat";
 import { ErrorBoundary } from "@/pages/error-boundary/ErrorBoundary";
+import NotFound from "@/pages/not-found/NotFound";
+import Project from "@/pages/project/Project";
 import { useThemeStore } from "@/stores/themeStore";
 
 const router = createBrowserRouter([
@@ -25,8 +27,12 @@ const router = createBrowserRouter([
         element: <Chat />,
       },
       {
-        path: "/files",
-        element: <Chat />,
+        path: "/project/:projectId",
+        element: <Project />,
+      },
+      {
+        path: "*",
+        element: <NotFound />,
       },
     ],
   },
