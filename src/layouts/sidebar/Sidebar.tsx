@@ -25,15 +25,17 @@ export const Sidebar = ({
   const location = useLocation();
 
   const renderSidebarContent = (): ReactElement => {
-    switch (location.pathname) {
-      case "/":
-      case "/chat":
-        return <ChatSidebar />;
-      case "/files":
-        return <FileSidebar />;
-      default:
-        return <div>No sidebar content</div>;
+    if (
+      location.pathname === "/" ||
+      location.pathname === "/chat" ||
+      location.pathname.startsWith("/project")
+    ) {
+      return <ChatSidebar />;
     }
+    if (location.pathname === "/files") {
+      return <FileSidebar />;
+    }
+    return <div>No sidebar content</div>;
   };
 
   return (

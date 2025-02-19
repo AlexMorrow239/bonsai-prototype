@@ -24,4 +24,16 @@
     overflow-y: auto;
     padding: var(--spacing-2);
   }
+
+  .chat-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-dark);
+    @include truncate();
+    & {
+      width: 100%;
+      min-width: 0;
+      line-height: 1.2;
+    }
+  }
 }

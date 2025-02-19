@@ -23,7 +23,7 @@
   }
 }
 
-.chat-item {
+.generic-item {
   width: 100%;
   text-align: left;
   padding: var(--spacing-3);
@@ -41,18 +41,6 @@
 
   &.archived {
     opacity: 0.7;
-  }
-
-  .chat-title {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-dark);
-    @include truncate();
-    & {
-      width: 100%;
-      min-width: 0;
-      line-height: 1.2;
-    }
   }
 
   &:hover {

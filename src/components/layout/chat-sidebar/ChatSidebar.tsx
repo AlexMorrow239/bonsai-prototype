@@ -1,14 +1,20 @@
 import React, { useEffect, useRef } from "react";
 
+import { useNavigate } from "react-router-dom";
+
+import { Folder } from "lucide-react";
+
 import { Button } from "@/components/common/button/Button";
 import { SidebarSection } from "@/components/common/sidebar-section/SidebarSection";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
+import { Chat, ChatInfo } from "@/types";
 
 import "./ChatSidebar.scss";
 
 export default function ChatSidebar() {
+  const navigate = useNavigate();
   const {
     currentChat,
     setCurrentChat,
@@ -30,8 +36,17 @@ export default function ChatSidebar() {
     }
   }, [isRenamingChat]);
 
+  const handleChatClick = (chatId: number) => {
+    setCurrentChat(chatId, navigate);
+  };
+
+  const handleProjectClick = (projectId: number) => {
+    setCurrentProject(projectId);
+    navigate(`/project/${projectId}`);
+  };
+
   const handleRename = (
-    chat: any,
+    chat: Chat,
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Enter") {
@@ -46,19 +61,19 @@ export default function ChatSidebar() {
     setIsRenamingChat(null);
   };
 
-  const renderChatTitle = (chat: any) => {
-    if (isRenamingChat === chat.chatInfo.chat_id) {
+  const renderChatTitle = (chatInfo: ChatInfo) => {
+    if (isRenamingChat === chatInfo.chat_id) {
       return (
         <input
           ref={inputRef}
           className="chat-title-input"
-          defaultValue={chat.chatInfo.title}
-          onKeyDown={(e) => handleRename(chat, e)}
+          defaultValue={chatInfo.title}
+          onKeyDown={(e) => handleRename({ chatInfo, messages: [] }, e)}
           onBlur={handleBlur}
         />
       );
     }
-    return <div className="chat-title">{chat.chatInfo.title}</div>;
+    return <div className="chat-title">{chatInfo.title}</div>;
   };
 
   const handleNewChat = () => {
@@ -69,11 +84,8 @@ export default function ChatSidebar() {
     }
   };
 
-  const renderProjectContent = (project: any) => (
-    <div className="project-item-content">
-      <span className="project-icon">📁</span>
-      <div className="project-title">{project.name}</div>
-    </div>
+  const renderProjectTitle = (item: { id: number; title: string }) => (
+    <div className="project-title">{item.title}</div>
   );
 
   return (
@@ -100,8 +112,9 @@ export default function ChatSidebar() {
           onToggleExpand={() => setShowProjects(!showProjects)}
           currentItemId={currentProject?.project_id}
           isRenaming={null}
-          onItemClick={setCurrentProject}
-          renderItemContent={renderProjectContent}
+          onItemClick={handleProjectClick}
+          renderItemContent={renderProjectTitle}
+          leftIcon={<Folder size={16} />}
           disableClickWhenRenaming={false}
         />
         <SidebarSection
@@ -114,11 +127,9 @@ export default function ChatSidebar() {
           onToggleExpand={() => setShowActive(!showActive)}
           currentItemId={currentChat?.chatInfo.chat_id}
           isRenaming={isRenamingChat}
-          onItemClick={setCurrentChat}
+          onItemClick={handleChatClick}
           renderItemContent={(item) =>
-            renderChatTitle({
-              chatInfo: { chat_id: item.id, title: item.title },
-            })
+            renderChatTitle({ chat_id: item.id, title: item.title })
           }
         />
       </div>

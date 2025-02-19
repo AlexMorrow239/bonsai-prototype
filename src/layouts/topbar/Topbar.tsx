@@ -12,22 +12,23 @@ export const Topbar = (): ReactElement => {
   const location = useLocation();
 
   const renderTopbarContent = (): ReactElement => {
-    switch (location.pathname) {
-      case "/":
-      case "/chat":
-        return <ChatTopbar />;
-      case "/files":
-        return <ChatTopbar />;
-      default:
-        return (
-          <>
-            <div className="topbar__info">
-              <span>Welcome</span>
-            </div>
-            <div className="topbar__actions">{/* Default actions */}</div>
-          </>
-        );
+    // Use startsWith to match all project routes
+    if (
+      location.pathname === "/" ||
+      location.pathname === "/chat" ||
+      location.pathname.startsWith("/project")
+    ) {
+      return <ChatTopbar />;
     }
+
+    return (
+      <>
+        <div className="topbar__info">
+          <span>Welcome</span>
+        </div>
+        <div className="topbar__actions">{/* Default actions */}</div>
+      </>
+    );
   };
 
   return <div className="topbar">{renderTopbarContent()}</div>;

@@ -18,6 +18,7 @@ interface SidebarSectionProps {
   renderItemContent: (item: ItemConfig) => React.ReactNode;
   buttonClassName?: string;
   disableClickWhenRenaming?: boolean;
+  leftIcon?: React.ReactNode;
 }
 
 export function SidebarSection({
@@ -29,8 +30,9 @@ export function SidebarSection({
   isRenaming,
   onItemClick,
   renderItemContent,
-  buttonClassName = "chat-item",
+  buttonClassName = "generic-item",
   disableClickWhenRenaming = true,
+  leftIcon,
 }: SidebarSectionProps) {
   if (items.length === 0) return null;
 
@@ -38,7 +40,7 @@ export function SidebarSection({
     <>
       <div className="list-header" onClick={onToggleExpand}>
         <h3>{title}</h3>
-        <span className="toggle">{isExpanded ? "−" : "+"}</span>
+        <span className="toggle">{isExpanded ? "-" : "+"}</span>
       </div>
       {isExpanded &&
         items.map((item) => (
@@ -53,6 +55,7 @@ export function SidebarSection({
                 ? null
                 : onItemClick(item.id)
             }
+            leftIcon={leftIcon}
           >
             {renderItemContent(item)}
           </Button>

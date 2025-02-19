@@ -45,13 +45,24 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   // Actions
   setCurrentProject: (projectId) => {
     const project = get().projects.find((p) => p.project_id === projectId);
-    set({ currentProject: project || null });
+    if (project) {
+      const now = new Date().toISOString();
+      set((state) => ({
+        currentProject: project,
+        // Update last_accessed time when setting current project
+        projects: state.projects.map((p) =>
+          p.project_id === projectId ? { ...p, last_accessed: now } : p
+        ),
+      }));
+    } else {
+      set({ currentProject: null });
+    }
   },
 
   createProject: (name, description) => {
     set((state) => {
       const newProjectId =
-        Math.max(...state.projects.map((p) => p.project_id)) + 1;
+        Math.max(...state.projects.map((p) => p.project_id), 0) + 1;
       const now = new Date().toISOString();
 
       const newProject: Project = {
@@ -80,15 +91,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   updateProject: (projectId, updates) => {
     set((state) => {
-      const updatedProjects = state.projects.map((project) =>
-        project.project_id === projectId ? { ...project, ...updates } : project
-      );
-
-      // Find the existing project to ensure we have all required fields
       const existingProject = state.projects.find(
         (p) => p.project_id === projectId
       );
       if (!existingProject) return state;
+
+      const now = new Date().toISOString();
+      const updatedProject = {
+        ...existingProject,
+        ...updates,
+        last_accessed: now,
+      };
 
       const updatedListItem: ProjectListItem = {
         project_id: projectId,
@@ -99,16 +112,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       };
 
       return {
-        projects: updatedProjects,
-        activeProjects: state.activeProjects.map((project) =>
-          project.project_id === projectId ? updatedListItem : project
+        projects: state.projects.map((p) =>
+          p.project_id === projectId ? updatedProject : p
         ),
-        archivedProjects: state.archivedProjects.map((project) =>
-          project.project_id === projectId ? updatedListItem : project
+        activeProjects: state.activeProjects.map((p) =>
+          p.project_id === projectId ? updatedListItem : p
+        ),
+        archivedProjects: state.archivedProjects.map((p) =>
+          p.project_id === projectId ? updatedListItem : p
         ),
         currentProject:
           state.currentProject?.project_id === projectId
-            ? { ...state.currentProject, ...updates }
+            ? updatedProject
             : state.currentProject,
       };
     });
@@ -121,13 +136,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       );
       if (!projectToArchive) return state;
 
+      const now = new Date().toISOString();
       const updatedProject = { ...projectToArchive, is_active: false };
 
       return {
         projects: state.projects.map((p) =>
-          p.project_id === projectId
-            ? { ...p, last_accessed: new Date().toISOString() }
-            : p
+          p.project_id === projectId ? { ...p, last_accessed: now } : p
         ),
         activeProjects: state.activeProjects.filter(
           (p) => p.project_id !== projectId
@@ -148,13 +162,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       );
       if (!projectToUnarchive) return state;
 
+      const now = new Date().toISOString();
       const updatedProject = { ...projectToUnarchive, is_active: true };
 
       return {
         projects: state.projects.map((p) =>
-          p.project_id === projectId
-            ? { ...p, last_accessed: new Date().toISOString() }
-            : p
+          p.project_id === projectId ? { ...p, last_accessed: now } : p
         ),
         archivedProjects: state.archivedProjects.filter(
           (p) => p.project_id !== projectId

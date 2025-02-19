@@ -1,0 +1,181 @@
+@use "@/styles/abstracts" as *;
+
+.project-page {
+  height: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-4);
+  overflow-y: auto;
+  color: var(--color-text);
+
+  &__error {
+    @include flex(column, center, center);
+    height: 80vh;
+    text-align: center;
+    margin-top: var(--spacing-12);
+
+    h2 {
+      margin-bottom: var(--spacing-4);
+      font-size: var(--font-size-2xl);
+      color: var(--color-text-lighter);
+    }
+
+    p {
+      color: var(--color-text-light);
+      max-width: 400px;
+    }
+  }
+
+  &__header {
+    margin-bottom: var(--spacing-8);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-4);
+
+    h1 {
+      font-size: var(--font-size-3xl);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-lighter);
+      margin-bottom: var(--spacing-2);
+    }
+  }
+
+  &__description {
+    color: var(--color-text-light);
+    font-size: var(--font-size-base);
+    max-width: 600px;
+  }
+
+  &__content {
+    @include flex(column, flex-start, stretch);
+    gap: var(--spacing-8);
+  }
+
+  &__section {
+    @include flex(column, flex-start, stretch);
+    gap: var(--spacing-4);
+
+    h2 {
+      font-size: var(--font-size-xl);
+      color: var(--color-text-lighter);
+      font-weight: var(--font-weight-medium);
+      margin-bottom: var(--spacing-2);
+    }
+  }
+
+  &__details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-6);
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    border: 1px solid var(--color-border);
+
+    .detail-item {
+      @include flex(column, flex-start, flex-start);
+      gap: var(--spacing-2);
+
+      .label {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-light);
+        font-weight: var(--font-weight-medium);
+      }
+
+      .value {
+        font-size: var(--font-size-base);
+        color: var(--color-text-lighter);
+        font-weight: var(--font-weight-semibold);
+      }
+    }
+  }
+
+  &__chats {
+    .empty-state {
+      color: var(--color-text-light);
+      font-style: italic;
+      text-align: center;
+      padding: var(--spacing-8);
+      background-color: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--color-border);
+    }
+
+    .chat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: var(--spacing-1) 0;
+      width: 100%;
+    }
+
+    .chat-item {
+      width: 100%;
+      transition: var(--transition-all);
+      cursor: pointer;
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--spacing-3);
+      align-items: start;
+      padding: var(--spacing-3);
+      margin: var(--spacing-1) 0;
+      border-bottom: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .chat-icon {
+        padding-top: var(--spacing-1);
+        color: var(--color-text-light);
+      }
+
+      .chat-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-1);
+        width: 100%;
+      }
+
+      h3 {
+        font-size: var(--font-size-base);
+        color: var(--color-text-lighter);
+        font-weight: var(--font-weight-medium);
+        width: 100%;
+        line-height: var(--line-height-snug);
+        margin-bottom: 0;
+      }
+
+      p {
+        margin-top: 0;
+      }
+
+      .preview {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-light);
+        @include truncate(1);
+        line-height: var(--line-height-snug);
+        opacity: 0.7;
+      }
+
+      &:hover {
+        background-color: var(--color-surface-hover);
+      }
+
+      &:hover::before {
+        opacity: 1;
+      }
+    }
+  }
+
+  .section-header {
+    @include flex(row, space-between, center);
+    margin-bottom: var(--spacing-4);
+
+    .header-actions {
+      @include flex(row, flex-end, center);
+      gap: var(--spacing-2);
+    }
+  }
+}

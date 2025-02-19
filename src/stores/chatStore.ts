@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 import { create } from "zustand";
 
 import { mockChatData } from "@/data";
@@ -15,7 +17,10 @@ interface ChatState {
   chats: Chat[];
 
   // Actions
-  setCurrentChat: (chatId: number) => void;
+  setCurrentChat: (
+    chatId: number,
+    navigate?: ReturnType<typeof useNavigate>
+  ) => void;
   isRenamingChat: number | null; // Stores the chat ID being renamed
   setIsRenamingChat: (chatId: number | null) => void;
   addMessage: (chatId: number, message: Omit<Message, "message_id">) => void;
@@ -56,8 +61,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
   getUnassociatedChats: () => {
     return get().chats.filter((chat) => !chat.chatInfo.project_id);
   },
-  setCurrentChat: (chatId) => {
+  setCurrentChat: (chatId, navigate) => {
     const chat = get().chats.find((c) => c.chatInfo.chat_id === chatId);
+    const pathname = window.location.pathname;
+
+    // Navigate to chat page if not already there
+    if (pathname !== "/" && pathname !== "/chat") {
+      if (navigate) {
+        navigate("/chat");
+      }
+    }
+
     set({ currentChat: chat || null });
   },
 
