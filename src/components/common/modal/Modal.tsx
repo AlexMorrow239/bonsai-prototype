@@ -10,9 +10,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: ReactNode;
+  children?: ReactNode;
   footer?: ReactNode;
   size?: "sm" | "md" | "lg";
+  description?: string;
 }
 
 export function Modal({
@@ -22,6 +23,7 @@ export function Modal({
   children,
   footer,
   size = "md",
+  description,
 }: ModalProps): ReactElement {
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -41,6 +43,11 @@ export function Modal({
               </Button>
             </Dialog.Close>
           </div>
+          {description && (
+            <Dialog.Description className="modal__description">
+              {description}
+            </Dialog.Description>
+          )}
           <div className="modal__content">{children}</div>
           {footer && <div className="modal__footer">{footer}</div>}
         </Dialog.Content>

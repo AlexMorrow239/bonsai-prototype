@@ -43,8 +43,7 @@ export function ActionModal({
       title={title}
       footer={footer}
       size={size}
-    >
-      <p className="action-modal__description">{description}</p>
-    </Modal>
+      description={description}
+    />
   );
 }
