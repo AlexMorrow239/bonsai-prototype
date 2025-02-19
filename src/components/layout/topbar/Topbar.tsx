@@ -3,8 +3,7 @@ import { ReactElement } from "react";
 import { useLocation } from "react-router-dom";
 
 import ChatTopbar from "@/components/features/chat-topbar/ChatTopbar";
-
-// import FileTopbar from "@/components/features/file-topbar/FileTopbar";
+import ProjectTopbar from "@/components/features/project-topbar/ProjectTopbar";
 
 import "./Topbar.scss";
 
@@ -12,15 +11,17 @@ export const Topbar = (): ReactElement => {
   const location = useLocation();
 
   const renderTopbarContent = (): ReactElement => {
-    // Use startsWith to match all project routes
-    if (
-      location.pathname === "/" ||
-      location.pathname === "/chat" ||
-      location.pathname.startsWith("/project")
-    ) {
+    // Chat routes
+    if (location.pathname === "/" || location.pathname === "/chat") {
       return <ChatTopbar />;
     }
 
+    // Project routes
+    if (location.pathname.startsWith("/project")) {
+      return <ProjectTopbar />;
+    }
+
+    // Default topbar for other routes
     return (
       <>
         <div className="topbar__info">

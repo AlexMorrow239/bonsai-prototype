@@ -1,0 +1,87 @@
+@use "@/styles/abstracts" as *;
+
+.context-topbar {
+  position: relative;
+  height: 60px;
+  padding: 0 var(--spacing-4);
+  background-color: var(--color-background);
+  @include flex(row, space-between, center);
+
+  .dropdown-section {
+    @include flex(row, flex-start, center);
+    gap: var(--spacing-4);
+  }
+
+  .dropdown {
+    &__item {
+      &--danger {
+        &:hover {
+          background-color: var(--color-error-soft);
+          color: var(--color-error-text);
+        }
+      }
+    }
+  }
+
+  .topbar-actions {
+    @include flex(row, center, center);
+    gap: var(--spacing-3);
+
+    .button {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      position: relative;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        transform: scale(1.1);
+
+        svg {
+          transform: rotate(12deg);
+        }
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      svg {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        background: var(--color-primary);
+        opacity: 0;
+        transform: scale(1.5);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: var(--z-negative);
+      }
+
+      &:hover::before {
+        opacity: 0.15;
+        transform: scale(1.1);
+      }
+
+      &[title*="theme"] {
+        &:hover svg {
+          transform: rotate(180deg);
+        }
+      }
+
+      &[title*="new"] {
+        &:hover svg {
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+}
