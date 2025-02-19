@@ -7,8 +7,6 @@ import type { Chat, Message } from "@/types";
 
 import { useProjectStore } from "./projectStore";
 
-// ... existing code ...
-
 interface ChatState {
   // Current active chat
   currentChat: Chat | null;
@@ -24,7 +22,11 @@ interface ChatState {
   isRenamingChat: number | null; // Stores the chat ID being renamed
   setIsRenamingChat: (chatId: number | null) => void;
   addMessage: (chatId: number, message: Omit<Message, "message_id">) => void;
-  createNewChat: (title: string, projectId?: number) => void;
+  createNewChat: (
+    title: string,
+    projectId?: number,
+    navigate?: ReturnType<typeof useNavigate>
+  ) => void;
   updateChatTitle: (chatId: number, newTitle: string) => void;
   shouldFocusInput: boolean;
   setShouldFocusInput: (value: boolean) => void;
@@ -106,7 +108,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  createNewChat: (title: string, projectId?: number) => {
+  createNewChat: (title, projectId, navigate) => {
+    const pathname = window.location.pathname;
+
+    // Navigate to chat page if not already there
+    if (pathname !== "/" && pathname !== "/chat") {
+      if (navigate) {
+        navigate("/chat");
+      }
+    }
+
     set((state) => {
       const newChatId =
         Math.max(...state.chats.map((c) => c.chatInfo.chat_id)) + 1;

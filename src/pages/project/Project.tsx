@@ -16,7 +16,7 @@ export default function Project() {
   const { projectId: id } = useParams();
   const { getProjectById, setCurrentProject, currentProject } =
     useProjectStore();
-  const { getChatsByProject, setCurrentChat } = useChatStore();
+  const { getChatsByProject, setCurrentChat, createNewChat } = useChatStore();
 
   // Parse the ID and ensure it's a valid number
   const projectId = id ? parseInt(id, 10) : undefined;
@@ -33,6 +33,10 @@ export default function Project() {
       setCurrentProject(project.project_id);
     }
   }, [project, currentProject, setCurrentProject]);
+
+  const handleNewChat = () => {
+    createNewChat("New Chat", projectId, navigate);
+  };
 
   if (!project) {
     return (
@@ -101,7 +105,11 @@ export default function Project() {
           <div className="section-header">
             <h2>Project Chats</h2>
             <div className="header-actions">
-              <Button variant="primary" leftIcon={<Plus />}>
+              <Button
+                variant="primary"
+                leftIcon={<Plus />}
+                onClick={handleNewChat}
+              >
                 New Chat
               </Button>
             </div>
