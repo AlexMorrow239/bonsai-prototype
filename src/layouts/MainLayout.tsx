@@ -4,9 +4,9 @@ import { Outlet } from "react-router-dom";
 
 import clsx from "clsx";
 
+import { Sidebar } from "../components/layout/sidebar/Sidebar";
+import { Topbar } from "../components/layout/topbar/Topbar";
 import "./MainLayout.scss";
-import { Sidebar } from "./sidebar/Sidebar";
-import { Topbar } from "./topbar/Topbar";
 
 export const MainLayout = (): ReactElement => {
   const [isPinned, setIsPinned] = useState(false);

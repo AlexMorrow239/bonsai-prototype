@@ -6,8 +6,8 @@ import clsx from "clsx";
 import { ChevronRight, Pin, PinOff } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
-import ChatSidebar from "@/components/layout/chat-sidebar/ChatSidebar";
-import FileSidebar from "@/components/layout/file-sidebar/FileSidebar";
+import ChatSidebar from "@/components/features/chat-sidebar/ChatSidebar";
+import FileSidebar from "@/components/features/file-sidebar/FileSidebar";
 
 import "./Sidebar.scss";
 

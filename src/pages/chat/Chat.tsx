@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 
 import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
-import { FileUpload } from "@/components/layout/file-upload/FileUpload";
+import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
 import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
