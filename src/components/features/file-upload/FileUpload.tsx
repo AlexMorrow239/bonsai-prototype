@@ -4,9 +4,11 @@ import { Upload } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
 
+import { FILE_CONSTRAINTS } from "@/common/constants";
+
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
-import { FILE_CONSTRAINTS, validateFiles } from "@/utils/fileValidation";
+import { validateFiles } from "@/utils/fileValidation";
 
 import "./FileUpload.scss";
 
@@ -14,7 +16,6 @@ interface FileUploadProps {
   chatId: number;
   variant?: "compact" | "dropzone";
   maxFiles?: number;
-  acceptedFileTypes?: string[];
   isVisible?: boolean;
 }
 
@@ -22,13 +23,13 @@ export function FileUpload({
   chatId,
   variant = "compact",
   maxFiles = FILE_CONSTRAINTS.MAX_FILES,
-  acceptedFileTypes = FILE_CONSTRAINTS.ALLOWED_TYPES,
   isVisible = false,
 }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addFiles, getFilesByChatId } = useFileStore();
   const { addToast } = useUIStore();
   const files = getFilesByChatId(chatId);
+  const acceptedFileTypes = FILE_CONSTRAINTS.ALLOWED_TYPES;
 
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -62,7 +63,7 @@ export function FileUpload({
   };
 
   // Convert allowed types to input accept format
-  const acceptedFormats = acceptedFileTypes
+  const acceptedFormats = [...acceptedFileTypes]
     .map((type) => (type.endsWith("/") ? `${type}*` : type))
     .join(",");
 

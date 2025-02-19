@@ -1,14 +1,4 @@
-export const FILE_CONSTRAINTS = {
-  MAX_FILES: 5,
-  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-  ALLOWED_TYPES: [
-    "image/",
-    "application/pdf",
-    "text/",
-    "application/json",
-    "application/xml",
-  ],
-};
+import { FILE_CONSTRAINTS } from "@/common/constants";
 
 export interface FileValidationResult {
   valid: boolean;

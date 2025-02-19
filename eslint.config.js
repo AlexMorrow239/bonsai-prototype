@@ -66,6 +66,12 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      // Error handling rules
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/explicit-function-return-type": "warn",
+      "no-throw-literal": "error",
+      "prefer-promise-reject-errors": "error",
+      "handle-callback-err": "warn",
     },
     settings: {
       react: {

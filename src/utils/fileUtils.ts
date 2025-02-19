@@ -106,10 +106,10 @@ export function validateFiles(
   // Validate each new file
   for (const file of newFiles) {
     // Check individual file size
-    if (file.size > FILE_CONSTRAINTS.MAX_SIZE) {
+    if (file.size > FILE_CONSTRAINTS.MAX_FILE_SIZE) {
       return {
         valid: false,
-        error: `File ${file.name} exceeds maximum size of ${formatFileSize(FILE_CONSTRAINTS.MAX_SIZE)}`,
+        error: `File ${file.name} exceeds maximum size of ${formatFileSize(FILE_CONSTRAINTS.MAX_FILE_SIZE)}`,
       };
     }
 

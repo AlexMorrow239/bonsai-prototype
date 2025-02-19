@@ -85,8 +85,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => {
       const updatedChats = state.chats.map((chat) => {
         if (chat.chatInfo.chat_id === chatId) {
+          const messageIds = chat.messages.map((m) => m.message_id);
           const newMessageId =
-            Math.max(...chat.messages.map((m) => m.message_id)) + 1;
+            messageIds.length > 0 ? Math.max(...messageIds) + 1 : 1;
+
           return {
             ...chat,
             messages: [
