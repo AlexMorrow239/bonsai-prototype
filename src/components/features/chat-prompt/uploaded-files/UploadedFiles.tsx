@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/common/button/Button";
 
 import { useFileStore } from "@/stores/fileStore";
-import { formatFileSize, formatTimeRemaining } from "@/utils/fileUtils";
+import { formatFileSize, formatTimeRemaining } from "@/utils/files";
 
 import "./UploadedFiles.scss";
 

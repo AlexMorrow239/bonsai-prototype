@@ -8,38 +8,49 @@ interface BaseFile {
   created_at: string;
 }
 
-// Status types
-export type UploadStatus =
-  | { status: "idle"; progress: 0 }
-  | { status: "uploading"; progress: number }
-  | { status: "completed"; progress: 100 }
-  | { status: "error"; progress: 0; error: string };
-
-// Detailed upload status for tracking
-export interface FileUploadStatus {
-  status: "idle" | "uploading" | "completed" | "error";
-  progress: number;
-  error?: string;
-  totalSize?: number;
-  uploadedSize?: number;
-  uploadSpeed?: number;
-  remainingTime?: number;
-  startTime?: number;
+// Progress information
+export interface FileUploadProgress {
+  totalSize: number;
+  uploadedSize: number;
+  uploadSpeed: number;
+  remainingTime: number;
+  startTime: number;
   completedAt?: number;
   failedAt?: number;
 }
 
-// File in uploading/error state
+// Base upload status without progress
+export type BaseUploadStatus =
+  | { status: "idle" }
+  | { status: "uploading" }
+  | { status: "completed" }
+  | { status: "error"; error: string };
+
+// Full upload status with progress
+export type UploadStatus =
+  | ({ status: "idle" } & { progress?: never })
+  | { status: "uploading"; progress: number }
+  | { status: "completed"; progress: 100 }
+  | { status: "error"; error: string; progress: 0 };
+
+// Combined type for status updates
+export type FileUploadStatus = UploadStatus & Partial<FileUploadProgress>;
+
+// Type for partial status updates
+export type PartialFileUploadStatus = Partial<FileUploadStatus>;
+
+// File states
 export interface UploadingFile extends BaseFile {
   url?: undefined;
-  uploadStatus: Exclude<UploadStatus, { status: "completed" }>;
+  uploadStatus: Extract<
+    UploadStatus,
+    { status: "idle" | "uploading" | "error" }
+  >;
 }
 
-// File in completed state
 export interface CompletedFile extends BaseFile {
   url: string;
   uploadStatus: Extract<UploadStatus, { status: "completed" }>;
 }
 
-// Combined type for all file states
 export type UploadedFile = UploadingFile | CompletedFile;

@@ -8,7 +8,7 @@ import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
-import { validateFiles } from "@/utils/fileValidation";
+import { validateFiles } from "@/utils/files/fileValidation";
 
 import "./FileUpload.scss";
 

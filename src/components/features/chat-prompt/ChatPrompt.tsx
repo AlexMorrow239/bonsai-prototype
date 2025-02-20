@@ -23,14 +23,14 @@ export function ChatPrompt({
   textareaRef,
 }: ChatPromptProps): ReactNode {
   const [message, setMessage] = useState("");
-  const { getFilesByChatId, clearFiles } = useFileStore();
+  const { getFilesByChatId, clearFiles, canSendMessage } = useFileStore();
   const files = getFilesByChatId(chatId);
   const hasContent = message.trim().length > 0 || files.length > 0;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmedMessage = message.trim();
-    if (!hasContent) return;
+    if (!hasContent || !canSendMessage) return;
 
     onSubmit(trimmedMessage, files.length > 0 ? files : undefined);
     setMessage("");
@@ -59,6 +59,16 @@ export function ChatPrompt({
     }
   };
 
+  const getButtonTitle = () => {
+    if (!hasContent) {
+      return "Type a message or upload files to send";
+    }
+    if (!canSendMessage) {
+      return "Please remove failed uploads before sending";
+    }
+    return "Send message";
+  };
+
   return (
     <div
       className={`chat-prompt-wrapper ${files.length > 0 ? "has-files" : ""}`}
@@ -80,7 +90,8 @@ export function ChatPrompt({
             <Button
               className="send-button"
               type="submit"
-              disabled={!hasContent}
+              disabled={!hasContent || !canSendMessage}
+              title={getButtonTitle()}
               size="md"
               variant="primary"
               rightIcon={<Send size={18} />}

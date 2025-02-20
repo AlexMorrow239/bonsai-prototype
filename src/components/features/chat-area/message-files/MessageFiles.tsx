@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { FileIcon, Link2 } from "lucide-react";
 
 import { UploadedFile } from "@/types";
-import { formatFileSize } from "@/utils/fileUtils";
+import { formatFileSize } from "@/utils/files";
 
 import "./MessageFiles.scss";
 
@@ -38,10 +38,23 @@ interface MessageFilesProps {
 }
 
 export function MessageFiles({ files }: MessageFilesProps) {
+  // Validation check for files with errors
+  const hasErrorFiles = files?.some(
+    (file) => file.uploadStatus.status === "error"
+  );
+
   if (!files?.length) return null;
 
   return (
-    <div className="message-files">
+    <div
+      className={`message-files ${hasErrorFiles ? "message-files--has-errors" : ""}`}
+    >
+      {hasErrorFiles && (
+        <div className="message-files__error-banner">
+          One or more files failed to upload. Please remove failed files before
+          sending.
+        </div>
+      )}
       {files.map((file) => (
         <MessageFile key={file.file_id} file={file} />
       ))}
