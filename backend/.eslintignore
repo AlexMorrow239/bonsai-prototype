@@ -1,0 +1,6 @@
+# base ignore patterns
+!.ignore
+.ignore
+
+# Additional eslint-specific patterns
+.eslintrc.js
