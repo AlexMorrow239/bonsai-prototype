@@ -1,0 +1,6 @@
+# base ignore patterns
+!.ignore
+.ignore
+
+# prettier-specific patterns
+.eslintrc.js

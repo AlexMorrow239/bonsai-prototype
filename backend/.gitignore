@@ -1,0 +1,22 @@
+# Import base ignore patterns
+!.ignore
+.ignore
+
+# git-specific patterns
+*.pid
+*.seed
+*.pid.lock
+.npm
+.eslintcache
+.node_repl_history
+*.tgz
+.yarn-integrity
+*.pem
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
