@@ -8,7 +8,7 @@ export default defineConfig({
 
   // Server configuration
   server: {
-    port: 5173,
+    port: 5174,
     strictPort: true,
     host: true,
     open: true,
@@ -26,9 +26,15 @@ export default defineConfig({
           router: ["react-router-dom"],
           query: ["@tanstack/react-query"],
           zustand: ["zustand"],
+          pdfjs: ["pdfjs-dist"],
         },
       },
     },
+  },
+
+  // Dependency optimization
+  optimizeDeps: {
+    exclude: ["pdfjs-dist"],
   },
 
   // Path aliases

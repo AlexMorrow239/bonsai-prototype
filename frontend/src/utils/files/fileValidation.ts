@@ -144,6 +144,14 @@ export function validateFiles(
 
   // Validate each file
   for (const file of validFiles) {
+    // Check if file type is supported by Gemini first
+    if (!isFileTypeSupported(file.type)) {
+      return {
+        valid: false,
+        error: `File type ${file.type} is not supported by the AI model`,
+      };
+    }
+
     // Check individual file size
     const sizeValidation = validateFileSize(file);
     if (!sizeValidation.valid) {
@@ -156,14 +164,6 @@ export function validateFiles(
       return {
         valid: false,
         error: typeValidation.error || `Invalid file type for ${file.name}`,
-      };
-    }
-
-    // Check AI model support
-    if (!isFileTypeSupported(typeValidation.type || file.type)) {
-      return {
-        valid: false,
-        error: `File type ${file.type || typeValidation.type} is not supported by the AI model`,
       };
     }
   }

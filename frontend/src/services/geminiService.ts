@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
 
+import { FILE_CONSTRAINTS, GeminiSupportedMimeType } from "@/common/constants";
+
 import { type UploadedFile } from "@/types";
 import { AppError } from "@/utils/errorUtils";
 import { logError } from "@/utils/errorUtils";
@@ -17,20 +19,11 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const SUPPORTED_MIME_TYPES = {
-  IMAGE: [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/heic",
-    "image/heif",
-  ] as const,
-  TEXT: ["text/plain"] as const,
-} as const;
+const SUPPORTED_MIME_TYPES = FILE_CONSTRAINTS.MIME_TYPES.GEMINI;
 
 type SupportedImageType = (typeof SUPPORTED_MIME_TYPES.IMAGE)[number];
 type SupportedTextType = (typeof SUPPORTED_MIME_TYPES.TEXT)[number];
-type SupportedMimeType = SupportedImageType | SupportedTextType;
+type SupportedMimeType = GeminiSupportedMimeType;
 
 interface FileProcessingError extends Error {
   fileName: string;
@@ -44,7 +37,7 @@ async function fileToGenerativePart(file: File): Promise<Part> {
 
     // Handle images
     if (
-      isFileTypeSupported(mimeType) &&
+      isGeminiSupported(mimeType) &&
       SUPPORTED_MIME_TYPES.IMAGE.includes(mimeType as SupportedImageType)
     ) {
       const data = await file.arrayBuffer();
@@ -72,9 +65,9 @@ async function fileToGenerativePart(file: File): Promise<Part> {
       };
     }
 
-    // Handle text files
+    // Handle text files (including converted PDFs)
     if (
-      isFileTypeSupported(mimeType) &&
+      isGeminiSupported(mimeType) &&
       SUPPORTED_MIME_TYPES.TEXT.includes(mimeType as SupportedTextType)
     ) {
       const text = await file.text();
@@ -102,6 +95,26 @@ async function fileToGenerativePart(file: File): Promise<Part> {
     }
     throw error;
   }
+}
+
+// Helper function to check if a mime type is supported by Gemini directly
+export function isGeminiSupported(
+  mimeType: string
+): mimeType is GeminiSupportedMimeType {
+  return [...SUPPORTED_MIME_TYPES.IMAGE, ...SUPPORTED_MIME_TYPES.TEXT].includes(
+    mimeType as GeminiSupportedMimeType
+  );
+}
+
+// Helper function to check if a file type is supported (either directly or through conversion)
+export function isFileTypeSupported(
+  mimeType: string
+): mimeType is SupportedMimeType {
+  return [
+    ...SUPPORTED_MIME_TYPES.IMAGE,
+    ...SUPPORTED_MIME_TYPES.TEXT,
+    ...FILE_CONSTRAINTS.MIME_TYPES.CONVERTIBLE.PDF,
+  ].includes(mimeType as SupportedMimeType);
 }
 
 export async function generateGeminiResponse(
@@ -230,15 +243,6 @@ export async function generateGeminiResponse(
       }
     );
   }
-}
-
-// Helper function to check if a mime type is supported
-export function isFileTypeSupported(
-  mimeType: string
-): mimeType is SupportedMimeType {
-  return [...SUPPORTED_MIME_TYPES.IMAGE, ...SUPPORTED_MIME_TYPES.TEXT].includes(
-    mimeType as SupportedMimeType
-  );
 }
 
 // Export types for external use

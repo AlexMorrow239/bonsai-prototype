@@ -4,7 +4,7 @@ import { Upload } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
 
-import { FILE_CONSTRAINTS } from "@/common/constants";
+import { FILE_CONSTRAINTS, getAllowedTypes } from "@/common/constants";
 
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
@@ -29,7 +29,7 @@ export function FileUpload({
   const { addFiles, getFilesByChatId } = useFileStore();
   const { addToast } = useUIStore();
   const files = getFilesByChatId(chatId);
-  const acceptedFileTypes = FILE_CONSTRAINTS.ALLOWED_TYPES;
+  const acceptedFileTypes = getAllowedTypes();
 
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>

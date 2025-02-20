@@ -12,10 +12,6 @@ export async function uploadFileWithProgress(
   onProgress: UploadProgressCallback
 ): Promise<string> {
   try {
-    const CHUNK_SIZE = FILE_CONSTRAINTS.CHUNK_SIZE;
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    let uploadedChunks = 0;
-
     // Initialize upload status
     onProgress({
       progress: 0,
@@ -25,6 +21,11 @@ export async function uploadFileWithProgress(
       startTime: Date.now(),
       uploadSpeed: 0,
     });
+
+    // For non-PDF files, use the regular upload simulation
+    const CHUNK_SIZE = FILE_CONSTRAINTS.CHUNK_SIZE;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    let uploadedChunks = 0;
 
     // Simulate network conditions
     const minSpeed = FILE_CONSTRAINTS.MIN_UPLOAD_SPEED;
