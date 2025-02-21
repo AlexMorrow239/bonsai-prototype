@@ -6,15 +6,18 @@ export const configValidationSchema = Joi.object({
 
   // Server
   PORT: Joi.number().default(3000),
+  HOST: Joi.string().default('0.0.0.0'),
 
-  // JWT
-  JWT_SECRET: Joi.string().required(),
-
-  // Admin
-  ADMIN_PASSWORD: Joi.string().required(),
+  // AWS
+  AWS_REGION: Joi.string().required(),
+  AWS_ACCESS_KEY_ID: Joi.string().required(),
+  AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+  AWS_BUCKET_NAME: Joi.string().required(),
 
   // Environment
-  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   NETWORK_MODE: Joi.boolean().default(false),
 
   // API URL

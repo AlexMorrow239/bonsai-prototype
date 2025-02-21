@@ -1,17 +1,20 @@
+import { join } from 'path';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { AppModule } from './app.module';
 import { HttpExceptionFilter } from '@/common/filters/http-exception-filter';
 import { ErrorHandlingInterceptor } from '@/common/interceptors/error-handling.interceptor';
-import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from '@/common/interceptors/logging.interceptor';
+import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
+
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   // Initialize app
-  const app = await NestFactory.create(AppModule);
+  const app = (await NestFactory.create(AppModule)) as NestExpressApplication;
 
   // Get config service and setup logger
   const configService = app.get(ConfigService);
@@ -29,12 +32,15 @@ async function bootstrap() {
     // Configure CORS
     configureCors(app, configService, logger);
 
+    // Configure static file serving for uploads
+    configureFileUploads(app, logger);
+
     // Configure and setup Swagger documentation
     setupSwagger(app, logger);
 
     // Start the server
-    const port = configService.get<number>('PORT') || 3000;
-    const host = '0.0.0.0';
+    const port = configService.get('app.server.port');
+    const host = configService.get('app.server.host');
     await app.listen(port, host);
 
     // Log server information
@@ -45,7 +51,10 @@ async function bootstrap() {
   }
 }
 
-function configureGlobalMiddleware(app: any, logger: Logger) {
+function configureGlobalMiddleware(
+  app: NestExpressApplication,
+  logger: Logger
+) {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -56,11 +65,12 @@ function configureGlobalMiddleware(app: any, logger: Logger) {
   app.useGlobalInterceptors(
     new TransformInterceptor(),
     new LoggingInterceptor(),
-    new ErrorHandlingInterceptor(),
-  );  app.useGlobalFilters(new HttpExceptionFilter());
+    new ErrorHandlingInterceptor()
+  );
+  app.useGlobalFilters(new HttpExceptionFilter());
 }
 
-function configureRequestLogging(app: any, logger: Logger) {
+function configureRequestLogging(app: NestExpressApplication, logger: Logger) {
   app.use((req: any, res: any, next: () => void) => {
     logger.debug(
       'Incoming request',
@@ -88,16 +98,18 @@ function configureRequestLogging(app: any, logger: Logger) {
 }
 
 function configureCors(
-  app: any,
+  app: NestExpressApplication,
   configService: ConfigService,
   logger: Logger
 ) {
-  const frontendUrl = configService.get('url.frontend');
+  const frontendUrl = configService.get('app.urls.frontend');
   logger.log(`Configuring CORS with frontend URL: ${frontendUrl}`);
 
   app.enableCors({
     origin: [
       frontendUrl,
+      // Development URLs
+      /^http:\/\/localhost:\d+$/,
       /^http:\/\/192\.168\.1\.\d{1,3}:\d+$/,
       'http://100.65.62.87:5173',
     ],
@@ -110,7 +122,14 @@ function configureCors(
   });
 }
 
-function setupSwagger(app: any, logger: Logger) {
+function configureFileUploads(app: NestExpressApplication, logger: Logger) {
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+  logger.log('File upload static serving configured at /uploads');
+}
+
+function setupSwagger(app: NestExpressApplication, logger: Logger) {
   const config = new DocumentBuilder()
     .setTitle('Bonsai API')
     .setDescription('Bonsai Swagger API')
@@ -124,7 +143,7 @@ function setupSwagger(app: any, logger: Logger) {
 }
 
 async function logServerInformation(
-  app: any,
+  app: NestExpressApplication,
   port: number,
   logger: Logger
 ) {

@@ -1,5 +1,54 @@
-import { IsString, IsBoolean, IsArray, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  ValidateNested,
+} from 'class-validator';
+
+export class FileUploadDto {
+  @ApiProperty({ description: 'The unique identifier of the file' })
+  @IsString()
+  file_id: string;
+
+  @ApiProperty({ description: 'The original name of the file' })
+  @IsString()
+  filename: string;
+
+  @ApiProperty({
+    description: 'The MIME type of the file',
+    enum: [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ],
+  })
+  @IsString()
+  mimetype: string;
+
+  @ApiProperty({
+    description: 'The size of the file in bytes',
+    maximum: 10485760,
+  }) // 10MB
+  @IsNumber()
+  @Max(10 * 1024 * 1024)
+  size: number;
+
+  @ApiProperty({ description: 'The temporary signed URL for file access' })
+  @IsString()
+  url: string;
+
+  @ApiProperty({ description: 'The S3 file path/key' })
+  @IsString()
+  file_path: string;
+}
 
 export class CreateMessageDto {
   @ApiProperty({ description: 'The content of the message' })
@@ -12,21 +61,11 @@ export class CreateMessageDto {
 
   @ApiPropertyOptional({
     description: 'Array of files attached to the message',
-    type: 'array',
-    items: {
-      type: 'object',
-      properties: {
-        file_id: { type: 'string' },
-        filename: { type: 'string' },
-        url: { type: 'string' }
-      }
-    }
+    type: [FileUploadDto],
   })
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FileUploadDto)
   @IsOptional()
-  files?: Array<{
-    file_id: string;
-    filename: string;
-    url: string;
-  }>;
+  files?: FileUploadDto[];
 }

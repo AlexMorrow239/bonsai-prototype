@@ -1,17 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
 import { Types } from 'mongoose';
 
 interface FileAttachment {
   file_id: string;
   filename: string;
+  mimetype: string;
+  size: number;
   url: string;
+  file_path: string;
 }
 
 @Schema({
-  timestamps: {
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
-  }
+  timestamps: true,
+  collection: 'messages',
 })
 export class Message {
   @Prop({ type: Types.ObjectId, required: true })
@@ -26,7 +28,18 @@ export class Message {
   @Prop({ required: true })
   is_ai_response: boolean;
 
-  @Prop({ type: [{ file_id: String, filename: String, url: String }] })
+  @Prop({
+    type: [
+      {
+        file_id: String,
+        filename: String,
+        mimetype: String,
+        size: Number,
+        url: String,
+        file_path: String,
+      },
+    ],
+  })
   files?: FileAttachment[];
 }
 
