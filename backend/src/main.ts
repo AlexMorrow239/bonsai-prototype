@@ -33,7 +33,7 @@ async function bootstrap() {
     setupSwagger(app, logger);
 
     // Start the server
-    const port = configService.get('server.port');
+    const port = configService.get<number>('PORT') || 3000;
     const host = '0.0.0.0';
     await app.listen(port, host);
 
@@ -56,6 +56,7 @@ function configureGlobalMiddleware(app: any, logger: Logger) {
   app.useGlobalInterceptors(
     new TransformInterceptor(),
     new LoggingInterceptor(),
+    new ErrorHandlingInterceptor(),
   );  app.useGlobalFilters(new HttpExceptionFilter());
 }
 
