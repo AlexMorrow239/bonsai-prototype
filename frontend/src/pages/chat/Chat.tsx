@@ -1,113 +1,103 @@
-import React, { useEffect, useRef } from "react";
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { ReactElement, useEffect, useRef } from "react";
 
 import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
-import { apiClient } from "@/lib/api-client";
+import { useMessages, useSendMessage } from "@/hooks/api/useMessages";
 import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
-import { useUIStore } from "@/stores/uiStore";
-import type { Message, UploadedFile } from "@/types";
+import { useMessageStore } from "@/stores/messageStore";
+import { useToastActions } from "@/stores/uiStore";
+import type { UploadedFile } from "@/types";
 
 import "./Chat.scss";
 
-export default function Chat() {
-  const { currentChat, addMessage, shouldFocusInput, setShouldFocusInput } =
-    useChatStore();
-  const { addToast } = useUIStore();
+export default function Chat(): ReactElement {
+  const {
+    currentChat,
+    shouldFocusInput,
+    setShouldFocusInput,
+    updateChatPreview,
+  } = useChatStore();
   const { isDragging, setDragging, handleFileDrop } = useFileStore();
-  const queryClient = useQueryClient();
+  const { addMessage } = useMessageStore();
+  const { showErrorToast } = useToastActions();
 
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
 
-  // Use React Query mutation
-  const { mutateAsync: sendMessage, isPending: isResponseLoading } =
-    useMutation({
-      mutationFn: async ({
-        chatId,
-        content,
-        files,
-        is_ai_response = false,
-      }: {
-        chatId: string;
-        content: string;
-        files?: File[];
-        is_ai_response?: boolean;
-      }) => {
-        const formData = new FormData();
-        formData.append("content", content);
-        formData.append("is_ai_response", String(is_ai_response));
-
-        if (files?.length) {
-          files.forEach((file) => {
-            formData.append("files", file);
-          });
-        }
-
-        const response = await apiClient.post<{ data: Message }>(
-          `/chats/${chatId}/messages`,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-        return response.data.data;
-      },
-      onSuccess: (data) => {
-        queryClient.invalidateQueries({
-          queryKey: ["messages", currentChat?._id],
-        });
-      },
-    });
+  // Fetch messages for current chat
+  const { data: messages = [], isLoading } = useMessages(
+    currentChat?._id || ""
+  );
+  const sendMessage = useSendMessage();
 
   const handleMessageSubmit = async (
-    message: string,
+    content: string,
     files?: UploadedFile[]
   ) => {
-    if (!currentChat?._id) return;
+    if (!currentChat?._id) {
+      showErrorToast(
+        new Error("No chat selected"),
+        "Please select or create a chat first"
+      );
+      return;
+    }
 
-    const hasContent = message.trim().length > 0 || (files && files.length > 0);
+    const hasContent = content.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
     try {
       // Send user message
-      const userMessage = await sendMessage({
+      const userMessage = await sendMessage.mutateAsync({
         chatId: currentChat._id,
-        content: message.trim(),
+        content: content.trim(),
         files: files?.map((f) => f.file),
+        is_ai_response: false,
       });
+
+      // Validate user message was created successfully
+      if (!userMessage) {
+        throw new Error("Failed to create user message");
+      }
 
       addMessage(currentChat._id, userMessage);
+      updateChatPreview(currentChat._id, userMessage);
 
-      // Generate and send AI response
-      const aiContent = await generateGeminiResponse(message.trim(), files);
+      try {
+        // Generate AI response
+        const aiContent = await generateGeminiResponse(content.trim(), files);
 
-      const aiResponse = await sendMessage({
-        chatId: currentChat._id,
-        content: aiContent,
-        is_ai_response: true,
-      });
+        if (!aiContent) {
+          throw new Error("Empty response from AI");
+        }
 
-      addMessage(currentChat._id, aiResponse);
+        // Send AI response to backend
+        const aiMessage = await sendMessage.mutateAsync({
+          chatId: currentChat._id,
+          content: aiContent,
+          is_ai_response: true,
+        });
+
+        // Add AI response to local state and update chat preview
+        addMessage(currentChat._id, aiMessage);
+        updateChatPreview(currentChat._id, aiMessage);
+      } catch (aiError) {
+        console.error("[Chat] AI response error:", aiError);
+        showErrorToast(aiError, "Failed to generate AI response");
+      }
     } catch (error) {
-      addToast({
-        type: "error",
-        message: "Failed to send message or generate AI response",
-      });
+      console.error("[Chat] Message submission error:", error);
+      showErrorToast(error, "Failed to send message");
     }
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     dragCounter.current++;
-
     if (dragCounter.current === 1) {
       setDragging(true);
     }
@@ -116,9 +106,7 @@ export default function Chat() {
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     dragCounter.current--;
-
     if (dragCounter.current === 0) {
       setDragging(false);
     }
@@ -132,12 +120,10 @@ export default function Chat() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     dragCounter.current = 0;
     setDragging(false);
 
     if (!currentChat?._id) return;
-
     await handleFileDrop(currentChat._id, e.dataTransfer);
   };
 
@@ -149,7 +135,6 @@ export default function Chat() {
   }, [shouldFocusInput, setShouldFocusInput]);
 
   useEffect(() => {
-    // Reset drag counter when component unmounts
     return () => {
       dragCounter.current = 0;
       setDragging(false);
@@ -166,7 +151,7 @@ export default function Chat() {
     >
       {currentChat ? (
         <>
-          <ChatArea messages={[]} />
+          <ChatArea messages={messages || []} isLoading={isLoading} />
           <ChatPrompt
             chatId={currentChat._id}
             onSubmit={handleMessageSubmit}

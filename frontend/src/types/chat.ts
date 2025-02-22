@@ -1,3 +1,5 @@
+import type { UploadedFile } from "./file";
+
 // Base types without database fields
 export interface NewChat {
   title: string;
@@ -10,7 +12,7 @@ export interface NewMessage {
   chat_id: string;
   content: string;
   is_ai_response: boolean;
-  files?: FileUpload[];
+  files?: UploadedFile[];
 }
 
 export interface UpdateChat {
@@ -31,13 +33,4 @@ export interface Message extends NewMessage {
   _id: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface FileUpload {
-  file_id: string;
-  filename: string;
-  mimetype: string;
-  size: number;
-  url: string;
-  file_path: string;
 }

@@ -1,7 +1,6 @@
 // Base interface for file data matching backend requirements
 export interface FileMetadata {
-  file_id: string;
-  filename: string;
+  name: string;
   mimetype: string;
   size: number;
   url?: string;

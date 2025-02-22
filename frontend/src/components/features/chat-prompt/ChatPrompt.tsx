@@ -42,12 +42,12 @@ export function ChatPrompt({
     if (!hasContent) return;
 
     const trimmedMessage = message.trim();
-
     try {
       await sendMessage.mutateAsync({
         chatId,
         content: trimmedMessage,
-        files: files.map((f) => f.file).filter((f): f is File => !!f), // Only send files that exist
+        is_ai_response: false,
+        files: files.map((f) => f.file).filter((f): f is File => !!f),
       });
 
       onSubmit(trimmedMessage, files);

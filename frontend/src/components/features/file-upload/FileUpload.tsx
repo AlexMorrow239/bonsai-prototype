@@ -37,8 +37,7 @@ export function FileUpload({
     const fileId = uuidv4();
 
     const metadata: FileMetadata = {
-      file_id: fileId,
-      filename: file.name,
+      name: file.name,
       mimetype: file.type,
       size: file.size,
     };

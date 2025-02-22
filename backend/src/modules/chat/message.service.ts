@@ -30,6 +30,13 @@ export class MessageService {
     files?: Express.Multer.File[]
   ): Promise<IMessage> {
     try {
+      // Add logging to see what value is being received
+      this.logger.debug('Creating message with data:', {
+        chatId,
+        is_ai_response: createMessageDto.is_ai_response,
+        content: createMessageDto.content.substring(0, 50) + '...',
+      });
+
       if (!Types.ObjectId.isValid(chatId)) {
         throw new BadRequestException(`Invalid chat ID format: ${chatId}`);
       }
@@ -54,13 +61,15 @@ export class MessageService {
         }
       }
 
-      const newMessage = new this.messageModel({
-        ...createMessageDto,
+      const message = new this.messageModel({
         chat_id: chatId,
+        content: createMessageDto.content,
+        is_ai_response: createMessageDto.is_ai_response,
         created_at: new Date(),
+        files: createMessageDto.files || [],
       });
 
-      const savedMessage = await newMessage.save();
+      const savedMessage = await message.save();
 
       // Update chat metadata
       await this.updateChatMetadata(chatId, createMessageDto);

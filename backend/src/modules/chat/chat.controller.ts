@@ -11,7 +11,7 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiConsumes,
@@ -29,6 +29,7 @@ import {
   UpdateChatDto,
 } from '@/common/dto/chat';
 import { FileUploadInterceptor } from '@/common/interceptors/file-upload.interceptor';
+import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
 import { MessageService } from '@/modules/chat/message.service';
 import { AwsS3Service } from '@/services/aws-s3.service';
 
@@ -41,7 +42,8 @@ export class ChatController {
   constructor(
     private readonly chatService: ChatService,
     private readonly mesageService: MessageService,
-    private readonly awsS3Service: AwsS3Service
+    private readonly awsS3Service: AwsS3Service,
+    private readonly multipartMessagePipe: MultipartMessagePipe
   ) {}
 
   @Get()
@@ -123,15 +125,28 @@ export class ChatController {
   }
 
   @Post(':chatId/messages')
+  @UseInterceptors(FilesInterceptor('files'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Create a new message with optional file attachments',
   })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiBody({
+    description: 'Message data and optional files',
+    required: true,
     schema: {
       type: 'object',
+      required: ['messageData'],
       properties: {
+        messageData: {
+          type: 'string',
+          description: 'JSON string containing message data',
+          example: JSON.stringify({
+            content: 'Hello, this is a test message',
+            is_ai_response: false,
+            files: [],
+          }),
+        },
         files: {
           type: 'array',
           items: {
@@ -140,24 +155,44 @@ export class ChatController {
           },
           description: 'Array of files to upload (max 5 files)',
         },
-        content: {
-          type: 'string',
-          description: 'The content of the message',
+      },
+    },
+    examples: {
+      'Text Message': {
+        value: {
+          messageData: JSON.stringify({
+            content: 'Hello, this is a test message',
+            is_ai_response: false,
+          }),
         },
-        is_ai_response: {
-          type: 'boolean',
-          description: 'Whether this is an AI response',
+      },
+      'Message with Files': {
+        value: {
+          messageData: JSON.stringify({
+            content: 'Here are some files',
+            is_ai_response: false,
+            files: [
+              {
+                originalname: 'test.pdf',
+                mimetype: 'application/pdf',
+                size: 12345,
+              },
+            ],
+          }),
         },
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('files'), FileUploadInterceptor)
   async createMessage(
     @Param('chatId') chatId: string,
-    @Body() createMessageDto: CreateMessageDto,
+    @Body() rawBody: any,
     @UploadedFiles() files: Express.Multer.File[]
   ) {
-    return this.mesageService.createMessage(chatId, createMessageDto, files);
+    const messageData = await this.multipartMessagePipe.transform(
+      { messageData: rawBody.messageData, files },
+      { type: 'body', metatype: CreateMessageDto }
+    );
+    return this.mesageService.createMessage(chatId, messageData, files);
   }
 
   @Put(':chatId')

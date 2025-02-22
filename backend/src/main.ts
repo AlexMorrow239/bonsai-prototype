@@ -26,9 +26,6 @@ async function bootstrap() {
     // Configure global middleware
     configureGlobalMiddleware(app, logger);
 
-    // Add request logging middleware
-    configureRequestLogging(app, logger);
-
     // Configure CORS
     configureCors(app, configService, logger);
 
@@ -68,33 +65,6 @@ function configureGlobalMiddleware(
     new ErrorHandlingInterceptor()
   );
   app.useGlobalFilters(new HttpExceptionFilter());
-}
-
-function configureRequestLogging(app: NestExpressApplication, logger: Logger) {
-  app.use((req: any, res: any, next: () => void) => {
-    logger.debug(
-      'Incoming request',
-      JSON.stringify({
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-      })
-    );
-
-    // Capture response headers after they're set
-    const oldEnd = res.end;
-    res.end = function (...args: any[]) {
-      logger.debug(
-        'Outgoing response',
-        JSON.stringify({
-          statusCode: res.statusCode,
-          headers: res.getHeaders(),
-        })
-      );
-      return oldEnd.apply(res, args);
-    };
-    next();
-  });
 }
 
 function configureCors(

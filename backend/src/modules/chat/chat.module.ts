@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { MulterModule } from '@nestjs/platform-express';
 
+import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
 import { MessageService } from '@/modules/chat/message.service';
 import {
   Project,
@@ -20,8 +22,14 @@ import { MessageSchema } from './schemas/message.schema';
       { name: 'Message', schema: MessageSchema },
       { name: Project.name, schema: ProjectSchema },
     ]),
+    MulterModule.register({
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+        files: 5, // Maximum 5 files per request
+      },
+    }),
   ],
   controllers: [ChatController],
-  providers: [ChatService, MessageService, AwsS3Service],
+  providers: [ChatService, MessageService, AwsS3Service, MultipartMessagePipe],
 })
 export class ChatModule {}
