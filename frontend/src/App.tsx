@@ -11,10 +11,11 @@ import "@/styles/main.scss";
 import { MainLayout } from "@/layouts/MainLayout";
 import { queryClient } from "@/lib/query-client";
 import CurrentChat from "@/pages/current-chat/CurrentChat";
+import { CurrentProject } from "@/pages/current-project/CurrentProject";
 import { ErrorBoundary } from "@/pages/error-boundary/ErrorBoundary";
 import { NewChat } from "@/pages/new-chat/NewChat";
+import { NewProject } from "@/pages/new-project/NewProject";
 import NotFound from "@/pages/not-found/NotFound";
-import Project from "@/pages/project/Project";
 import { useThemeStore } from "@/stores/themeStore";
 
 const router = createBrowserRouter([
@@ -35,8 +36,12 @@ const router = createBrowserRouter([
         element: <CurrentChat />,
       },
       {
+        path: "/project/new",
+        element: <NewProject />,
+      },
+      {
         path: "/project/:projectId",
-        element: <Project />,
+        element: <CurrentProject />,
       },
     ],
   },
