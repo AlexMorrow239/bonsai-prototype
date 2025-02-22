@@ -6,10 +6,11 @@ import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 
 import { useCreateChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
+import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
-import type { Chat, UploadedFile } from "@/types";
+import type { UploadedFile } from "@/types";
 
 import "./NewChat.scss";
 
@@ -17,7 +18,7 @@ export function NewChat(): ReactElement {
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const { showErrorToast } = useToastActions();
   const { addMessage } = useMessageStore();
-  const { setCurrentChat, setChats } = useChatStore();
+  const { setCurrentChat, setChats, chats } = useChatStore();
   const navigate = useNavigate();
 
   const createChat = useCreateChat();
@@ -41,18 +42,60 @@ export function NewChat(): ReactElement {
         throw new Error("Failed to create chat");
       }
 
-      // Send first message using the sendMessage mutation
+      // Create a temporary message ID to track this submission
+      const tempMessageId = `temp-${Date.now()}`;
+
+      // Add message to local store first with temporary ID
+      const pendingMessage = {
+        _id: tempMessageId,
+        chat_id: newChat._id,
+        content: content.trim(),
+        is_ai_response: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update stores with new chat and pending message
+      setChats([...chats, newChat]);
+      addMessage(newChat._id, pendingMessage);
+      setCurrentChat(newChat);
+
+      // Send user message
       const userMessage = await sendMessage.mutateAsync({
         chatId: newChat._id,
         content: content.trim(),
-        files: files?.map((f) => f.file).filter((f): f is File => !!f),
+        files: files
+          ? files?.map((f) => f.file).filter((f): f is File => !!f)
+          : [],
         is_ai_response: false,
       });
 
-      // Update stores with new chat and message
-      setChats((prevChats: Chat[]): Chat[] => [...prevChats, newChat]);
-      addMessage(newChat._id, userMessage);
-      setCurrentChat(newChat);
+      // Replace temporary message with server response
+      if (userMessage) {
+        addMessage(newChat._id, userMessage);
+      }
+
+      try {
+        // Generate AI response
+        const aiContent = await generateGeminiResponse(content.trim(), files);
+
+        if (!aiContent) {
+          throw new Error("Empty response from AI");
+        }
+
+        // Send AI response to backend
+        const aiMessage = await sendMessage.mutateAsync({
+          chatId: newChat._id,
+          content: aiContent,
+          is_ai_response: true,
+        });
+
+        // Add AI response to local state
+        addMessage(newChat._id, aiMessage);
+      } catch (aiError) {
+        console.error("[NewChat] AI response error:", aiError);
+        showErrorToast(aiError, "Failed to generate AI response");
+      }
 
       // Navigate to chat view after everything is done
       navigate(`/chat/${newChat._id}`);

@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/common/button/Button";
+import { SidebarSection } from "@/components/common/sidebar-section/SidebarSection";
 
 import { useChats } from "@/hooks/api/useChats";
 import { useChatStore } from "@/stores/chatStore";
@@ -52,6 +53,12 @@ export default function ChatSidebar() {
     });
   }, [chats]);
 
+  // Transform chats into the format expected by SidebarSection
+  const chatItems = sortedChats.map((chat) => ({
+    id: chat._id,
+    title: chat.title || "Untitled Chat",
+  }));
+
   return (
     <div className="chat-sidebar">
       <div className="chat-sidebar__controls">
@@ -71,31 +78,19 @@ export default function ChatSidebar() {
         ) : !Array.isArray(chats) || sortedChats.length === 0 ? (
           <div>No chats available</div>
         ) : (
-          <>
-            <div
-              className="list-header"
-              onClick={() => setShowActive(!showActive)}
-            >
-              <h3>All Chats</h3>
-              <span className="toggle">{showActive ? "-" : "+"}</span>
-            </div>
-
-            {showActive &&
-              sortedChats.map((chat) => (
-                <Button
-                  key={chat._id}
-                  variant="ghost"
-                  className={`chat-item ${
-                    currentChat?._id === chat._id ? "active" : ""
-                  }`}
-                  onClick={() => handleChatClick(chat._id)}
-                >
-                  <div className="chat-title">
-                    {chat.title || "Untitled Chat"}
-                  </div>
-                </Button>
-              ))}
-          </>
+          <SidebarSection
+            title="All Chats"
+            items={chatItems}
+            isExpanded={showActive}
+            onToggleExpand={() => setShowActive(!showActive)}
+            currentItemId={currentChat?._id}
+            isRenaming={null}
+            onItemClick={handleChatClick}
+            renderItemContent={(item) => (
+              <div className="chat-title">{item.title}</div>
+            )}
+            disableClickWhenRenaming={false}
+          />
         )}
       </div>
     </div>
