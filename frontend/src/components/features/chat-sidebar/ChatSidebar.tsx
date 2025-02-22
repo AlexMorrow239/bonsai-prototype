@@ -1,100 +1,52 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 
 import { useNavigate } from "react-router-dom";
-
-import { Folder } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
 import { SidebarSection } from "@/components/common/sidebar-section/SidebarSection";
 
-import { useCreateChat, useUpdateChat } from "@/hooks/api/useChats";
+import { useChats, useCreateChat } from "@/hooks/api/useChats";
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useToastActions } from "@/stores/uiStore";
-import type { Chat } from "@/types/api";
 
 import "./ChatSidebar.scss";
 
 export default function ChatSidebar() {
   const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  const { data: chatsData, isLoading: isChatsLoading } = useChats();
 
   // Store state
-  const {
-    currentChat,
-    setCurrentChat,
+  const { currentChat, setCurrentChat, chats, setChats } = useChatStore();
 
-    chats,
-  } = useChatStore();
-
-  const { projects, currentProject, setCurrentProject } = useProjectStore();
+  const { currentProject } = useProjectStore();
   const { showErrorToast, showSuccessToast } = useToastActions();
+
+  // Update chats when data changes
+  useEffect(() => {
+    if (chatsData) {
+      console.log("Setting chats:", chatsData);
+      // Only set the actual array of chats, not the whole response object
+      setChats(chatsData.data);
+    }
+  }, [chatsData, setChats]);
+
+  // Add debug logging to see when chats update
+  useEffect(() => {
+    console.log("Current chats state:", chats);
+  }, [chats]);
 
   // API mutations
   const createChat = useCreateChat();
-  const updateChat = useUpdateChat();
 
   const [showActive, setShowActive] = React.useState(true);
-  const [showProjects, setShowProjects] = React.useState(true);
-
-  // useEffect(() => {
-  //   if (isRenamingChat && inputRef.current) {
-  //     inputRef.current.focus();
-  //   }
-  // }, [isRenamingChat]);
 
   const handleChatClick = (chatId: string) => {
     setCurrentChat(chatId, navigate);
   };
 
-  const handleProjectClick = (projectId: string) => {
-    if (!projects) return;
-    const project = projects.find((p) => p._id === projectId);
-    setCurrentProject(project || null);
-    navigate(`/project/${projectId}`);
-  };
-
-  const handleRename = async (
-    chat: Chat,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      try {
-        await updateChat.mutateAsync({
-          id: chat._id,
-          title: e.currentTarget.value,
-        });
-        showSuccessToast("Chat renamed successfully");
-      } catch (error) {
-        showErrorToast(error, "Failed to rename chat");
-      }
-      // } finally {
-      //   setIsRenamingChat(null);
-      // }
-      // } else if (e.key === "Escape") {
-      //   setIsRenamingChat(null);
-      // }
-    }
-  };
-
-  // const handleBlur = () => {
-  //   setIsRenamingChat(null);
-  // };
-
   const renderChatTitle = (chat: { id: string; title: string }) => {
-    // if (isRenamingChat === chat.id) {
-    //   return (
-    //     <input
-    //       ref={inputRef}
-    //       className="chat-title-input"
-    //       defaultValue={chat.title}
-    //       onKeyDown={(e) =>
-    //         handleRename({ _id: chat.id, title: chat.title } as Chat, e)
-    //       }
-    //       onBlur={handleBlur}
-    //     />
-    //   );
-    // }
     return <div className="chat-title">{chat.title}</div>;
   };
 
@@ -109,24 +61,23 @@ export default function ChatSidebar() {
       showErrorToast(error, "Failed to create new chat");
     }
   };
-
-  const renderProjectTitle = (item: { id: string; title: string }) => (
-    <div className="project-title">{item.title}</div>
+  // Transform data for SidebarSection using useMemo
+  const chatItems = useMemo(
+    () =>
+      Array.isArray(chats)
+        ? chats.map((chat) => ({
+            id: chat._id,
+            title: chat.title || "Untitled Chat",
+          }))
+        : [],
+    [chats]
   );
 
-  // Transform data for SidebarSection
-  const projectItems =
-    projects?.map((project) => ({
-      id: project._id,
-      title: project.name,
-    })) || [];
-
-  const chatItems = chats
-    .filter((chat) => !chat.project_id)
-    .map((chat) => ({
-      id: chat._id,
-      title: chat.title,
-    }));
+  // Add debug logging
+  useEffect(() => {
+    console.log("Chats array:", chats);
+    console.log("Transformed chat items:", chatItems);
+  }, [chats, chatItems]);
 
   return (
     <div className="chat-sidebar">
@@ -143,28 +94,22 @@ export default function ChatSidebar() {
       </div>
 
       <div className="chat-sidebar__list">
-        <SidebarSection
-          title="Projects"
-          items={projectItems}
-          isExpanded={showProjects}
-          onToggleExpand={() => setShowProjects(!showProjects)}
-          currentItemId={currentProject?._id}
-          isRenaming={null}
-          onItemClick={handleProjectClick}
-          renderItemContent={renderProjectTitle}
-          leftIcon={<Folder size={16} />}
-          disableClickWhenRenaming={false}
-        />
-        <SidebarSection
-          title="All Chats"
-          items={chatItems}
-          isExpanded={showActive}
-          onToggleExpand={() => setShowActive(!showActive)}
-          currentItemId={currentChat?._id}
-          isRenaming="false"
-          onItemClick={handleChatClick}
-          renderItemContent={renderChatTitle}
-        />
+        {isChatsLoading ? (
+          <div>Loading chats...</div>
+        ) : chatItems.length === 0 ? (
+          <div>No chats available</div>
+        ) : (
+          <SidebarSection
+            title="All Chats"
+            items={chatItems}
+            isExpanded={showActive}
+            onToggleExpand={() => setShowActive(!showActive)}
+            currentItemId={currentChat?._id}
+            isRenaming={null}
+            onItemClick={handleChatClick}
+            renderItemContent={renderChatTitle}
+          />
+        )}
       </div>
     </div>
   );

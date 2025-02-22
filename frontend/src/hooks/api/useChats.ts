@@ -3,15 +3,23 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type { ApiError, ApiResponse, Chat } from "@/types/api";
+import type { ApiError, ApiResponse, Chat } from "@/types";
 
 export function useChats() {
   return useQuery<Chat[], AxiosError<ApiError>>({
     queryKey: ["chats", "list"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Chat[]>>(`/chats`);
-      return data.data;
+      const response = await apiClient.get<{
+        data: Chat[];
+        metadata: any;
+        timestamp: string;
+      }>(`/chats`);
+
+      // Extract just the chats array
+      return response.data.data || [];
     },
+    retry: false,
+    staleTime: 1000,
   });
 }
 

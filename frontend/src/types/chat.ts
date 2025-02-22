@@ -16,7 +16,7 @@ export interface NewMessage {
 // Full types including database fields
 export interface Chat extends NewChat {
   _id: string;
-  last_message_at: string;
+  last_message_at?: string;
   created_at: string;
   updated_at: string;
 }

@@ -18,6 +18,7 @@ interface ChatState {
   addMessage: (chatId: string, message: Message) => void;
   setShouldFocusInput: (value: boolean) => void;
   setActiveChatId: (id: string | null) => void;
+  setChats: (chats: Chat[]) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -59,4 +60,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       };
     });
   },
+
+  setChats: (chats) =>
+    set((state) => {
+      // Update current chat reference if it exists
+      const currentChat = state.currentChat
+        ? chats.find((c) => c._id === state.currentChat?._id) || null
+        : null;
+
+      return {
+        chats,
+        currentChat,
+      };
+    }),
 }));
