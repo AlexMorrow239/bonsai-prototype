@@ -45,3 +45,12 @@ export interface FileUpload {
   url: string;
   file_path: string;
 }
+
+export interface Project {
+  _id: string;
+  name: string;
+  description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

@@ -3,20 +3,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type {
-  ApiError,
-  ApiResponse,
-  Message,
-  PaginatedResponse,
-} from "@/types/api";
+import type { ApiError, ApiResponse, Message } from "@/types/api";
 
-export function useMessages(chatId: string, page = 1, limit = 20) {
-  return useQuery<PaginatedResponse<Message>, AxiosError<ApiError>>({
-    queryKey: ["messages", chatId, page, limit],
+export function useMessages(chatId: string) {
+  return useQuery<Message[], AxiosError<ApiError>>({
+    queryKey: ["messages", "list", chatId],
     queryFn: async () => {
-      const { data } = await apiClient.get<
-        ApiResponse<PaginatedResponse<Message>>
-      >(`/chats/${chatId}/messages?page=${page}&limit=${limit}`);
+      const { data } = await apiClient.get<ApiResponse<Message[]>>(
+        `/chats/${chatId}/messages`
+      );
       return data.data;
     },
     enabled: !!chatId,

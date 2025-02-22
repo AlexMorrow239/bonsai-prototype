@@ -1,6 +1,6 @@
 import { FILE_CONSTRAINTS } from "@/common/constants";
 
-import type { FileUploadStatus } from "@/types";
+import type { FileUploadStatus, UploadedFile } from "@/types";
 import { AppError } from "@/utils/errorUtils";
 
 interface UploadProgressCallback {
@@ -98,18 +98,18 @@ export async function uploadFileWithProgress(
   }
 }
 
-export function createFileEntry(file: File, chatId: number) {
+export function createFileEntry(file: File, chatId: string): UploadedFile {
   return {
-    file_id:
-      crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`,
+    file_id: crypto.randomUUID(),
     chat_id: chatId,
     name: file.name,
     size: file.size,
     type: file.type,
+    url: URL.createObjectURL(file),
     created_at: new Date().toISOString(),
     uploadStatus: {
-      progress: 0,
-      status: "uploading" as const,
+      progress: 100,
+      status: "completed",
     },
   };
 }

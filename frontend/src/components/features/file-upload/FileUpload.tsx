@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 
 import { Upload } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 import { Button } from "@/components/common/button/Button";
 
@@ -8,12 +9,13 @@ import { FILE_CONSTRAINTS, getAllowedTypes } from "@/common/constants";
 
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
+import type { FileMetadata, UploadedFile } from "@/types";
 import { validateFiles } from "@/utils/files/fileValidation";
 
 import "./FileUpload.scss";
 
 interface FileUploadProps {
-  chatId: number;
+  chatId: string;
   variant?: "compact" | "dropzone";
   maxFiles?: number;
   isVisible?: boolean;
@@ -31,13 +33,31 @@ export function FileUpload({
   const files = getFilesByChatId(chatId);
   const acceptedFileTypes = getAllowedTypes();
 
+  const createUploadedFile = (file: File): UploadedFile => {
+    const fileId = uuidv4();
+
+    const metadata: FileMetadata = {
+      file_id: fileId,
+      filename: file.name,
+      mimetype: file.type,
+      size: file.size,
+    };
+
+    return {
+      file_id: fileId,
+      chat_id: chatId,
+      file,
+      metadata,
+    };
+  };
+
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const newFiles = Array.from(event.target.files || []);
+    const selectedFiles = Array.from(event.target.files || []);
 
     // Validate files using the validation utility
-    const validation = validateFiles(newFiles, files);
+    const validation = validateFiles(selectedFiles, files);
 
     if (!validation.valid) {
       addToast({
@@ -48,16 +68,20 @@ export function FileUpload({
     }
 
     try {
-      await addFiles(chatId, newFiles);
+      // Create UploadedFile objects for each selected file
+      const uploadedFiles = selectedFiles.map(createUploadedFile);
 
-      // Clear the input after successful upload
+      // Add files to store
+      await addFiles(chatId, uploadedFiles);
+
+      // Clear the input after successful addition
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     } catch (error) {
       addToast({
         type: "error",
-        message: "Failed to upload files",
+        message: "Failed to process files",
       });
     }
   };

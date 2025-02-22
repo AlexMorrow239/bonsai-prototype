@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // API Configuration
+  VITE_API_URL: z.string().min(1),
   VITE_GEMINI_API_KEY: z.string().min(1),
 });
 
@@ -27,4 +28,14 @@ export const env = validateEnv();
 type EnvType = z.infer<typeof envSchema>;
 declare global {
   interface ImportMetaEnv extends EnvType {}
+}
+
+export const config = {
+  apiUrl: env.VITE_API_URL,
+  geminiApiKey: env.VITE_GEMINI_API_KEY,
+} as const;
+
+// Validate required environment variables
+if (!config.apiUrl) {
+  throw new Error("VITE_API_URL is required");
 }

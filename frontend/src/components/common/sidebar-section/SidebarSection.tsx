@@ -3,7 +3,7 @@ import { Button } from "@/components/common/button/Button";
 import "./SidebarSection.scss";
 
 interface ItemConfig {
-  id: number;
+  id: string;
   title: string;
 }
 
@@ -12,9 +12,9 @@ interface SidebarSectionProps {
   items: ItemConfig[];
   isExpanded: boolean;
   onToggleExpand: () => void;
-  currentItemId?: number;
-  isRenaming: number | null;
-  onItemClick: (itemId: number) => void;
+  currentItemId?: string;
+  isRenaming: string | null;
+  onItemClick: (itemId: string) => void;
   renderItemContent: (item: ItemConfig) => React.ReactNode;
   buttonClassName?: string;
   disableClickWhenRenaming?: boolean;

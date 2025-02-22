@@ -1,14 +1,17 @@
 import React, { useEffect, useRef } from "react";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
+import { apiClient } from "@/lib/api-client";
 import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
-import { Message, UploadedFile } from "@/types";
+import type { Message, UploadedFile } from "@/types";
 
 import "./Chat.scss";
 
@@ -17,54 +20,85 @@ export default function Chat() {
     useChatStore();
   const { addToast } = useUIStore();
   const { isDragging, setDragging, handleFileDrop } = useFileStore();
+  const queryClient = useQueryClient();
+
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
+
+  // Use React Query mutation
+  const { mutateAsync: sendMessage, isPending: isResponseLoading } =
+    useMutation({
+      mutationFn: async ({
+        chatId,
+        content,
+        files,
+        is_ai_response = false,
+      }: {
+        chatId: string;
+        content: string;
+        files?: File[];
+        is_ai_response?: boolean;
+      }) => {
+        const formData = new FormData();
+        formData.append("content", content);
+        formData.append("is_ai_response", String(is_ai_response));
+
+        if (files?.length) {
+          files.forEach((file) => {
+            formData.append("files", file);
+          });
+        }
+
+        const response = await apiClient.post<{ data: Message }>(
+          `/chats/${chatId}/messages`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        return response.data.data;
+      },
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({
+          queryKey: ["messages", currentChat?._id],
+        });
+      },
+    });
 
   const handleMessageSubmit = async (
     message: string,
     files?: UploadedFile[]
   ) => {
-    if (!currentChat) return;
+    if (!currentChat?._id) return;
 
     const hasContent = message.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
-    const newMessageId =
-      Math.max(0, ...currentChat.messages.map((m) => m.message_id)) + 1;
-
-    const userMessage: Message = {
-      message_id: newMessageId,
-      content: message.trim(),
-      created_at: new Date().toISOString(),
-      is_ai_response: false,
-      files,
-    };
-
-    addMessage(currentChat.chatInfo.chat_id, userMessage);
-
-    const { setResponseLoading } = useChatStore.getState();
-
     try {
-      setResponseLoading(true);
+      // Send user message
+      const userMessage = await sendMessage({
+        chatId: currentChat._id,
+        content: message.trim(),
+        files: files?.map((f) => f.file),
+      });
 
-      // Generate AI response with files
+      addMessage(currentChat._id, userMessage);
+
+      // Generate and send AI response
       const aiContent = await generateGeminiResponse(message.trim(), files);
 
-      const aiResponse: Message = {
-        message_id: newMessageId + 1,
+      const aiResponse = await sendMessage({
+        chatId: currentChat._id,
         content: aiContent,
-        created_at: new Date().toISOString(),
         is_ai_response: true,
-      };
+      });
 
-      addMessage(currentChat.chatInfo.chat_id, aiResponse);
+      addMessage(currentChat._id, aiResponse);
     } catch (error) {
       addToast({
         type: "error",
-        message: "Failed to generate AI response",
+        message: "Failed to send message or generate AI response",
       });
-    } finally {
-      setResponseLoading(false);
     }
   };
 
@@ -102,9 +136,9 @@ export default function Chat() {
     dragCounter.current = 0;
     setDragging(false);
 
-    if (!currentChat) return;
+    if (!currentChat?._id) return;
 
-    await handleFileDrop(currentChat.chatInfo.chat_id, e.dataTransfer);
+    await handleFileDrop(currentChat._id, e.dataTransfer);
   };
 
   useEffect(() => {
@@ -132,14 +166,14 @@ export default function Chat() {
     >
       {currentChat ? (
         <>
-          <ChatArea messages={currentChat.messages} />
+          <ChatArea messages={[]} />
           <ChatPrompt
-            chatId={currentChat.chatInfo.chat_id}
+            chatId={currentChat._id}
             onSubmit={handleMessageSubmit}
             textareaRef={textareaRef}
           />
           <FileUpload
-            chatId={currentChat.chatInfo.chat_id}
+            chatId={currentChat._id}
             variant="dropzone"
             isVisible={isDragging}
           />

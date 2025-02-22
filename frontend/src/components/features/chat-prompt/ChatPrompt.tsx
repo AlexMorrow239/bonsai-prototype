@@ -6,13 +6,15 @@ import { Button } from "@/components/common/button/Button";
 import { UploadedFiles } from "@/components/features/chat-prompt/uploaded-files/UploadedFiles";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
+import { useSendMessage } from "@/hooks/api/useMessages";
 import { useFileStore } from "@/stores/fileStore";
-import { UploadedFile } from "@/types";
+import { useToastActions } from "@/stores/uiStore";
+import type { UploadedFile } from "@/types";
 
 import "./ChatPrompt.scss";
 
 interface ChatPromptProps {
-  chatId: number;
+  chatId: string;
   onSubmit: (message: string, files?: UploadedFile[]) => void;
   textareaRef: RefObject<HTMLTextAreaElement>;
 }
@@ -22,23 +24,42 @@ export function ChatPrompt({
   onSubmit,
   textareaRef,
 }: ChatPromptProps): ReactNode {
+  if (!chatId) {
+    console.warn("ChatPrompt: No chatId provided");
+    return null;
+  }
+
   const [message, setMessage] = useState("");
-  const { getFilesByChatId, clearFiles, canSendMessage } = useFileStore();
+  const { getFilesByChatId, clearFiles } = useFileStore();
+  const { showErrorToast } = useToastActions();
+  const sendMessage = useSendMessage();
+
   const files = getFilesByChatId(chatId);
   const hasContent = message.trim().length > 0 || files.length > 0;
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!hasContent) return;
+
     const trimmedMessage = message.trim();
-    if (!hasContent || !canSendMessage) return;
 
-    onSubmit(trimmedMessage, files.length > 0 ? files : undefined);
-    setMessage("");
-    clearFiles(chatId);
+    try {
+      await sendMessage.mutateAsync({
+        chatId,
+        content: trimmedMessage,
+        files: files.map((f) => f.file).filter((f): f is File => !!f), // Only send files that exist
+      });
 
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "44px";
+      onSubmit(trimmedMessage, files);
+      setMessage("");
+      clearFiles(chatId);
+
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "44px";
+      }
+    } catch (error) {
+      showErrorToast(error, "Failed to send message");
     }
   };
 
@@ -57,16 +78,6 @@ export function ChatPrompt({
       e.preventDefault();
       handleSubmit(e as unknown as FormEvent);
     }
-  };
-
-  const getButtonTitle = () => {
-    if (!hasContent) {
-      return "Type a message or upload files to send";
-    }
-    if (!canSendMessage) {
-      return "Please remove failed uploads before sending";
-    }
-    return "Send message";
   };
 
   return (
@@ -90,8 +101,8 @@ export function ChatPrompt({
             <Button
               className="send-button"
               type="submit"
-              disabled={!hasContent || !canSendMessage}
-              title={getButtonTitle()}
+              disabled={!hasContent}
+              title="Type a message or upload files to send"
               size="md"
               variant="primary"
               rightIcon={<Send size={18} />}

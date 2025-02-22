@@ -6,6 +6,7 @@ import { ArrowLeft, MessageSquare, Plus } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
 
+import { useProjects } from "@/hooks/api/useProjects";
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
 
@@ -13,32 +14,54 @@ import "./Project.scss";
 
 export default function Project() {
   const navigate = useNavigate();
-  const { projectId: id } = useParams();
-  const { getProjectById, setCurrentProject, currentProject } =
-    useProjectStore();
+  const { projectId } = useParams();
+  const { data: projectsData, isLoading } = useProjects();
   const { getChatsByProject, setCurrentChat, createNewChat } = useChatStore();
+  const { setProjects, currentProject, archiveProject } = useProjectStore();
 
-  // Parse the ID and ensure it's a valid number
-  const projectId = id ? parseInt(id, 10) : undefined;
-
-  const project = projectId ? getProjectById(projectId) : null;
-  const projectChats = projectId ? getChatsByProject(projectId) : [];
-
+  // Update projects in store when API data changes
   useEffect(() => {
-    // Only set current project if it's different from the current one
-    if (
-      project &&
-      (!currentProject || currentProject.project_id !== project.project_id)
-    ) {
-      setCurrentProject(project.project_id);
+    if (projectsData?.data) {
+      setProjects(projectsData.data);
     }
-  }, [project, currentProject, setCurrentProject]);
+  }, [projectsData, setProjects]);
+
+  // Set current project based on URL param
+  useEffect(() => {
+    if (projectsData?.data && projectId) {
+      const project = projectsData.data.find((p) => p._id === projectId);
+      if (!project) {
+        navigate("/projects");
+      }
+    }
+  }, [projectsData, projectId, navigate]);
+
+  const projectChats = projectId ? getChatsByProject(projectId) : [];
 
   const handleNewChat = () => {
     createNewChat("New Chat", projectId, navigate);
   };
 
-  if (!project) {
+  const handleArchiveProject = async () => {
+    if (!projectId) return;
+
+    try {
+      await archiveProject(projectId);
+      navigate("/projects");
+    } catch (error) {
+      console.error("Failed to archive project:", error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="project-page">
+        <div className="project-page__loading">Loading project details...</div>
+      </div>
+    );
+  }
+
+  if (!currentProject) {
     return (
       <div className="project-page">
         <div className="project-page__error">
@@ -56,17 +79,16 @@ export default function Project() {
     );
   }
 
-  const formattedCreatedDate = new Date(project.created_at).toLocaleDateString(
-    undefined,
-    {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }
-  );
+  const formattedCreatedDate = new Date(
+    currentProject.created_at
+  ).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
-  const formattedLastAccessedDate = new Date(
-    project.last_accessed
+  const formattedUpdatedDate = new Date(
+    currentProject.updated_at || currentProject.created_at
   ).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
@@ -76,14 +98,23 @@ export default function Project() {
   return (
     <div className="project-page">
       <div className="project-page__header">
-        <h1>{project.name}</h1>
-        <p className="project-page__description">{project.description}</p>
+        <h1>{currentProject.name}</h1>
+        <p className="project-page__description">
+          {currentProject.description}
+        </p>
       </div>
 
       <div className="project-page__content">
         <section className="project-page__section">
           <div className="section-header">
             <h2>Project Details</h2>
+            {currentProject.is_active && (
+              <div className="header-actions">
+                <Button variant="secondary" onClick={handleArchiveProject}>
+                  Archive Project
+                </Button>
+              </div>
+            )}
           </div>
           <div className="project-page__details">
             <div className="detail-item">
@@ -91,12 +122,18 @@ export default function Project() {
               <span className="value">{formattedCreatedDate}</span>
             </div>
             <div className="detail-item">
-              <span className="label">Last Accessed</span>
-              <span className="value">{formattedLastAccessedDate}</span>
+              <span className="label">Last Updated</span>
+              <span className="value">{formattedUpdatedDate}</span>
             </div>
             <div className="detail-item">
               <span className="label">Total Chats</span>
               <span className="value">{projectChats.length}</span>
+            </div>
+            <div className="detail-item">
+              <span className="label">Status</span>
+              <span className="value">
+                {currentProject.is_active ? "Active" : "Archived"}
+              </span>
             </div>
           </div>
         </section>
@@ -104,15 +141,17 @@ export default function Project() {
         <section className="project-page__section">
           <div className="section-header">
             <h2>Project Chats</h2>
-            <div className="header-actions">
-              <Button
-                variant="primary"
-                leftIcon={<Plus />}
-                onClick={handleNewChat}
-              >
-                New Chat
-              </Button>
-            </div>
+            {currentProject.is_active && (
+              <div className="header-actions">
+                <Button
+                  variant="primary"
+                  leftIcon={<Plus />}
+                  onClick={handleNewChat}
+                >
+                  New Chat
+                </Button>
+              </div>
+            )}
           </div>
           <div className="project-page__chats">
             {projectChats.length === 0 ? (
@@ -124,10 +163,10 @@ export default function Project() {
               <div className="chat-list">
                 {projectChats.map((chat) => (
                   <div
-                    key={chat.chatInfo.chat_id}
+                    key={chat._id}
                     className="chat-item"
                     onClick={() => {
-                      setCurrentChat(chat.chatInfo.chat_id);
+                      setCurrentChat(chat._id);
                       navigate("/chat");
                     }}
                   >
@@ -135,8 +174,8 @@ export default function Project() {
                       <MessageSquare size={20} />
                     </div>
                     <div className="chat-content">
-                      <h3>{chat.chatInfo.title}</h3>
-                      <p className="preview">{chat.chatInfo.preview}</p>
+                      <h3>{chat.title}</h3>
+                      <p className="preview">{chat.preview}</p>
                     </div>
                   </div>
                 ))}
