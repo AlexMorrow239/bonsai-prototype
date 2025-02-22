@@ -6,7 +6,7 @@ import { Button } from "@/components/common/button/Button";
 import { UploadedFiles } from "@/components/features/chat-prompt/uploaded-files/UploadedFiles";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
-import { useSendMessage } from "@/hooks/api/useMessages";
+import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
@@ -14,27 +14,23 @@ import type { UploadedFile } from "@/types";
 import "./ChatPrompt.scss";
 
 interface ChatPromptProps {
-  chatId: string;
   onSubmit: (message: string, files?: UploadedFile[]) => void;
   textareaRef: RefObject<HTMLTextAreaElement>;
+  isNewChat?: boolean;
 }
 
 export function ChatPrompt({
-  chatId,
   onSubmit,
   textareaRef,
+  isNewChat = false,
 }: ChatPromptProps): ReactNode {
-  if (!chatId) {
-    console.warn("ChatPrompt: No chatId provided");
-    return null;
-  }
-
+  const { currentChat } = useChatStore();
   const [message, setMessage] = useState("");
   const { getFilesByChatId, clearFiles } = useFileStore();
   const { showErrorToast } = useToastActions();
-  const sendMessage = useSendMessage();
 
-  const files = getFilesByChatId(chatId);
+  // Get files only if we have a current chat
+  const files = currentChat ? getFilesByChatId(currentChat._id) : [];
   const hasContent = message.trim().length > 0 || files.length > 0;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -42,23 +38,37 @@ export function ChatPrompt({
     if (!hasContent) return;
 
     const trimmedMessage = message.trim();
+
     try {
-      await sendMessage.mutateAsync({
-        chatId,
-        content: trimmedMessage,
-        is_ai_response: false,
-        files: files.map((f) => f.file).filter((f): f is File => !!f),
-      });
+      // For new chats, just pass the message to parent and return early
+      if (isNewChat) {
+        onSubmit(trimmedMessage, files);
+        setMessage("");
 
-      onSubmit(trimmedMessage, files);
-      setMessage("");
-      clearFiles(chatId);
+        // Reset textarea height
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "44px";
+        }
+        return; // Return early for new chats
+      }
 
-      // Reset textarea height
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "44px";
+      // Everything below this point only executes for existing chats
+      if (currentChat) {
+        clearFiles(currentChat._id);
+        onSubmit(trimmedMessage, files);
+        setMessage("");
+
+        // Reset textarea height
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "44px";
+        }
+      } else {
+        console.warn(
+          "[ChatPrompt] No current chat found for existing chat message"
+        );
       }
     } catch (error) {
+      console.error("[ChatPrompt] Submit error:", error);
       showErrorToast(error, "Failed to send message");
     }
   };
@@ -84,7 +94,7 @@ export function ChatPrompt({
     <div
       className={`chat-prompt-wrapper ${files.length > 0 ? "has-files" : ""}`}
     >
-      <UploadedFiles chatId={chatId} />
+      {currentChat && <UploadedFiles chatId={currentChat._id} />}
 
       <form className="chat-prompt" onSubmit={handleSubmit}>
         <div className="input-row">
@@ -97,7 +107,9 @@ export function ChatPrompt({
             rows={1}
           />
           <div className="actions">
-            <FileUpload chatId={chatId} variant="compact" />
+            {currentChat && (
+              <FileUpload chatId={currentChat._id} variant="compact" />
+            )}
             <Button
               className="send-button"
               type="submit"

@@ -1,88 +1,58 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import axios from "axios";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type { ApiError, ApiResponse, Message } from "@/types";
+import type {
+  ApiError,
+  ApiResponse,
+  Message,
+  MessageListResponse,
+  MessageResponse,
+  SendMessageData,
+} from "@/types";
 
 export function useMessages(chatId: string) {
-  const queryClient = useQueryClient();
-
   const query = useQuery<Message[], AxiosError<ApiError>>({
     queryKey: ["messages", chatId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Message[]>>(
+      const response = await apiClient.get<ApiResponse<MessageListResponse>>(
         `/chats/${chatId}/messages`
       );
-      return data.data;
+      return response.data.data.data;
     },
     enabled: !!chatId,
-  });
-
-  const createMessage = useMutation({
-    mutationFn: async (data: { content: string; files?: File[] }) => {
-      const formData = new FormData();
-
-      // Add the message content
-      formData.append("content", data.content);
-
-      // Add any files if they exist
-      if (data.files?.length) {
-        data.files.forEach((file) => {
-          formData.append("files", file);
-        });
-      }
-
-      const response = await axios.post<Message>(`/api/messages`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      return response.data;
-    },
-    onSuccess: () => {
-      // Invalidate and refetch messages query
-      queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
-    },
+    staleTime: 1000,
   });
 
   return {
-    data: query.data,
+    messages: query.data || [],
     isLoading: query.isLoading,
-    createMessage,
+    isError: query.isError,
+    error: query.error,
   };
 }
 
-interface SendMessageData {
-  chatId: string;
-  content: string;
-  is_ai_response?: boolean;
-  files?: File[];
-}
-
 export function useSendMessage() {
+  const queryClient = useQueryClient();
+
   return useMutation<Message, AxiosError<ApiError>, SendMessageData>({
     mutationFn: async ({ chatId, content, is_ai_response = false, files }) => {
-      // Create FormData
       const formData = new FormData();
 
-      // Create messageData object and stringify it
       const messageData = {
         content,
         is_ai_response,
       };
       formData.append("messageData", JSON.stringify(messageData));
 
-      // Add files if they exist
       if (files?.length) {
         files.forEach((file) => {
           formData.append("files", file);
         });
       }
 
-      const { data } = await apiClient.post<ApiResponse<Message>>(
+      const { data } = await apiClient.post<ApiResponse<MessageResponse>>(
         `/chats/${chatId}/messages`,
         formData,
         {
@@ -92,7 +62,13 @@ export function useSendMessage() {
         }
       );
 
-      return data.data;
+      return data.data.data;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the messages query for this chat
+      queryClient.invalidateQueries({
+        queryKey: ["messages", variables.chatId],
+      });
     },
   });
 }

@@ -1,26 +1,64 @@
 import { useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import { ActionModal } from "@/components/common/action-modal/ActionModal";
 import { Button } from "@/components/common/button/Button";
 import { ContextTopbar } from "@/components/common/context-topbar/ContextTopbar";
 import { Dropdown } from "@/components/common/dropdown/Dropdown";
 
+import { useDeleteChat, useUpdateChat } from "@/hooks/api/useChats";
 import { useChatStore } from "@/stores/chatStore";
 import { useUIStore } from "@/stores/uiStore";
 
 export default function ChatTopbar() {
-  const { currentChat, setIsRenamingChat, createNewChat } = useChatStore();
-  const { addToast } = useUIStore();
+  const navigate = useNavigate();
+  const { currentChat, setCurrentChat } = useChatStore();
+  const { showSuccessToast, showErrorToast } = useUIStore();
   const [isDeleteChatModalOpen, setIsDeleteChatModalOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
 
-  const handleNewChat = () => {
-    createNewChat("New Chat");
+  // API mutations
+  const deleteChatMutation = useDeleteChat();
+  const updateChatMutation = useUpdateChat();
+
+  const handleNewChat = async () => {
+    try {
+      navigate(`/chat/new`);
+    } catch (error) {
+      showErrorToast(error);
+    }
   };
 
-  const handleDeleteChat = () => {
-    if (!currentChat) return;
-    addToast({ type: "success", message: "Chat deleted successfully" });
-    setIsDeleteChatModalOpen(false);
+  const handleDeleteChat = async () => {
+    if (!currentChat?._id) return;
+
+    try {
+      await deleteChatMutation.mutateAsync(currentChat._id);
+      showSuccessToast("Chat deleted successfully");
+      setIsDeleteChatModalOpen(false);
+      navigate("/chat/new");
+    } catch (error) {
+      showErrorToast(error);
+    }
+  };
+
+  const handleRenameChat = async () => {
+    if (!currentChat?._id) return;
+    setIsRenaming(true);
+
+    try {
+      const updatedChat = await updateChatMutation.mutateAsync({
+        id: currentChat._id,
+        title: "Renamed Chat", // You'll want to add a proper rename input UI
+      });
+      setCurrentChat(updatedChat);
+      setIsRenaming(false);
+      showSuccessToast("Chat renamed successfully");
+    } catch (error) {
+      showErrorToast(error);
+      setIsRenaming(false);
+    }
   };
 
   const chatDropdown = currentChat && (
@@ -28,7 +66,8 @@ export default function ChatTopbar() {
       <Button
         variant="ghost"
         fullWidth
-        onClick={() => setIsRenamingChat(currentChat.chatInfo.chat_id)}
+        onClick={handleRenameChat}
+        disabled={isRenaming}
       >
         Rename
       </Button>

@@ -12,7 +12,7 @@ export const Topbar = (): ReactElement => {
 
   const renderTopbarContent = (): ReactElement => {
     // Chat routes
-    if (location.pathname === "/" || location.pathname === "/chat") {
+    if (location.pathname === "/" || location.pathname.startsWith("/chat")) {
       return <ChatTopbar />;
     }
 

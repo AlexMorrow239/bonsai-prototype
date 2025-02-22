@@ -3,23 +3,23 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type { ApiError, ApiResponse, Chat, NewChat, UpdateChat } from "@/types";
-
-interface ChatsResponse {
-  data: Chat[];
-  metadata: {
-    path: string;
-  };
-  timestamp: string;
-}
+import type {
+  ApiError,
+  ApiResponse,
+  Chat,
+  ChatListResponse,
+  ChatResponse,
+  NewChat,
+  UpdateChat,
+} from "@/types";
 
 export function useChats() {
-  return useQuery<ApiResponse<ChatsResponse>, AxiosError<ApiError>>({
+  return useQuery<Chat[], AxiosError<ApiError>>({
     queryKey: ["chats", "list"],
     queryFn: async () => {
       const response =
-        await apiClient.get<ApiResponse<ChatsResponse>>(`/chats`);
-      return response.data;
+        await apiClient.get<ApiResponse<ChatListResponse>>("/chats");
+      return response.data.data.data;
     },
     retry: false,
     staleTime: 1000,
@@ -29,11 +29,11 @@ export function useChats() {
 export function useCreateChat() {
   return useMutation<Chat, AxiosError<ApiError>, NewChat>({
     mutationFn: async (chatData) => {
-      const { data } = await apiClient.post<ApiResponse<Chat>>(
+      const response = await apiClient.post<ApiResponse<ChatResponse>>(
         "/chats",
         chatData
       );
-      return data.data;
+      return response.data.data.data;
     },
   });
 }
@@ -41,11 +41,11 @@ export function useCreateChat() {
 export function useUpdateChat() {
   return useMutation<Chat, AxiosError<ApiError>, UpdateChat>({
     mutationFn: async ({ id, ...chatData }) => {
-      const { data } = await apiClient.patch<ApiResponse<Chat>>(
+      const response = await apiClient.patch<ApiResponse<ChatResponse>>(
         `/chats/${id}`,
         chatData
       );
-      return data.data;
+      return response.data.data.data;
     },
   });
 }
@@ -55,5 +55,18 @@ export function useDeleteChat() {
     mutationFn: async (id) => {
       await apiClient.delete(`/chats/${id}`);
     },
+  });
+}
+
+export function useGetChat(chatId: string) {
+  return useQuery<Chat, AxiosError<ApiError>>({
+    queryKey: ["chat", chatId],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<ChatResponse>>(
+        `/chats/${chatId}`
+      );
+      return response.data.data.data;
+    },
+    enabled: !!chatId,
   });
 }

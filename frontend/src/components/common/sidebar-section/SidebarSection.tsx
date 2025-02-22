@@ -43,23 +43,25 @@ export function SidebarSection({
         <span className="toggle">{isExpanded ? "-" : "+"}</span>
       </div>
       {isExpanded &&
-        items.map((item) => (
-          <Button
-            key={item.id}
-            variant="ghost"
-            className={`${buttonClassName} ${
-              currentItemId === item.id ? "active" : ""
-            }`}
-            onClick={() =>
-              disableClickWhenRenaming && isRenaming
-                ? null
-                : onItemClick(item.id)
-            }
-            leftIcon={leftIcon}
-          >
-            {renderItemContent(item)}
-          </Button>
-        ))}
+        items.map((item) => {
+          return (
+            <Button
+              key={item.id}
+              variant="ghost"
+              className={`${buttonClassName} ${
+                currentItemId === item.id ? "active" : ""
+              }`}
+              onClick={() => {
+                if (!(disableClickWhenRenaming && isRenaming)) {
+                  onItemClick(item.id);
+                }
+              }}
+              leftIcon={leftIcon}
+            >
+              {renderItemContent(item)}
+            </Button>
+          );
+        })}
     </>
   );
 }

@@ -3,14 +3,21 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type { ApiError, ApiResponse, Project } from "@/types/api";
+import type {
+  ApiError,
+  ApiResponse,
+  Project,
+  ProjectListResponse,
+  ProjectResponse,
+} from "@/types";
 
 export function useProjects() {
   return useQuery<Project[], AxiosError<ApiError>>({
     queryKey: ["projects", "list"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Project[]>>(`/projects`);
-      return data.data;
+      const response =
+        await apiClient.get<ApiResponse<ProjectListResponse>>(`/projects`);
+      return response.data.data.data;
     },
   });
 }
@@ -30,11 +37,11 @@ interface UpdateProjectData {
 export function useCreateProject() {
   return useMutation<Project, AxiosError<ApiError>, CreateProjectData>({
     mutationFn: async (projectData) => {
-      const { data } = await apiClient.post<ApiResponse<Project>>(
+      const response = await apiClient.post<ApiResponse<ProjectResponse>>(
         "/projects",
         projectData
       );
-      return data.data;
+      return response.data.data.data;
     },
   });
 }
@@ -42,11 +49,11 @@ export function useCreateProject() {
 export function useUpdateProject() {
   return useMutation<Project, AxiosError<ApiError>, UpdateProjectData>({
     mutationFn: async ({ _id, ...projectData }) => {
-      const { data } = await apiClient.patch<ApiResponse<Project>>(
+      const response = await apiClient.patch<ApiResponse<ProjectResponse>>(
         `/projects/${_id}`,
         projectData
       );
-      return data.data;
+      return response.data.data.data;
     },
   });
 }

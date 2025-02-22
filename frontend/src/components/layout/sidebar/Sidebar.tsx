@@ -7,7 +7,6 @@ import { ChevronRight, Pin, PinOff } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
 import ChatSidebar from "@/components/features/chat-sidebar/ChatSidebar";
-import FileSidebar from "@/components/features/file-sidebar/FileSidebar";
 
 import "./Sidebar.scss";
 
@@ -27,13 +26,10 @@ export const Sidebar = ({
   const renderSidebarContent = (): ReactElement => {
     if (
       location.pathname === "/" ||
-      location.pathname === "/chat" ||
+      location.pathname.startsWith("/chat") ||
       location.pathname.startsWith("/project")
     ) {
       return <ChatSidebar />;
-    }
-    if (location.pathname === "/files") {
-      return <FileSidebar />;
     }
     return <div>No sidebar content</div>;
   };

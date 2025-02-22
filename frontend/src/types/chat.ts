@@ -1,5 +1,13 @@
 import type { UploadedFile } from "./file";
 
+// Message types
+export interface SendMessageData {
+  chatId: string;
+  content: string;
+  is_ai_response?: boolean;
+  files?: File[];
+}
+
 // Base types without database fields
 export interface NewChat {
   title: string;

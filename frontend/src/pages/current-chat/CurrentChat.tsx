@@ -1,10 +1,13 @@
 import React, { ReactElement, useEffect, useRef } from "react";
 
+import { Navigate, useParams } from "react-router-dom";
+
 import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
-import { useMessages, useSendMessage } from "@/hooks/api/useMessages";
+import { useGetChat } from "@/hooks/api/useChats";
+import { useSendMessage } from "@/hooks/api/useMessages";
 import { generateGeminiResponse } from "@/services/geminiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
@@ -12,14 +15,17 @@ import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
 
-import "./Chat.scss";
+import "./CurrentChat.scss";
 
-export default function Chat(): ReactElement {
+export default function CurrentChat(): ReactElement {
+  const { chatId } = useParams();
   const {
     currentChat,
+    chats,
     shouldFocusInput,
     setShouldFocusInput,
     updateChatPreview,
+    setCurrentChat,
   } = useChatStore();
   const { isDragging, setDragging, handleFileDrop } = useFileStore();
   const { addMessage } = useMessageStore();
@@ -28,11 +34,30 @@ export default function Chat(): ReactElement {
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
 
-  // Fetch messages for current chat
-  const { data: messages = [], isLoading } = useMessages(
-    currentChat?._id || ""
-  );
+  // Update to use messages instead of data
   const sendMessage = useSendMessage();
+
+  // Get chat data
+  const { data: chat, isLoading: isChatLoading } = useGetChat(chatId || "");
+
+  // Update current chat when needed
+  useEffect(() => {
+    if (!chatId) return;
+
+    if (chat) {
+      // If we have the chat data, make sure currentChat matches
+      if (currentChat?._id !== chat._id) {
+        console.warn("Chat synchronization issue detected - fixing...");
+        setCurrentChat(chat);
+      }
+    } else if (!currentChat || currentChat._id !== chatId) {
+      // If we don't have chat data yet but have chatId, fetch it first
+      const chatFromStore = chats.find((c) => c._id === chatId);
+      if (chatFromStore) {
+        setCurrentChat(chatFromStore);
+      }
+    }
+  }, [chatId, chat, currentChat, chats, setCurrentChat]);
 
   const handleMessageSubmit = async (
     content: string,
@@ -50,21 +75,37 @@ export default function Chat(): ReactElement {
     if (!hasContent) return;
 
     try {
+      // Create a temporary message ID to track this submission
+      const tempMessageId = `temp-${Date.now()}`;
+
+      // Add message to local store first with temporary ID
+      const pendingMessage = {
+        _id: tempMessageId,
+        chat_id: currentChat._id,
+        content: content.trim(),
+        is_ai_response: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      addMessage(currentChat._id, pendingMessage);
+      updateChatPreview(currentChat._id, pendingMessage);
+
       // Send user message
       const userMessage = await sendMessage.mutateAsync({
         chatId: currentChat._id,
         content: content.trim(),
-        files: files?.map((f) => f.file),
+        files: files
+          ? files?.map((f) => f.file).filter((f): f is File => !!f)
+          : [],
         is_ai_response: false,
       });
 
-      // Validate user message was created successfully
-      if (!userMessage) {
-        throw new Error("Failed to create user message");
+      // Replace temporary message with server response
+      if (userMessage) {
+        addMessage(currentChat._id, userMessage);
+        updateChatPreview(currentChat._id, userMessage);
       }
-
-      addMessage(currentChat._id, userMessage);
-      updateChatPreview(currentChat._id, userMessage);
 
       try {
         // Generate AI response
@@ -141,6 +182,18 @@ export default function Chat(): ReactElement {
     };
   }, [setDragging]);
 
+  if (!chatId) {
+    return <Navigate to="/chat/new" replace />;
+  }
+
+  if (isChatLoading) {
+    return <div>Loading chat...</div>;
+  }
+
+  if (!chat) {
+    return <Navigate to="/chat/new" replace />;
+  }
+
   return (
     <main
       className={`chat-main ${isDragging ? "is-dragging" : ""}`}
@@ -149,25 +202,9 @@ export default function Chat(): ReactElement {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {currentChat ? (
-        <>
-          <ChatArea messages={messages || []} isLoading={isLoading} />
-          <ChatPrompt
-            chatId={currentChat._id}
-            onSubmit={handleMessageSubmit}
-            textareaRef={textareaRef}
-          />
-          <FileUpload
-            chatId={currentChat._id}
-            variant="dropzone"
-            isVisible={isDragging}
-          />
-        </>
-      ) : (
-        <div className="no-chat-selected">
-          <h2>Select a chat to start messaging</h2>
-        </div>
-      )}
+      <ChatArea />
+      <ChatPrompt onSubmit={handleMessageSubmit} textareaRef={textareaRef} />
+      <FileUpload chatId={chat._id} variant="dropzone" isVisible={isDragging} />
     </main>
   );
 }

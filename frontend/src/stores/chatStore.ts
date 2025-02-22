@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-
 import { create } from "zustand";
 
 import type { Chat, Message } from "@/types";
@@ -11,20 +9,17 @@ interface ChatState {
   activeChatId: string | null;
 
   // Actions
-  setCurrentChat: (
-    chatId: string,
-    navigate?: ReturnType<typeof useNavigate>
-  ) => void;
+  setCurrentChat: (chat: Chat) => void;
   updateChatPreview: (chatId: string, lastMessage: Message) => void;
   setShouldFocusInput: (value: boolean) => void;
   setActiveChatId: (id: string | null) => void;
   setChats: (chats: Chat[]) => void;
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>((set) => ({
   // Initial state
   currentChat: null,
-  chats: [], // Will be populated from API
+  chats: [],
   shouldFocusInput: false,
   activeChatId: null,
 
@@ -32,15 +27,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setShouldFocusInput: (value) => set({ shouldFocusInput: value }),
   setActiveChatId: (id) => set({ activeChatId: id }),
 
-  setCurrentChat: (chatId, navigate) => {
-    const chat = get().chats.find((c) => c._id === chatId);
-    const pathname = window.location.pathname;
-
-    if (pathname !== "/" && pathname !== "/chat" && navigate) {
-      navigate("/chat");
-    }
-
-    set({ currentChat: chat || null });
+  setCurrentChat: (chat: Chat) => {
+    set({ currentChat: chat });
   },
 
   updateChatPreview: (chatId, lastMessage) => {
@@ -60,16 +48,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  setChats: (chats) =>
-    set((state) => {
-      // Update current chat reference if it exists
-      const currentChat = state.currentChat
-        ? chats.find((c) => c._id === state.currentChat?._id) || null
-        : null;
-
-      return {
-        chats,
-        currentChat,
-      };
-    }),
+  setChats: (chats) => {
+    set({ chats });
+  },
 }));
