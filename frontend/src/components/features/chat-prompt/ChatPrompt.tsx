@@ -35,9 +35,10 @@ export function ChatPrompt({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!hasContent) return;
 
+    // Allow submission if there are files, even with empty message
     const trimmedMessage = message.trim();
+    if (!trimmedMessage && !files.length) return;
 
     try {
       // For new chats, just pass the message to parent and return early
@@ -49,7 +50,7 @@ export function ChatPrompt({
         if (textareaRef.current) {
           textareaRef.current.style.height = "44px";
         }
-        return; // Return early for new chats
+        return;
       }
 
       // Everything below this point only executes for existing chats
