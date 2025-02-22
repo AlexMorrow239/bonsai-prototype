@@ -1,9 +1,12 @@
 import { type ReactNode, useEffect } from "react";
 
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "@/styles/main.scss";
 
+import { queryClient } from "@/lib/query-client";
 import { MainLayout } from "@/layouts/MainLayout";
 import Chat from "@/pages/chat/Chat";
 import { ErrorBoundary } from "@/pages/error-boundary/ErrorBoundary";
@@ -42,12 +45,15 @@ function App(): ReactNode {
   useEffect(() => {
     // Set initial theme
     document.documentElement.setAttribute("data-theme", theme);
-  }, []);
+  }, [theme]);
 
   return (
-    <ErrorBoundary>
-      <RouterProvider router={router} />
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <RouterProvider router={router} />
+      </ErrorBoundary>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 

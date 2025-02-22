@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 Fall_2022_Test_Data/*
+
+.env*
+.env.local
+.env.development
+.env.production
+.env.test
+.env.test.local
