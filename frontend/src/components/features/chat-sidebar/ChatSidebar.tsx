@@ -26,16 +26,12 @@ export default function ChatSidebar() {
   // Update chats when data changes
   useEffect(() => {
     if (chatsData) {
-      console.log("Setting chats:", chatsData);
-      // Only set the actual array of chats, not the whole response object
-      setChats(chatsData.data);
+      // This is correct - need both .data properties:
+      // First .data is from React Query
+      // Second .data is from our API response structure
+      setChats(chatsData.data.data);
     }
   }, [chatsData, setChats]);
-
-  // Add debug logging to see when chats update
-  useEffect(() => {
-    console.log("Current chats state:", chats);
-  }, [chats]);
 
   // API mutations
   const createChat = useCreateChat();
@@ -55,6 +51,7 @@ export default function ChatSidebar() {
       await createChat.mutateAsync({
         title: "New Chat",
         project_id: currentProject?._id,
+        is_active: true,
       });
       showSuccessToast("New chat created");
     } catch (error) {
@@ -72,12 +69,6 @@ export default function ChatSidebar() {
         : [],
     [chats]
   );
-
-  // Add debug logging
-  useEffect(() => {
-    console.log("Chats array:", chats);
-    console.log("Transformed chat items:", chatItems);
-  }, [chats, chatItems]);
 
   return (
     <div className="chat-sidebar">

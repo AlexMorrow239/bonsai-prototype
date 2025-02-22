@@ -15,7 +15,7 @@ interface ChatState {
     chatId: string,
     navigate?: ReturnType<typeof useNavigate>
   ) => void;
-  addMessage: (chatId: string, message: Message) => void;
+  updateChatPreview: (chatId: string, lastMessage: Message) => void;
   setShouldFocusInput: (value: boolean) => void;
   setActiveChatId: (id: string | null) => void;
   setChats: (chats: Chat[]) => void;
@@ -43,16 +43,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ currentChat: chat || null });
   },
 
-  addMessage: (chatId, message) => {
+  updateChatPreview: (chatId, lastMessage) => {
     set((state) => {
       const chat = state.chats.find((c) => c._id === chatId);
       if (!chat) return state;
 
-      // Update chat preview with latest message
       const updatedChat = {
         ...chat,
-        preview: message.content,
-        last_message_at: message.created_at,
+        preview: lastMessage.content,
+        last_message_at: lastMessage.created_at,
       };
 
       return {

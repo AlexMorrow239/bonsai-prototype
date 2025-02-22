@@ -5,18 +5,21 @@ import type { AxiosError } from "axios";
 import { apiClient } from "@/lib/api-client";
 import type { ApiError, ApiResponse, Chat, NewChat, UpdateChat } from "@/types";
 
+interface ChatsResponse {
+  data: Chat[];
+  metadata: {
+    path: string;
+  };
+  timestamp: string;
+}
+
 export function useChats() {
-  return useQuery<Chat[], AxiosError<ApiError>>({
+  return useQuery<ApiResponse<ChatsResponse>, AxiosError<ApiError>>({
     queryKey: ["chats", "list"],
     queryFn: async () => {
-      const response = await apiClient.get<{
-        data: Chat[];
-        metadata: any;
-        timestamp: string;
-      }>(`/chats`);
-
-      // Extract just the chats array
-      return response.data.data || [];
+      const response =
+        await apiClient.get<ApiResponse<ChatsResponse>>(`/chats`);
+      return response.data;
     },
     retry: false,
     staleTime: 1000,
