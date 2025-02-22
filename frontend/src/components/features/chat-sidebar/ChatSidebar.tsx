@@ -42,6 +42,10 @@ export default function ChatSidebar() {
     navigate("/chat/new");
   };
 
+  const handleNewProject = () => {
+    navigate("/project/new");
+  };
+
   // Sort chats by last_message_at or created_at
   const sortedChats = React.useMemo(() => {
     if (!Array.isArray(chats)) return [];
@@ -69,6 +73,14 @@ export default function ChatSidebar() {
           onClick={handleNewChat}
         >
           New Chat
+        </Button>
+        <Button
+          variant="secondary"
+          size="md"
+          className="new-project-btn"
+          onClick={handleNewProject}
+        >
+          New Project
         </Button>
       </div>
 

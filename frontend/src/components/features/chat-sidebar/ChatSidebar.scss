@@ -14,8 +14,13 @@
     flex-direction: column;
     gap: var(--spacing-3);
 
-    .new-chat-btn {
+    .new-chat-btn,
+    .new-project-btn {
       width: 100%;
+    }
+
+    .new-project-btn {
+      margin-top: 0.5rem;
     }
   }
 

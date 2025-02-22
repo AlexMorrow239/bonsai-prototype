@@ -65,3 +65,16 @@ export function useDeleteProject() {
     },
   });
 }
+
+export function useGetProject(projectId: string) {
+  return useQuery<Project, AxiosError<ApiError>>({
+    queryKey: ["project", projectId],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<ProjectResponse>>(
+        `/projects/${projectId}`
+      );
+      return response.data.data.data;
+    },
+    enabled: !!projectId,
+  });
+}
