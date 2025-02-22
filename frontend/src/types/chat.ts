@@ -13,6 +13,12 @@ export interface NewMessage {
   files?: FileUpload[];
 }
 
+export interface UpdateChat {
+  id: string;
+  title?: string;
+  preview?: string;
+}
+
 // Full types including database fields
 export interface Chat extends NewChat {
   _id: string;

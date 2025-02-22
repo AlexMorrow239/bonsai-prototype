@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type { ApiError, ApiResponse, Chat } from "@/types";
+import type { ApiError, ApiResponse, Chat, NewChat, UpdateChat } from "@/types";
 
 export function useChats() {
   return useQuery<Chat[], AxiosError<ApiError>>({
@@ -23,19 +23,8 @@ export function useChats() {
   });
 }
 
-interface CreateChatData {
-  title: string;
-  project_id?: string;
-}
-
-interface UpdateChatData {
-  id: string;
-  title?: string;
-  preview?: string;
-}
-
 export function useCreateChat() {
-  return useMutation<Chat, AxiosError<ApiError>, CreateChatData>({
+  return useMutation<Chat, AxiosError<ApiError>, NewChat>({
     mutationFn: async (chatData) => {
       const { data } = await apiClient.post<ApiResponse<Chat>>(
         "/chats",
@@ -47,7 +36,7 @@ export function useCreateChat() {
 }
 
 export function useUpdateChat() {
-  return useMutation<Chat, AxiosError<ApiError>, UpdateChatData>({
+  return useMutation<Chat, AxiosError<ApiError>, UpdateChat>({
     mutationFn: async ({ id, ...chatData }) => {
       const { data } = await apiClient.patch<ApiResponse<Chat>>(
         `/chats/${id}`,
