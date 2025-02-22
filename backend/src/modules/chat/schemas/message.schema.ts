@@ -41,6 +41,9 @@ export class Message {
     ],
   })
   files?: FileAttachment[];
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type IMessage = Message & Document;

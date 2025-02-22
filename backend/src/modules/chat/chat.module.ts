@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { MessageService } from '@/modules/chat/message.service';
+import {
+  Project,
+  ProjectSchema,
+} from '@/modules/projects/schemas/project.schema';
 import { AwsS3Service } from '@/services/aws-s3.service';
 
 import { ChatController } from './chat.controller';
@@ -14,6 +18,7 @@ import { MessageSchema } from './schemas/message.schema';
     MongooseModule.forFeature([
       { name: 'Chat', schema: ChatSchema },
       { name: 'Message', schema: MessageSchema },
+      { name: Project.name, schema: ProjectSchema },
     ]),
   ],
   controllers: [ChatController],

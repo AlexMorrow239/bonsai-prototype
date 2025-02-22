@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,11 +17,13 @@ import {
   ApiConsumes,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
 import {
+  ChatResponseDto,
   CreateChatDto,
   CreateMessageDto,
   UpdateChatDto,
@@ -30,7 +33,6 @@ import { MessageService } from '@/modules/chat/message.service';
 import { AwsS3Service } from '@/services/aws-s3.service';
 
 import { ChatService } from './chat.service';
-import { IChat } from './schemas/chat.schema';
 import { IMessage } from './schemas/message.schema';
 
 @ApiTags('chats')
@@ -42,29 +44,43 @@ export class ChatController {
     private readonly awsS3Service: AwsS3Service
   ) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all chats' })
+  @ApiQuery({
+    name: 'projectId',
+    required: false,
+    description: 'Optional project ID to filter chats',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all chats, optionally filtered by project',
+    type: [ChatResponseDto],
+  })
+  async getChats(
+    @Query('projectId') projectId?: string
+  ): Promise<ChatResponseDto[]> {
+    if (projectId) {
+      return this.chatService.findChatsByProject(projectId);
+    }
+    return this.chatService.getChats();
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new chat' })
   @ApiBody({ type: CreateChatDto })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'The chat has been successfully created.',
+    type: ChatResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid input data.',
   })
-  async createChat(@Body() createChatDto: CreateChatDto): Promise<IChat> {
+  async createChat(
+    @Body() createChatDto: CreateChatDto
+  ): Promise<ChatResponseDto> {
     return this.chatService.createChat(createChatDto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'Get all chats' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Returns all chats',
-  })
-  async getChats(): Promise<IChat[]> {
-    return this.chatService.getChats();
   }
 
   @Get(':chatId')
@@ -77,12 +93,13 @@ export class ChatController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns the chat with the specified ID.',
+    type: ChatResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Chat not found.',
   })
-  async getChatById(@Param('chatId') chatId: string): Promise<IChat> {
+  async getChatById(@Param('chatId') chatId: string): Promise<ChatResponseDto> {
     return this.chatService.getChatById(chatId);
   }
 
@@ -154,6 +171,7 @@ export class ChatController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The chat has been successfully updated.',
+    type: ChatResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -166,7 +184,7 @@ export class ChatController {
   async updateChat(
     @Param('chatId') chatId: string,
     @Body() updateChatDto: UpdateChatDto
-  ): Promise<IChat> {
+  ): Promise<ChatResponseDto> {
     return this.chatService.updateChat(chatId, updateChatDto);
   }
 
@@ -178,7 +196,7 @@ export class ChatController {
     description: 'The ID of the chat to delete',
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.NO_CONTENT,
     description: 'The chat has been successfully deleted.',
   })
   @ApiResponse({
@@ -210,5 +228,31 @@ export class ChatController {
     userMessageCount: number;
   }> {
     return this.chatService.getChatStats(chatId);
+  }
+
+  @Get('project/:projectId')
+  @ApiOperation({ summary: 'Get all chats for a project' })
+  @ApiParam({
+    name: 'projectId',
+    required: true,
+    description: 'The ID of the project to get chats for',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all chats for the specified project',
+    type: [ChatResponseDto],
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid project ID format',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Project not found',
+  })
+  async getChatsByProject(
+    @Param('projectId') projectId: string
+  ): Promise<ChatResponseDto[]> {
+    return this.chatService.findChatsByProject(projectId);
   }
 }

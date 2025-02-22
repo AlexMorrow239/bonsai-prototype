@@ -13,6 +13,7 @@ import { AppService } from './app.service';
 import { HttpExceptionFilter } from './common/filters/http-exception-filter';
 import { ErrorHandlingInterceptor } from './common/interceptors/error-handling.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { ProjectsModule } from './modules/projects/projects.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
       }),
     }),
     ChatModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [
