@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-import { FileUploadDto } from '@/common/dto/chat';
+import { FileUploadDto } from '@/modules/chat/dto';
 
 @Injectable()
 export class AwsS3Service {
@@ -32,7 +32,13 @@ export class AwsS3Service {
   }
   async uploadFiles(files: Express.Multer.File[]): Promise<FileUploadDto[]> {
     try {
-      this.logger.debug(`Attempting to upload ${files.length} files to S3`);
+      this.logger.debug(`Attempting to upload ${files.length} files to S3`, {
+        fileDetails: files.map((f) => ({
+          originalName: f.originalname,
+          size: f.size,
+          mimetype: f.mimetype,
+        })),
+      });
 
       return await Promise.all(
         files.map(async (file) => {
@@ -40,7 +46,12 @@ export class AwsS3Service {
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const key = `uploads/${uniqueSuffix}${extname(file.originalname)}`;
 
-          this.logger.debug(`Uploading file to S3: ${key}`);
+          this.logger.debug(`Processing file for S3 upload:`, {
+            key,
+            originalName: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype,
+          });
 
           const command = new PutObjectCommand({
             Bucket: this.bucketName,
@@ -53,14 +64,17 @@ export class AwsS3Service {
             await this.s3Client.send(command);
             const fileUrl = await this.getSignedUrl(key);
 
-            return {
-              file_id: key,
-              filename: file.originalname,
+            const fileDto = {
+              _id: key,
+              name: file.originalname,
               mimetype: file.mimetype,
               size: file.size,
               url: fileUrl,
-              file_path: key,
+              path: key,
             };
+
+            this.logger.debug(`Successfully uploaded file to S3:`, { fileDto });
+            return fileDto;
           } catch (uploadError) {
             this.logger.error(
               `Failed to upload individual file ${key}: ${uploadError.message}`,

@@ -9,8 +9,11 @@ export class ProjectResponseDto {
   @ApiProperty({ description: 'The name of the project' })
   name: string;
 
-  @ApiProperty({ description: 'The description of the project' })
-  description: string;
+  @ApiProperty({
+    description: 'The description of the project',
+    nullable: true,
+  })
+  description: string | null;
 
   @ApiProperty({ description: 'Whether the project is active' })
   is_active: boolean;

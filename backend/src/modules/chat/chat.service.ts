@@ -12,7 +12,7 @@ import {
   ChatResponseDto,
   CreateChatDto,
   UpdateChatDto,
-} from '@/common/dto/chat';
+} from '@/modules/chat/dto';
 import { Project } from '@/modules/projects/schemas/project.schema';
 import { ErrorHandler } from '@/utils/errorHandler.util';
 

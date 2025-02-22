@@ -8,7 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { Model, Types } from 'mongoose';
 
-import { CreateMessageDto, FileUploadDto } from '@/common/dto/chat';
+import { CreateMessageDto, FileUploadDto } from '@/modules/chat/dto';
 import { IChat } from '@/modules/chat/schemas/chat.schema';
 import { IMessage } from '@/modules/chat/schemas/message.schema';
 import { AwsS3Service } from '@/services/aws-s3.service';
@@ -30,11 +30,11 @@ export class MessageService {
     files?: Express.Multer.File[]
   ): Promise<IMessage> {
     try {
-      // Add logging to see what value is being received
       this.logger.debug('Creating message with data:', {
         chatId,
         is_ai_response: createMessageDto.is_ai_response,
         content: createMessageDto.content.substring(0, 50) + '...',
+        filesCount: files?.length || 0,
       });
 
       if (!Types.ObjectId.isValid(chatId)) {
@@ -52,9 +52,26 @@ export class MessageService {
       // Process files if they exist
       if (files?.length) {
         try {
-          this.logger.debug(`Processing ${files.length} files for upload`);
+          this.logger.debug(`Starting file upload process`, {
+            numberOfFiles: files.length,
+            fileDetails: files.map((f) => ({
+              originalName: f.originalname,
+              size: f.size,
+              mimetype: f.mimetype,
+            })),
+          });
+
           uploadedFiles = await this.awsS3Service.uploadFiles(files);
+
+          this.logger.debug('Files successfully uploaded to S3', {
+            uploadedFiles,
+          });
+
           createMessageDto.files = uploadedFiles;
+
+          this.logger.debug('Updated message DTO with file information', {
+            messageFiles: createMessageDto.files,
+          });
         } catch (uploadError) {
           this.logger.error('File upload failed:', uploadError);
           throw new BadRequestException('Failed to upload files');
@@ -69,7 +86,20 @@ export class MessageService {
         files: createMessageDto.files || [],
       });
 
+      this.logger.debug('Saving message with file metadata:', {
+        messageFiles: message.files,
+      });
+
       const savedMessage = await message.save();
+
+      this.logger.debug('Message successfully saved with files:', {
+        messageId: savedMessage._id,
+        filesCount: savedMessage.files?.length || 0,
+        files: savedMessage.files,
+        isNew: false,
+        dbOperation: 'save',
+        collectionName: this.messageModel.collection.name,
+      });
 
       // Update chat metadata
       await this.updateChatMetadata(chatId, createMessageDto);
@@ -93,8 +123,16 @@ export class MessageService {
 
   private async cleanupMessageFiles(files: FileUploadDto[]): Promise<void> {
     try {
-      const filePaths = files.map((file) => file.file_path);
+      this.logger.debug('Starting cleanup of message files', {
+        filesToDelete: files,
+      });
+
+      const filePaths = files.map((file) => file.path);
       await this.awsS3Service.deleteFiles(filePaths);
+
+      this.logger.debug('Successfully cleaned up message files', {
+        deletedPaths: filePaths,
+      });
     } catch (error) {
       ErrorHandler.handleServiceError(
         this.logger,

@@ -14,11 +14,11 @@ import {
 export class FileUploadDto {
   @ApiProperty({ description: 'The unique identifier of the file' })
   @IsString()
-  file_id: string;
+  _id: string;
 
   @ApiProperty({ description: 'The original name of the file' })
   @IsString()
-  filename: string;
+  name: string;
 
   @ApiProperty({
     description: 'The MIME type of the file',
@@ -47,7 +47,7 @@ export class FileUploadDto {
 
   @ApiProperty({ description: 'The S3 file path/key' })
   @IsString()
-  file_path: string;
+  path: string;
 }
 
 export class CreateMessageDto {

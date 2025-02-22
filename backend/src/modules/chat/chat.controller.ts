@@ -22,14 +22,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { FileUploadInterceptor } from '@/common/interceptors/file-upload.interceptor';
+import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
 import {
   ChatResponseDto,
   CreateChatDto,
   CreateMessageDto,
   UpdateChatDto,
-} from '@/common/dto/chat';
-import { FileUploadInterceptor } from '@/common/interceptors/file-upload.interceptor';
-import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
+} from '@/modules/chat/dto/';
 import { MessageService } from '@/modules/chat/message.service';
 import { AwsS3Service } from '@/services/aws-s3.service';
 
@@ -125,7 +125,7 @@ export class ChatController {
   }
 
   @Post(':chatId/messages')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(FilesInterceptor('files'), FileUploadInterceptor)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Create a new message with optional file attachments',
@@ -153,7 +153,7 @@ export class ChatController {
             type: 'string',
             format: 'binary',
           },
-          description: 'Array of files to upload (max 5 files)',
+          description: 'Array of files to upload (max 5 files, 10MB each)',
         },
       },
     },

@@ -3,12 +3,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
 interface FileAttachment {
-  file_id: string;
-  filename: string;
+  _id: string;
+  name: string;
   mimetype: string;
   size: number;
   url: string;
-  file_path: string;
+  path: string;
 }
 
 @Schema({
@@ -31,12 +31,12 @@ export class Message {
   @Prop({
     type: [
       {
-        file_id: String,
-        filename: String,
+        _id: String,
+        name: String,
         mimetype: String,
         size: Number,
         url: String,
-        file_path: String,
+        path: String,
       },
     ],
   })
