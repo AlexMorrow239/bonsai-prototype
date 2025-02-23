@@ -26,11 +26,11 @@ export function ChatPrompt({
 }: ChatPromptProps): ReactNode {
   const { currentChat } = useChatStore();
   const [message, setMessage] = useState("");
-  const { getFilesByChatId, clearFiles } = useFileStore();
+  const { getPendingFiles, clearPendingFiles } = useFileStore();
   const { showErrorToast } = useToastActions();
 
   // Get files only if we have a current chat
-  const files = currentChat ? getFilesByChatId(currentChat._id) : [];
+  const files = currentChat ? getPendingFiles(currentChat._id) : [];
   const hasContent = message.trim().length > 0 || files.length > 0;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -55,7 +55,7 @@ export function ChatPrompt({
 
       // Everything below this point only executes for existing chats
       if (currentChat) {
-        clearFiles(currentChat._id);
+        clearPendingFiles(currentChat._id);
         onSubmit(trimmedMessage, files);
         setMessage("");
 

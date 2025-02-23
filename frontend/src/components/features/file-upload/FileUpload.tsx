@@ -28,9 +28,9 @@ export function FileUpload({
   isVisible = false,
 }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addFiles, getFilesByChatId } = useFileStore();
+  const { addPendingFiles, getPendingFiles } = useFileStore();
   const { addToast } = useUIStore();
-  const files = getFilesByChatId(chatId);
+  const files = getPendingFiles(chatId);
   const acceptedFileTypes = getAllowedTypes();
 
   const handleFileSelect = async (
@@ -67,7 +67,7 @@ export function FileUpload({
       );
 
       // Add files to store
-      await addFiles(chatId, uploadedFiles);
+      await addPendingFiles(chatId, uploadedFiles);
 
       // Clear the input after successful addition
       if (fileInputRef.current) {

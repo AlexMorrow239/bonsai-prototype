@@ -25,8 +25,8 @@ interface UploadedFilesProps {
 }
 
 export function UploadedFiles({ chatId }: UploadedFilesProps): ReactNode {
-  const { getFilesByChatId, removeFile } = useFileStore();
-  const files = getFilesByChatId(chatId);
+  const { getPendingFiles, removePendingFile } = useFileStore();
+  const files = getPendingFiles(chatId);
 
   if (files.length === 0) return null;
 
@@ -103,7 +103,7 @@ export function UploadedFiles({ chatId }: UploadedFilesProps): ReactNode {
             {renderFileStatus(file)}
             <Button
               type="button"
-              onClick={() => removeFile(chatId, file.file_id)}
+              onClick={() => removePendingFile(chatId, file.file_id)}
               className="uploaded-files__remove"
               isIconButton={true}
               title="Remove file"

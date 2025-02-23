@@ -4,18 +4,18 @@ import type { FileMetadata, UploadedFile } from "@/types";
 import { createFileEntry } from "@/utils/files/fileUpload";
 
 interface FileState {
-  // Map of chatId to array of files
-  filesByChat: Record<string, UploadedFile[]>;
+  // Map of chatId to array of pending files (not yet associated with messages)
+  pendingFilesByChat: Record<string, UploadedFile[]>;
   isDragging: boolean;
 
   // Actions
-  addFiles: (chatId: string, files: UploadedFile[]) => void;
-  removeFile: (chatId: string, fileId: string) => void;
-  clearFiles: (chatId: string) => void;
-  getFilesByChatId: (chatId: string) => UploadedFile[];
+  addPendingFiles: (chatId: string, files: UploadedFile[]) => void;
+  removePendingFile: (chatId: string, fileId: string) => void;
+  clearPendingFiles: (chatId: string) => void;
+  getPendingFiles: (chatId: string) => UploadedFile[];
   setDragging: (isDragging: boolean) => void;
   handleFileDrop: (chatId: string, dataTransfer: DataTransfer) => Promise<void>;
-  updateFileStatus: (
+  updatePendingFileStatus: (
     chatId: string,
     fileId: string,
     updates: Partial<{
@@ -27,37 +27,37 @@ interface FileState {
 }
 
 export const useFileStore = create<FileState>((set, get) => ({
-  filesByChat: {},
+  pendingFilesByChat: {},
   isDragging: false,
 
-  addFiles: (chatId, files) =>
+  addPendingFiles: (chatId, files) =>
     set((state) => ({
-      filesByChat: {
-        ...state.filesByChat,
-        [chatId]: [...(state.filesByChat[chatId] || []), ...files],
+      pendingFilesByChat: {
+        ...state.pendingFilesByChat,
+        [chatId]: [...(state.pendingFilesByChat[chatId] || []), ...files],
       },
     })),
 
-  removeFile: (chatId, fileId) =>
+  removePendingFile: (chatId, fileId) =>
     set((state) => ({
-      filesByChat: {
-        ...state.filesByChat,
-        [chatId]: (state.filesByChat[chatId] || []).filter(
+      pendingFilesByChat: {
+        ...state.pendingFilesByChat,
+        [chatId]: (state.pendingFilesByChat[chatId] || []).filter(
           (file) => file.file_id !== fileId
         ),
       },
     })),
 
-  clearFiles: (chatId) =>
+  clearPendingFiles: (chatId) =>
     set((state) => ({
-      filesByChat: {
-        ...state.filesByChat,
+      pendingFilesByChat: {
+        ...state.pendingFilesByChat,
         [chatId]: [],
       },
     })),
 
-  getFilesByChatId: (chatId) => {
-    return get().filesByChat[chatId] || [];
+  getPendingFiles: (chatId) => {
+    return get().pendingFilesByChat[chatId] || [];
   },
 
   setDragging: (isDragging) => set({ isDragging }),
@@ -67,19 +67,22 @@ export const useFileStore = create<FileState>((set, get) => ({
     const uploadedFiles = files.map((file) => createFileEntry(file, chatId));
 
     set((state) => ({
-      filesByChat: {
-        ...state.filesByChat,
-        [chatId]: [...(state.filesByChat[chatId] || []), ...uploadedFiles],
+      pendingFilesByChat: {
+        ...state.pendingFilesByChat,
+        [chatId]: [
+          ...(state.pendingFilesByChat[chatId] || []),
+          ...uploadedFiles,
+        ],
       },
     }));
   },
 
-  updateFileStatus: (chatId, fileId, updates) =>
+  updatePendingFileStatus: (chatId, fileId, updates) =>
     set((state) => ({
-      filesByChat: {
-        ...state.filesByChat,
+      pendingFilesByChat: {
+        ...state.pendingFilesByChat,
         [chatId]:
-          state.filesByChat[chatId]?.map((file) =>
+          state.pendingFilesByChat[chatId]?.map((file) =>
             file.file_id === fileId
               ? {
                   ...file,
