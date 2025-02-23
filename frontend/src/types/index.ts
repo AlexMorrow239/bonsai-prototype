@@ -1,4 +1,4 @@
-export type { FileMetadata, UploadedFile } from "./file";
+export type { FileServerData, FileMetadata, UploadedFile } from "./file";
 export type {
   Chat,
   Message,

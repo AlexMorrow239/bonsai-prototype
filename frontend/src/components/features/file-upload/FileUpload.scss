@@ -72,9 +72,21 @@
       color: var(--color-text-light);
       transition: all 0.2s ease;
 
+      &.dragging {
+        border-style: solid;
+        border-color: var(--color-primary);
+        background-color: var(--color-background-subtle);
+        transform: scale(0.98);
+
+        svg {
+          transform: translateY(-4px);
+          color: var(--color-primary);
+        }
+      }
+
       svg {
         color: var(--color-primary);
-        transition: transform 0.2s ease;
+        transition: all 0.2s ease;
       }
 
       p {

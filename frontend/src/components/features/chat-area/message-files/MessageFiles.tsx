@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 
 import { FileIcon, Link2 } from "lucide-react";
 
-import { FileMetadata } from "@/types";
-import { formatFileSize } from "@/utils/files";
+import { FileServerData } from "@/types";
+import { formatFileSize } from "@/utils/files/fileFormat";
 
 import "./MessageFiles.scss";
 
 interface MessageFileProps {
-  file: FileMetadata;
+  file: FileServerData;
 }
 
 const MessageFile = ({ file }: MessageFileProps): ReactNode => (
@@ -34,7 +34,7 @@ const MessageFile = ({ file }: MessageFileProps): ReactNode => (
 );
 
 interface MessageFilesProps {
-  files: FileMetadata[];
+  files: FileServerData[];
 }
 
 export function MessageFiles({ files }: MessageFilesProps) {

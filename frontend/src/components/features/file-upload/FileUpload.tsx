@@ -1,16 +1,16 @@
-import React, { useRef } from "react";
+import { useEffect } from "react";
 
 import { Upload } from "lucide-react";
+import type { DropEvent, FileRejection } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/common/button/Button";
 
-import { FILE_CONSTRAINTS, getAllowedTypes } from "@/common/constants";
+import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
-import { getAllFilesFromDataTransfer } from "@/utils/files/fileTransfer";
 import { createFileEntry } from "@/utils/files/fileUpload";
-import { validateFiles } from "@/utils/files/fileValidation";
 
 import "./FileUpload.scss";
 
@@ -27,22 +27,43 @@ export function FileUpload({
   maxFiles = FILE_CONSTRAINTS.MAX_FILES,
   isVisible = false,
 }: FileUploadProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addPendingFiles, getPendingFiles } = useFileStore();
+  const { addPendingFiles, setDragging } = useFileStore();
   const { addToast } = useUIStore();
-  const files = getPendingFiles(chatId);
-  const acceptedFileTypes = getAllowedTypes();
 
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
+  const handleFilesSelected = async (
+    acceptedFiles: File[],
+    fileRejections: FileRejection[],
+    event: DropEvent
   ) => {
-    try {
-      // Get files from input or drop event, including directory contents
-      const selectedFiles = await getAllFilesFromDataTransfer(
-        "dataTransfer" in event ? event.dataTransfer : event.target
-      );
+    console.debug("[FileUpload] Files selected:", {
+      acceptedCount: acceptedFiles.length,
+      rejectedCount: fileRejections.length,
+      acceptedFiles: acceptedFiles.map((f) => ({
+        name: f.name,
+        size: f.size,
+        type: f.type,
+        lastModified: f.lastModified,
+      })),
+      rejectedFiles: fileRejections.map((r) => ({
+        file: {
+          name: r.file.name,
+          size: r.file.size,
+          type: r.file.type,
+          lastModified: r.file.lastModified,
+        },
+        errors: r.errors,
+      })),
+      eventType: event.type,
+    });
 
-      if (selectedFiles.length === 0) {
+    try {
+      // Process accepted files
+      if (acceptedFiles.length === 0) {
+        console.debug("[FileUpload] No accepted files found");
+        if (fileRejections.length > 0) {
+          // Already handled by onDropRejected
+          return;
+        }
         addToast({
           type: "info",
           message: "No valid files found",
@@ -50,31 +71,34 @@ export function FileUpload({
         return;
       }
 
-      // Validate files using the validation utility
-      const validation = validateFiles(selectedFiles, files);
-
-      if (!validation.valid) {
-        addToast({
-          type: "error",
-          message: validation.error || "Invalid files",
-        });
-        return;
-      }
-
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = selectedFiles.map((file) =>
-        createFileEntry(file, chatId)
-      );
+      const uploadedFiles = acceptedFiles.map((file) => {
+        console.debug("[FileUpload] Creating file entry for:", {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        });
+        return createFileEntry(file, chatId);
+      });
+
+      console.debug("[FileUpload] Created file entries:", {
+        count: uploadedFiles.length,
+        files: uploadedFiles.map((f) => ({
+          id: f.file_id,
+          name: f.metadata.name,
+          size: f.metadata.size,
+          type: f.metadata.mimetype,
+        })),
+      });
 
       // Add files to store
       await addPendingFiles(chatId, uploadedFiles);
-
-      // Clear the input after successful addition
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      console.debug("[FileUpload] Files added to store successfully");
     } catch (error) {
-      console.error("File upload error:", error);
+      console.error("[FileUpload] File upload error:", {
+        error,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       addToast({
         type: "error",
         message: "Failed to process files",
@@ -82,61 +106,44 @@ export function FileUpload({
     }
   };
 
-  // Handle drag and drop events
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    onDrop: handleFilesSelected,
+    maxFiles,
+    noClick: variant === "dropzone",
+    noKeyboard: variant === "dropzone",
+    noDrag: variant === "dropzone",
+    preventDropOnDocument: false,
+    useFsAccessApi: false,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+      "text/plain": [".txt"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        [".pptx"],
+    },
+    multiple: true,
+  });
 
-  const handleDrop = async (
-    event: React.DragEvent<HTMLDivElement>
-  ): Promise<void> => {
-    event.preventDefault();
-    event.stopPropagation();
-    await handleFileSelect(event);
-  };
+  // Reset dragging state when component unmounts
+  useEffect(() => {
+    return () => setDragging(false);
+  }, [setDragging]);
 
-  // Convert allowed types to input accept format
-  const acceptedFormats = [...acceptedFileTypes]
-    .map((type) => (type.endsWith("/") ? `${type}*` : type))
-    .join(",");
-
-  return (
-    <div
-      className={`file-upload file-upload--${variant} ${
-        variant === "dropzone" && isVisible ? "file-upload--visible" : ""
-      }`}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        webkitdirectory=""
-        directory=""
-        accept={acceptedFormats}
-        onChange={handleFileSelect}
-        className="file-upload__input"
-      />
-      {variant === "compact" ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          isIconButton
-          onClick={() => fileInputRef.current?.click()}
-          title={`Upload files (max ${maxFiles})`}
-        >
-          <Upload size={16} />
-        </Button>
-      ) : (
-        <div
-          className="file-upload__dropzone"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <div className="file-upload__dropzone-content">
+  if (variant === "dropzone") {
+    return (
+      <div
+        className={`file-upload file-upload--dropzone ${isVisible ? "file-upload--visible" : ""}`}
+      >
+        <div className="file-upload__dropzone">
+          <div
+            className={`file-upload__dropzone-content ${isDragActive ? "dragging" : ""}`}
+          >
             <Upload size={32} />
-            <p>Drop files here or click to upload</p>
+            <p>Drop files here</p>
             <span className="file-upload__dropzone-hint">
               Up to {maxFiles} files supported
             </span>
@@ -145,7 +152,25 @@ export function FileUpload({
             </span>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="file-upload file-upload--compact" {...getRootProps()}>
+      <input {...getInputProps()} className="file-upload__input" />
+      <Button
+        variant="ghost"
+        size="sm"
+        isIconButton
+        onClick={(e) => {
+          e.stopPropagation();
+          open();
+        }}
+        title={`Upload files (max ${maxFiles})`}
+      >
+        <Upload size={16} />
+      </Button>
     </div>
   );
 }

@@ -1,10 +1,14 @@
-import React, { ReactElement, useEffect, useRef } from "react";
+import { ReactElement, useEffect, useRef } from "react";
 
 import { Navigate, useParams } from "react-router-dom";
+
+import { useDropzone } from "react-dropzone";
 
 import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 import { FileUpload } from "@/components/features/file-upload/FileUpload";
+
+import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useGetChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
@@ -14,6 +18,7 @@ import { useFileStore } from "@/stores/fileStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
+import { createFileEntry } from "@/utils/files/fileUpload";
 
 import "./CurrentChat.scss";
 
@@ -28,12 +33,13 @@ export default function CurrentChat(): ReactElement {
     setCurrentChat,
     removeMessage: removeChatMessage,
   } = useChatStore();
-  const { isDragging, setDragging, handleFileDrop } = useFileStore();
+  const { isDragging, setDragging, addPendingFiles } = useFileStore();
   const { addMessage, removeMessage: removeStoreMessage } = useMessageStore();
   const { showErrorToast } = useToastActions();
 
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
+  const dropzoneRef = useRef<HTMLDivElement>(null);
 
   const sendMessage = useSendMessage();
   const { data: chat, isLoading: isChatLoading } = useGetChat(chatId || "");
@@ -139,38 +145,84 @@ export default function CurrentChat(): ReactElement {
     }
   };
 
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    if (dragCounter.current === 1) {
-      setDragging(true);
-    }
-  };
+  const handleFilesSelected = async (acceptedFiles: File[]) => {
+    try {
+      if (!currentChat?._id) {
+        showErrorToast(
+          new Error("No chat selected"),
+          "Please select or create a chat first"
+        );
+        return;
+      }
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current--;
-    if (dragCounter.current === 0) {
+      if (acceptedFiles.length === 0) {
+        return;
+      }
+
+      // Create UploadedFile objects for each selected file
+      const uploadedFiles = acceptedFiles.map((file) => {
+        console.debug("[Chat] Creating file entry for:", {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        });
+        return createFileEntry(file, currentChat._id);
+      });
+
+      // Add files to store
+      await addPendingFiles(currentChat._id, uploadedFiles);
+      console.debug("[Chat] Files added to store successfully");
+    } catch (error) {
+      console.error("[Chat] File upload error:", error);
+      showErrorToast(error, "Failed to process files");
+    } finally {
       setDragging(false);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current = 0;
-    setDragging(false);
-
-    if (!currentChat?._id) return;
-    await handleFileDrop(currentChat._id, e.dataTransfer);
-  };
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop: handleFilesSelected,
+    maxFiles: FILE_CONSTRAINTS.MAX_FILES,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+      "text/plain": [".txt"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        [".pptx"],
+    },
+    noClick: true,
+    preventDropOnDocument: true,
+    onDragEnter: (event) => {
+      event.preventDefault();
+      dragCounter.current++;
+      if (dragCounter.current === 1) {
+        setDragging(true);
+      }
+    },
+    onDragLeave: (event) => {
+      event.preventDefault();
+      dragCounter.current--;
+      if (dragCounter.current === 0) {
+        setDragging(false);
+      }
+    },
+    onDropAccepted: () => {
+      dragCounter.current = 0;
+      setDragging(false);
+    },
+    onDropRejected: (fileRejections) => {
+      dragCounter.current = 0;
+      setDragging(false);
+      showErrorToast(
+        new Error(fileRejections[0]?.errors[0]?.message || "Invalid file type"),
+        "File upload rejected"
+      );
+    },
+  });
 
   useEffect(() => {
     if (shouldFocusInput && textareaRef.current) {
@@ -201,14 +253,18 @@ export default function CurrentChat(): ReactElement {
   return (
     <main
       className={`chat-main ${isDragging ? "is-dragging" : ""}`}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      {...getRootProps()}
     >
+      <input {...getInputProps()} />
       <ChatArea />
       <ChatPrompt onSubmit={handleMessageSubmit} textareaRef={textareaRef} />
-      <FileUpload chatId={chat._id} variant="dropzone" isVisible={isDragging} />
+      <div ref={dropzoneRef}>
+        <FileUpload
+          chatId={chat._id}
+          variant="dropzone"
+          isVisible={isDragging}
+        />
+      </div>
     </main>
   );
 }
