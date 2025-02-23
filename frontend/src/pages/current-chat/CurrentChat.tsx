@@ -160,9 +160,7 @@ export default function CurrentChat(): ReactElement {
       }
 
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = acceptedFiles.map((file) =>
-        createFileEntry(file, currentChat._id)
-      );
+      const uploadedFiles = acceptedFiles.map((file) => createFileEntry(file));
 
       // Add files to store
       await addPendingFiles(currentChat._id, uploadedFiles);

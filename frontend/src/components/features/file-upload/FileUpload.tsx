@@ -49,9 +49,7 @@ export function FileUpload({
       }
 
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = acceptedFiles.map((file) =>
-        createFileEntry(file, chatId)
-      );
+      const uploadedFiles = acceptedFiles.map((file) => createFileEntry(file));
 
       // Add files to store
       await addPendingFiles(chatId, uploadedFiles);

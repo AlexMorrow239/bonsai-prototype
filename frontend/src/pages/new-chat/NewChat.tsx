@@ -47,9 +47,7 @@ export function NewChat(): ReactElement {
       }
 
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = acceptedFiles.map((file) =>
-        createFileEntry(file, null)
-      );
+      const uploadedFiles = acceptedFiles.map((file) => createFileEntry(file));
 
       // Add files to store without a chat ID
       await addPendingFiles(null, uploadedFiles);
