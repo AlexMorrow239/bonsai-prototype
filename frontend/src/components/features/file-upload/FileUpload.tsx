@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { Upload } from "lucide-react";
-import type { DropEvent, FileRejection } from "react-dropzone";
+import type { FileRejection } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/common/button/Button";
@@ -10,7 +10,7 @@ import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
-import { createFileEntry } from "@/utils/files/fileUpload";
+import { createFileEntry } from "@/utils/fileUtils";
 
 import "./FileUpload.scss";
 
@@ -32,34 +32,11 @@ export function FileUpload({
 
   const handleFilesSelected = async (
     acceptedFiles: File[],
-    fileRejections: FileRejection[],
-    event: DropEvent
+    fileRejections: FileRejection[]
   ) => {
-    console.debug("[FileUpload] Files selected:", {
-      acceptedCount: acceptedFiles.length,
-      rejectedCount: fileRejections.length,
-      acceptedFiles: acceptedFiles.map((f) => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-        lastModified: f.lastModified,
-      })),
-      rejectedFiles: fileRejections.map((r) => ({
-        file: {
-          name: r.file.name,
-          size: r.file.size,
-          type: r.file.type,
-          lastModified: r.file.lastModified,
-        },
-        errors: r.errors,
-      })),
-      eventType: event.type,
-    });
-
     try {
       // Process accepted files
       if (acceptedFiles.length === 0) {
-        console.debug("[FileUpload] No accepted files found");
         if (fileRejections.length > 0) {
           // Already handled by onDropRejected
           return;
@@ -72,28 +49,12 @@ export function FileUpload({
       }
 
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = acceptedFiles.map((file) => {
-        console.debug("[FileUpload] Creating file entry for:", {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        });
-        return createFileEntry(file, chatId);
-      });
-
-      console.debug("[FileUpload] Created file entries:", {
-        count: uploadedFiles.length,
-        files: uploadedFiles.map((f) => ({
-          id: f.file_id,
-          name: f.metadata.name,
-          size: f.metadata.size,
-          type: f.metadata.mimetype,
-        })),
-      });
+      const uploadedFiles = acceptedFiles.map((file) =>
+        createFileEntry(file, chatId)
+      );
 
       // Add files to store
       await addPendingFiles(chatId, uploadedFiles);
-      console.debug("[FileUpload] Files added to store successfully");
     } catch (error) {
       console.error("[FileUpload] File upload error:", {
         error,

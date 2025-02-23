@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/common/button/Button";
 
 import { useFileStore } from "@/stores/fileStore";
-import { formatFileSize } from "@/utils/files/fileFormat";
+import { formatFileSize } from "@/utils/fileUtils";
 
 import "./UploadedFiles.scss";
 

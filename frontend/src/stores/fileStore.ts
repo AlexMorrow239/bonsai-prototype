@@ -20,26 +20,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   isDragging: false,
 
   addPendingFiles: (chatId, files) => {
-    console.debug("[FileStore] Adding pending files:", {
-      chatId,
-      fileCount: files.length,
-      files: files.map((f) => ({
-        id: f.file_id,
-        name: f.metadata.name,
-        size: f.metadata.size,
-        type: f.metadata.mimetype,
-      })),
-    });
-
     set((state) => {
       const updatedFiles = [
         ...(state.pendingFilesByChat[chatId] || []),
         ...files,
       ];
-      console.debug("[FileStore] Updated pending files state:", {
-        chatId,
-        totalFiles: updatedFiles.length,
-      });
       return {
         pendingFilesByChat: {
           ...state.pendingFilesByChat,
@@ -50,19 +35,10 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   removePendingFile: (chatId, fileId) => {
-    console.debug("[FileStore] Removing pending file:", {
-      chatId,
-      fileId,
-    });
-
     set((state) => {
       const updatedFiles = (state.pendingFilesByChat[chatId] || []).filter(
         (file) => file.file_id !== fileId
       );
-      console.debug("[FileStore] Updated files after removal:", {
-        chatId,
-        remainingFiles: updatedFiles.length,
-      });
       return {
         pendingFilesByChat: {
           ...state.pendingFilesByChat,
@@ -73,7 +49,6 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   clearPendingFiles: (chatId) => {
-    console.debug("[FileStore] Clearing all pending files for chat:", chatId);
     set((state) => ({
       pendingFilesByChat: {
         ...state.pendingFilesByChat,

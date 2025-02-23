@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { FileIcon, Link2 } from "lucide-react";
 
 import { FileServerData } from "@/types";
-import { formatFileSize } from "@/utils/files/fileFormat";
+import { formatFileSize } from "@/utils/fileUtils";
 
 import "./MessageFiles.scss";
 

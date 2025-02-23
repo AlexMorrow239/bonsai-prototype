@@ -18,7 +18,7 @@ import { useFileStore } from "@/stores/fileStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
-import { createFileEntry } from "@/utils/files/fileUpload";
+import { createFileEntry } from "@/utils/fileUtils";
 
 import "./CurrentChat.scss";
 
@@ -160,18 +160,12 @@ export default function CurrentChat(): ReactElement {
       }
 
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = acceptedFiles.map((file) => {
-        console.debug("[Chat] Creating file entry for:", {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        });
-        return createFileEntry(file, currentChat._id);
-      });
+      const uploadedFiles = acceptedFiles.map((file) =>
+        createFileEntry(file, currentChat._id)
+      );
 
       // Add files to store
       await addPendingFiles(currentChat._id, uploadedFiles);
-      console.debug("[Chat] Files added to store successfully");
     } catch (error) {
       console.error("[Chat] File upload error:", error);
       showErrorToast(error, "Failed to process files");

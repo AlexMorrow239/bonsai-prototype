@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { ApiErrorCode, Toast as ToastType } from "@/types";
+import type { Toast as ToastType } from "@/types";
 import { handleError, isNetworkError, logError } from "@/utils/errorUtils";
 
 interface UIState {
@@ -19,7 +19,7 @@ interface UIState {
   setIsLoading: (loading: boolean) => void;
 
   // Global Error State
-  globalError: { code?: ApiErrorCode; message: string } | null;
+  globalError: { code?: any; message: string } | null;
   setGlobalError: (error: unknown | null) => void;
   clearGlobalError: () => void;
 }
@@ -151,7 +151,7 @@ export const useUIStore = create<UIState>((set) => ({
 
     set({
       globalError: {
-        code: appError.code as ApiErrorCode | undefined,
+        code: appError.code as any | undefined,
         message: appError.message,
       },
     });
