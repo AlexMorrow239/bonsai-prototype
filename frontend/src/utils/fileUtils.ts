@@ -1,13 +1,16 @@
 import type { UploadedFile } from "@/types";
 
-export function createFileEntry(file: File, chatId: string): UploadedFile {
+export function createFileEntry(
+  file: File,
+  chatId: string | null
+): UploadedFile {
   const fileId = crypto.randomUUID();
   const tempId = crypto.randomUUID();
   const url = URL.createObjectURL(file);
 
   const entry: UploadedFile = {
     file_id: fileId,
-    chat_id: chatId,
+    chat_id: chatId || "pending",
     file: file,
     metadata: {
       _id: tempId,

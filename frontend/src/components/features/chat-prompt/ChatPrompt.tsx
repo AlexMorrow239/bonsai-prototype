@@ -29,8 +29,12 @@ export function ChatPrompt({
   const { getPendingFiles, clearPendingFiles } = useFileStore();
   const { showErrorToast } = useToastActions();
 
-  // Get files only if we have a current chat
-  const files = currentChat ? getPendingFiles(currentChat._id) : [];
+  // Get files based on whether we're in a new chat or existing chat
+  const files = isNewChat
+    ? getPendingFiles(null)
+    : currentChat
+      ? getPendingFiles(currentChat._id)
+      : [];
   const hasContent = message.trim().length > 0 || files.length > 0;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -45,6 +49,7 @@ export function ChatPrompt({
       if (isNewChat) {
         onSubmit(trimmedMessage, files);
         setMessage("");
+        clearPendingFiles(null);
 
         // Reset textarea height
         if (textareaRef.current) {
@@ -95,7 +100,11 @@ export function ChatPrompt({
     <div
       className={`chat-prompt-wrapper ${files.length > 0 ? "has-files" : ""}`}
     >
-      {currentChat && <UploadedFiles chatId={currentChat._id} />}
+      {isNewChat ? (
+        <UploadedFiles chatId={null} />
+      ) : (
+        currentChat && <UploadedFiles chatId={currentChat._id} />
+      )}
 
       <form className="chat-prompt" onSubmit={handleSubmit}>
         <div className="input-row">
@@ -108,8 +117,12 @@ export function ChatPrompt({
             rows={1}
           />
           <div className="actions">
-            {currentChat && (
-              <FileUpload chatId={currentChat._id} variant="compact" />
+            {isNewChat ? (
+              <FileUpload chatId={null} variant="compact" />
+            ) : (
+              currentChat && (
+                <FileUpload chatId={currentChat._id} variant="compact" />
+              )
             )}
             <Button
               className="send-button"

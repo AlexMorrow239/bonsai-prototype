@@ -15,7 +15,7 @@ import { createFileEntry } from "@/utils/fileUtils";
 import "./FileUpload.scss";
 
 interface FileUploadProps {
-  chatId: string;
+  chatId: string | null;
   variant?: "compact" | "dropzone";
   maxFiles?: number;
   isVisible?: boolean;

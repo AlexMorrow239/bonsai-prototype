@@ -18,7 +18,7 @@ import { formatFileSize } from "@/utils/fileUtils";
 import "./UploadedFiles.scss";
 
 interface UploadedFilesProps {
-  chatId: string;
+  chatId: string | null;
 }
 
 export function UploadedFiles({ chatId }: UploadedFilesProps): ReactNode {
