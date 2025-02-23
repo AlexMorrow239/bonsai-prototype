@@ -34,11 +34,6 @@ export class MultipartMessagePipe implements PipeTransform {
         throw new BadRequestException('Invalid messageData format');
       }
 
-      // Validate required fields
-      if (!messageData.content) {
-        throw new BadRequestException('Message content is required');
-      }
-
       // Transform file data if present
       const files: FileUploadDto[] = value.files
         ? Array.isArray(value.files)
@@ -46,9 +41,22 @@ export class MultipartMessagePipe implements PipeTransform {
           : [value.files]
         : [];
 
+      // If there are files but no content, set content to empty string
+      if (files.length > 0 && !messageData.content) {
+        this.logger.debug(
+          'Files present without content, setting empty content'
+        );
+        messageData.content = '';
+      }
+
+      // Only validate content is required if there are no files
+      if (!messageData.content && files.length === 0) {
+        throw new BadRequestException('Message must contain content or files');
+      }
+
       // Construct the complete CreateMessageDto
       const result = {
-        content: messageData.content,
+        content: messageData.content || '', // Ensure content is never undefined
         is_ai_response: messageData.is_ai_response ?? false,
         files: files,
       } as CreateMessageDto;

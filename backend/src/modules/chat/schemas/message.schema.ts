@@ -19,7 +19,13 @@ export class Message {
   @Prop({ type: Types.ObjectId, required: true })
   chat_id: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({
+    required: function (this: Message) {
+      // Content is required only if there are no files
+      return !this.files?.length;
+    },
+    default: '',
+  })
   content: string;
 
   @Prop({ type: Date, default: Date.now })
@@ -39,6 +45,7 @@ export class Message {
         path: String,
       },
     ],
+    default: [],
   })
   files?: FileAttachment[];
 
@@ -48,3 +55,11 @@ export class Message {
 
 export type IMessage = Message & Document;
 export const MessageSchema = SchemaFactory.createForClass(Message);
+
+// Add custom validation
+MessageSchema.pre('validate', function (next) {
+  if (!this.content && (!this.files || this.files.length === 0)) {
+    next(new Error('Message must contain either content or files'));
+  }
+  next();
+});

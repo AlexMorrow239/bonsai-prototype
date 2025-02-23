@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   Max,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -52,6 +53,7 @@ export class FileUploadDto {
 
 export class CreateMessageDto {
   @ApiProperty({ description: 'The content of the message' })
+  @ValidateIf((o) => !o.files || o.files.length === 0)
   @IsString()
   content: string;
 

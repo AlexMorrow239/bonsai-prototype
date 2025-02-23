@@ -157,44 +157,52 @@ export async function generateGeminiResponse(
 
     for (const uploadedFile of files) {
       try {
-        if (!uploadedFile.url) {
+        // Type assertion since we know these properties exist at runtime
+        const fileData = uploadedFile as {
+          url: string;
+          name: string;
+          type: string;
+        };
+
+        if (!fileData.url) {
           throw new AppError(
-            `File ${uploadedFile.name} has no URL`,
+            `File ${fileData.name} has no URL`,
             "SERVICE_ERROR"
           );
         }
 
         // Validate file type
-        if (!isFileTypeSupported(uploadedFile.type)) {
+        if (!isFileTypeSupported(fileData.type)) {
           throw new AppError(
-            `File type ${uploadedFile.type} is not supported`,
+            `File type ${fileData.type} is not supported`,
             "INVALID_INPUT"
           );
         }
 
         // Get the actual File object from the URL
-        const response = await fetch(uploadedFile.url);
+        const response = await fetch(fileData.url);
         if (!response.ok) {
           throw new AppError(
-            `Failed to fetch file ${uploadedFile.name}`,
+            `Failed to fetch file ${fileData.name}`,
             "SERVICE_ERROR"
           );
         }
 
         const blob = await response.blob();
-        const file = new File([blob], uploadedFile.name, {
-          type: uploadedFile.type,
+        const file = new File([blob], fileData.name, {
+          type: fileData.type,
         });
 
         // Convert to Gemini part
         const part = await fileToGenerativePart(file);
         parts.push(part);
       } catch (error) {
-        logError(error, `File Processing: ${uploadedFile.name}`);
+        const fileData = uploadedFile as { name: string; type: string };
+        logError(error, `File Processing: ${fileData.name}`);
         if (error instanceof Error) {
           const fileError = error as FileProcessingError;
-          fileError.fileName = uploadedFile.name;
-          fileError.fileType = uploadedFile.type;
+          fileError.fileName = fileData.name;
+          fileError.fileType = fileData.type;
           fileErrors.push(fileError);
         }
         // Continue processing other files

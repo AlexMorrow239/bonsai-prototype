@@ -1,5 +1,3 @@
-import { ApiErrorCode } from "@/types";
-
 export const FILE_CONSTRAINTS = {
   // Upload chunk configuration
   CHUNK_SIZE: 256 * 1024, // 256KB chunks for upload
@@ -74,7 +72,7 @@ export const FILE_SIZES = {
   GB: 1024 * 1024 * 1024,
 } as const;
 
-export const API_ERROR_MESSAGES: Record<ApiErrorCode, string> = {
+export const API_ERROR_MESSAGES: Record<any, string> = {
   UNAUTHORIZED: "Your session has expired. Please refresh the page.",
   RATE_LIMITED: "Too many requests. Please try again later.",
   INVALID_INPUT: "Invalid input provided.",

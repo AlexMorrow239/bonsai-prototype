@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { useMessageStore } from "@/stores/messageStore";
 import type { Chat, Message } from "@/types";
 
 interface ChatState {
@@ -14,6 +15,7 @@ interface ChatState {
   setShouldFocusInput: (value: boolean) => void;
   setActiveChatId: (id: string | null) => void;
   setChats: (chats: Chat[]) => void;
+  removeMessage: (chatId: string, messageId: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -50,5 +52,26 @@ export const useChatStore = create<ChatState>((set) => ({
 
   setChats: (chats) => {
     set({ chats });
+  },
+
+  removeMessage: (chatId, messageId) => {
+    set((state) => {
+      const chat = state.chats.find((c) => c._id === chatId);
+      if (!chat) return state;
+
+      if (chat.preview === messageId) {
+        const messages = useMessageStore.getState().getMessagesByChatId(chatId);
+        const previousMessage = messages[messages.length - 2];
+
+        return {
+          chats: state.chats.map((c) =>
+            c._id === chatId
+              ? { ...c, preview: previousMessage?.content || "" }
+              : c
+          ),
+        };
+      }
+      return state;
+    });
   },
 }));

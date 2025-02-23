@@ -1,7 +1,6 @@
 import React, { useRef } from "react";
 
 import { Upload } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
 
 import { Button } from "@/components/common/button/Button";
 
@@ -9,7 +8,8 @@ import { FILE_CONSTRAINTS, getAllowedTypes } from "@/common/constants";
 
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
-import type { FileMetadata, UploadedFile } from "@/types";
+import { getAllFilesFromDataTransfer } from "@/utils/files/fileTransfer";
+import { createFileEntry } from "@/utils/files/fileUpload";
 import { validateFiles } from "@/utils/files/fileValidation";
 
 import "./FileUpload.scss";
@@ -33,42 +33,38 @@ export function FileUpload({
   const files = getFilesByChatId(chatId);
   const acceptedFileTypes = getAllowedTypes();
 
-  const createUploadedFile = (file: File): UploadedFile => {
-    const fileId = uuidv4();
-
-    const metadata: FileMetadata = {
-      name: file.name,
-      mimetype: file.type,
-      size: file.size,
-    };
-
-    return {
-      file_id: fileId,
-      chat_id: chatId,
-      file,
-      metadata,
-    };
-  };
-
   const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
   ) => {
-    const selectedFiles = Array.from(event.target.files || []);
-
-    // Validate files using the validation utility
-    const validation = validateFiles(selectedFiles, files);
-
-    if (!validation.valid) {
-      addToast({
-        type: "error",
-        message: validation.error || "Invalid files",
-      });
-      return;
-    }
-
     try {
+      // Get files from input or drop event, including directory contents
+      const selectedFiles = await getAllFilesFromDataTransfer(
+        "dataTransfer" in event ? event.dataTransfer : event.target
+      );
+
+      if (selectedFiles.length === 0) {
+        addToast({
+          type: "info",
+          message: "No valid files found",
+        });
+        return;
+      }
+
+      // Validate files using the validation utility
+      const validation = validateFiles(selectedFiles, files);
+
+      if (!validation.valid) {
+        addToast({
+          type: "error",
+          message: validation.error || "Invalid files",
+        });
+        return;
+      }
+
       // Create UploadedFile objects for each selected file
-      const uploadedFiles = selectedFiles.map(createUploadedFile);
+      const uploadedFiles = selectedFiles.map((file) =>
+        createFileEntry(file, chatId)
+      );
 
       // Add files to store
       await addFiles(chatId, uploadedFiles);
@@ -78,11 +74,26 @@ export function FileUpload({
         fileInputRef.current.value = "";
       }
     } catch (error) {
+      console.error("File upload error:", error);
       addToast({
         type: "error",
         message: "Failed to process files",
       });
     }
+  };
+
+  // Handle drag and drop events
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleDrop = async (
+    event: React.DragEvent<HTMLDivElement>
+  ): Promise<void> => {
+    event.preventDefault();
+    event.stopPropagation();
+    await handleFileSelect(event);
   };
 
   // Convert allowed types to input accept format
@@ -95,11 +106,15 @@ export function FileUpload({
       className={`file-upload file-upload--${variant} ${
         variant === "dropzone" && isVisible ? "file-upload--visible" : ""
       }`}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <input
         ref={fileInputRef}
         type="file"
         multiple
+        webkitdirectory=""
+        directory=""
         accept={acceptedFormats}
         onChange={handleFileSelect}
         className="file-upload__input"

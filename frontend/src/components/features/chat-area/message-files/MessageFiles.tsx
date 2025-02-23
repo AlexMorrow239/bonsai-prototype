@@ -2,28 +2,26 @@ import type { ReactNode } from "react";
 
 import { FileIcon, Link2 } from "lucide-react";
 
-import { UploadedFile } from "@/types";
+import { FileMetadata } from "@/types";
 import { formatFileSize } from "@/utils/files";
 
 import "./MessageFiles.scss";
 
 interface MessageFileProps {
-  file: UploadedFile;
+  file: FileMetadata;
 }
 
 const MessageFile = ({ file }: MessageFileProps): ReactNode => (
   <div className="message-file">
     <FileIcon size={16} className="message-file__icon" />
     <div className="message-file__info">
-      <div className="message-file__name">{file.metadata.name}</div>
-      <div className="message-file__meta">
-        {formatFileSize(file.metadata.size)}
-      </div>
+      <div className="message-file__name">{file.name}</div>
+      <div className="message-file__meta">{formatFileSize(file.size)}</div>
     </div>
-    {file.metadata.url && (
+    {file.url && (
       <a
-        href={file.metadata.url}
-        download={file.metadata.name}
+        href={file.url}
+        download={file.name}
         className="message-file__download"
         title="Download file"
         target="_blank"
@@ -36,7 +34,7 @@ const MessageFile = ({ file }: MessageFileProps): ReactNode => (
 );
 
 interface MessageFilesProps {
-  files: UploadedFile[];
+  files: FileMetadata[];
 }
 
 export function MessageFiles({ files }: MessageFilesProps) {
@@ -45,7 +43,7 @@ export function MessageFiles({ files }: MessageFilesProps) {
   return (
     <div className="message-files ">
       {files.map((file) => (
-        <MessageFile key={file.file_id} file={file} />
+        <MessageFile key={file._id} file={file} />
       ))}
     </div>
   );

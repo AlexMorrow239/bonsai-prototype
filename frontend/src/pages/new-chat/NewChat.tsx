@@ -6,19 +6,24 @@ import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
 
 import { useCreateChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
-import { generateGeminiResponse } from "@/services/geminiService";
+import { simulateAIResponse } from "@/services/aiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
-import type { UploadedFile } from "@/types";
+import type { Message, UploadedFile } from "@/types";
 
 import "./NewChat.scss";
 
 export function NewChat(): ReactElement {
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const { showErrorToast } = useToastActions();
-  const { addMessage } = useMessageStore();
-  const { setCurrentChat, setChats, chats } = useChatStore();
+  const { addMessage, removeMessage: removeStoreMessage } = useMessageStore();
+  const {
+    setCurrentChat,
+    setChats,
+    chats,
+    removeMessage: removeChatMessage,
+  } = useChatStore();
   const navigate = useNavigate();
 
   const createChat = useCreateChat();
@@ -31,9 +36,12 @@ export function NewChat(): ReactElement {
     const hasContent = content.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
+    const tempMessageId = `temp-${Date.now()}`;
+    let newChat;
+
     try {
       // Create new chat first
-      const newChat = await createChat.mutateAsync({
+      newChat = await createChat.mutateAsync({
         title: content.slice(0, 50),
         is_active: true,
       });
@@ -42,14 +50,12 @@ export function NewChat(): ReactElement {
         throw new Error("Failed to create chat");
       }
 
-      // Create a temporary message ID to track this submission
-      const tempMessageId = `temp-${Date.now()}`;
-
       // Add message to local store first with temporary ID
-      const pendingMessage = {
+      const pendingMessage: Message = {
         _id: tempMessageId,
         chat_id: newChat._id,
         content: content.trim(),
+        files: files,
         is_ai_response: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -70,14 +76,16 @@ export function NewChat(): ReactElement {
         is_ai_response: false,
       });
 
-      // Replace temporary message with server response
+      // Remove temporary message and add server response
       if (userMessage) {
+        removeChatMessage(newChat._id, tempMessageId);
+        removeStoreMessage(newChat._id, tempMessageId);
         addMessage(newChat._id, userMessage);
       }
 
       try {
-        // Generate AI response
-        const aiContent = await generateGeminiResponse(content.trim(), files);
+        // Replace Gemini response generation with simulated response
+        const aiContent = await simulateAIResponse(content.trim());
 
         if (!aiContent) {
           throw new Error("Empty response from AI");
@@ -102,6 +110,11 @@ export function NewChat(): ReactElement {
     } catch (error) {
       console.error("[NewChat] Creation error:", error);
       showErrorToast(error, "Failed to create chat");
+      // If we have a newChat._id, clean up the temporary message
+      if (newChat?._id) {
+        removeChatMessage(newChat._id, tempMessageId);
+        removeStoreMessage(newChat._id, tempMessageId);
+      }
     }
   };
 

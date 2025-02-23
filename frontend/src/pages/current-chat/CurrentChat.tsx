@@ -8,7 +8,7 @@ import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
 import { useGetChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
-import { generateGeminiResponse } from "@/services/geminiService";
+import { simulateAIResponse } from "@/services/aiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
 import { useMessageStore } from "@/stores/messageStore";
@@ -26,18 +26,16 @@ export default function CurrentChat(): ReactElement {
     setShouldFocusInput,
     updateChatPreview,
     setCurrentChat,
+    removeMessage: removeChatMessage,
   } = useChatStore();
   const { isDragging, setDragging, handleFileDrop } = useFileStore();
-  const { addMessage } = useMessageStore();
+  const { addMessage, removeMessage: removeStoreMessage } = useMessageStore();
   const { showErrorToast } = useToastActions();
 
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
 
-  // Update to use messages instead of data
   const sendMessage = useSendMessage();
-
-  // Get chat data
   const { data: chat, isLoading: isChatLoading } = useGetChat(chatId || "");
 
   // Update current chat when needed
@@ -74,15 +72,16 @@ export default function CurrentChat(): ReactElement {
     const hasContent = content.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
-    try {
-      // Create a temporary message ID to track this submission
-      const tempMessageId = `temp-${Date.now()}`;
+    // Move tempMessageId declaration outside try block so it's accessible in catch
+    const tempMessageId = `temp-${Date.now()}`;
 
+    try {
       // Add message to local store first with temporary ID
       const pendingMessage = {
         _id: tempMessageId,
         chat_id: currentChat._id,
         content: content.trim(),
+        files: files,
         is_ai_response: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -101,15 +100,17 @@ export default function CurrentChat(): ReactElement {
         is_ai_response: false,
       });
 
-      // Replace temporary message with server response
+      // Remove temporary message from both stores
       if (userMessage) {
+        removeChatMessage(currentChat._id, tempMessageId);
+        removeStoreMessage(currentChat._id, tempMessageId);
         addMessage(currentChat._id, userMessage);
         updateChatPreview(currentChat._id, userMessage);
       }
 
       try {
-        // Generate AI response
-        const aiContent = await generateGeminiResponse(content.trim(), files);
+        // Replace Gemini response generation with simulated response
+        const aiContent = await simulateAIResponse(content.trim());
 
         if (!aiContent) {
           throw new Error("Empty response from AI");
@@ -132,6 +133,9 @@ export default function CurrentChat(): ReactElement {
     } catch (error) {
       console.error("[Chat] Message submission error:", error);
       showErrorToast(error, "Failed to send message");
+      // Clean up the temporary message on error
+      removeChatMessage(currentChat._id, tempMessageId);
+      removeStoreMessage(currentChat._id, tempMessageId);
     }
   };
 
