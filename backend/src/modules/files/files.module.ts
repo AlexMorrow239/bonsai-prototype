@@ -11,9 +11,10 @@ import { MultipartFilePipe } from './pipes/multipart-file.pipe';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
+    AwsS3Module,
   ],
   controllers: [FilesController],
-  providers: [FilesService, AwsS3Module, MultipartFilePipe],
+  providers: [FilesService, MultipartFilePipe],
   exports: [FilesService],
 })
 export class FilesModule {}

@@ -2,7 +2,17 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 import { Document, Types } from 'mongoose';
 
-export type IChat = Chat & Document;
+export interface IChat extends Document {
+  _id: Types.ObjectId;
+  title: string;
+  preview: string;
+  project_id?: Types.ObjectId;
+  is_active: boolean;
+  last_message_at: Date;
+  chat_context: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 @Schema({
   timestamps: true,
@@ -12,17 +22,20 @@ export class Chat {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ type: String })
-  preview?: string;
+  @Prop({ required: true })
+  preview: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Project' })
+  @Prop({ type: Types.ObjectId, ref: 'Project', required: false })
   project_id?: Types.ObjectId;
 
   @Prop({ default: true })
   is_active: boolean;
 
-  @Prop({ type: Date })
-  last_message_at?: Date;
+  @Prop({ default: Date.now })
+  last_message_at: Date;
+
+  @Prop({ required: true, default: '' })
+  chat_context: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -30,5 +43,6 @@ export class Chat {
 
 export const ChatSchema = SchemaFactory.createForClass(Chat);
 
-// Add index for project lookups
+// Add indexes for common queries
 ChatSchema.index({ project_id: 1, is_active: 1 });
+ChatSchema.index({ last_message_at: -1 });

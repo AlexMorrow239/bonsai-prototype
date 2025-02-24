@@ -1,36 +1,38 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MulterModule } from '@nestjs/platform-express';
 
+import { FileUploadInterceptor } from '@/common/interceptors/file-upload.interceptor';
 import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
-import { MessageService } from '@/modules/chat/message.service';
 import {
   Project,
   ProjectSchema,
 } from '@/modules/projects/schemas/project.schema';
 import { AwsS3Module } from '@/services/aws-s3/aws-s3.module';
+import { LlmModule } from '@/services/llm-integration/llm.module';
 
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-import { ChatSchema } from './schemas/chat.schema';
-import { MessageSchema } from './schemas/message.schema';
+import { MessageService } from './message.service';
+import { Chat, ChatSchema } from './schemas/chat.schema';
+import { Message, MessageSchema } from './schemas/message.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: 'Chat', schema: ChatSchema },
-      { name: 'Message', schema: MessageSchema },
+      { name: Chat.name, schema: ChatSchema },
+      { name: Message.name, schema: MessageSchema },
       { name: Project.name, schema: ProjectSchema },
     ]),
-    MulterModule.register({
-      limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB
-        files: 5, // Maximum 5 files per request
-      },
-    }),
     AwsS3Module,
+    LlmModule,
   ],
   controllers: [ChatController],
-  providers: [ChatService, MessageService, MultipartMessagePipe],
+  providers: [
+    ChatService,
+    MessageService,
+    MultipartMessagePipe,
+    FileUploadInterceptor,
+  ],
+  exports: [ChatService, MessageService],
 })
 export class ChatModule {}

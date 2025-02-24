@@ -12,6 +12,8 @@ export interface AppConfig {
   urls: {
     backend: string;
     api: string;
+    frontend: string;
+    llmService: string;
   };
   aws: {
     region: string;
@@ -45,6 +47,7 @@ export default registerAs('app', () => {
         ? process.env.BACKEND_URL_NETWORK
         : process.env.BACKEND_URL_LOCAL,
       api: process.env.API_URL,
+      llmService: process.env.LLM_SERVICE_URL || 'http://localhost:3002',
     },
     aws: {
       region: process.env.AWS_REGION,

@@ -11,7 +11,7 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiConsumes,
@@ -126,7 +126,8 @@ export class ChatController {
   @UseInterceptors(FilesInterceptor('files'), FileUploadInterceptor)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Create a new message with optional file attachments',
+    summary:
+      'Create a new message with optional file attachments and get AI response',
   })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiBody({
@@ -141,7 +142,6 @@ export class ChatController {
           description: 'JSON string containing message data',
           example: JSON.stringify({
             content: 'Hello, this is a test message',
-            is_ai_response: false,
             files: [],
           }),
         },
@@ -155,28 +155,32 @@ export class ChatController {
         },
       },
     },
-    examples: {
-      'Text Message': {
-        value: {
-          messageData: JSON.stringify({
-            content: 'Hello, this is a test message',
-            is_ai_response: false,
-          }),
-        },
-      },
-      'Message with Files': {
-        value: {
-          messageData: JSON.stringify({
-            content: 'Here are some files',
-            is_ai_response: false,
-            files: [
-              {
-                originalname: 'test.pdf',
-                mimetype: 'application/pdf',
-                size: 12345,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns both the user message and AI response',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string' },
+          chat_id: { type: 'string' },
+          content: { type: 'string' },
+          is_ai_response: { type: 'boolean' },
+          created_at: { type: 'string', format: 'date-time' },
+          files: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                originalname: { type: 'string' },
+                path: { type: 'string' },
+                mimetype: { type: 'string' },
+                size: { type: 'number' },
               },
-            ],
-          }),
+            },
+          },
         },
       },
     },
