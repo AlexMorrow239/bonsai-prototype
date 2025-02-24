@@ -44,13 +44,16 @@ export class MultipartFilePipe implements PipeTransform {
   }
 
   private transformParentFolderId(value: any): string | null {
+    // Handle null, undefined, empty string, or literal "null" string
     if (!value || value === 'undefined' || value === 'null' || value === '') {
       return null;
     }
 
-    // Don't transform to ObjectId here, just validate it's a potential valid format
+    // Validate MongoDB ObjectId format
     if (!/^[0-9a-fA-F]{24}$/.test(value)) {
-      return null;
+      throw new BadRequestException(
+        'parentFolderId must be a valid MongoDB ObjectId or null for root folder'
+      );
     }
 
     return value;

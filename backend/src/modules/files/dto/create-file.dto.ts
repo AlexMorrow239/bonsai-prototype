@@ -60,16 +60,18 @@ export class CreateFileDto {
   s3Url?: string;
 
   @ApiProperty({
-    description: 'ID of the parent folder',
+    description: 'ID of the parent folder (null for root folder)',
     required: false,
     example: '507f1f77bcf86cd799439011',
+    nullable: true,
   })
   @IsOptional()
   @IsString()
-  @Matches(/^[0-9a-fA-F]{24}$/, {
-    message: 'parentFolderId must be a valid MongoDB ObjectId',
+  @Matches(/^([0-9a-fA-F]{24}|null)$/, {
+    message:
+      'parentFolderId must be either a valid MongoDB ObjectId or null for root folder',
   })
-  parentFolderId?: string;
+  parentFolderId?: string | Types.ObjectId | null;
 
   @ApiProperty({
     description: 'Whether this is a folder',

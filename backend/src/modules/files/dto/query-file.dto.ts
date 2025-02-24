@@ -25,13 +25,6 @@ export class QueryFileDto {
   parentFolderId?: Types.ObjectId;
 
   @ApiProperty({
-    description: 'Pre-signed URL for client access',
-    example: 'https://bucket.s3.region.amazonaws.com/key?signed-params',
-  })
-  @IsString()
-  s3Url: string;
-
-  @ApiProperty({
     description: 'Filter for folders only',
     required: false,
     example: true,

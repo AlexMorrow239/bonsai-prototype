@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Model, Types } from 'mongoose';
@@ -21,24 +26,41 @@ export class FilesService {
     private readonly s3Service: AwsS3Service
   ) {}
 
+  private transformCustomMetadata(
+    metadata: Record<string, any> | undefined
+  ): Record<string, string> | undefined {
+    if (!metadata) {
+      return undefined;
+    }
+
+    return Object.entries(metadata).reduce(
+      (acc, [key, value]) => {
+        acc[key] = Array.isArray(value)
+          ? JSON.stringify(value)
+          : typeof value === 'object'
+            ? JSON.stringify(value)
+            : String(value);
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+  }
+
   async create(file: Express.Multer.File, uploadFileDto: UploadFileDto) {
     try {
       // Upload file to S3
       const [uploadResult] = await this.s3Service.uploadFiles([file]);
 
       // Transform customMetadata values to strings
-      const transformedMetadata = uploadFileDto.customMetadata
-        ? Object.entries(uploadFileDto.customMetadata).reduce(
-            (acc, [key, value]) => {
-              acc[key] =
-                typeof value === 'object'
-                  ? JSON.stringify(value)
-                  : String(value);
-              return acc;
-            },
-            {} as Record<string, string>
-          )
-        : undefined;
+      const transformedMetadata = this.transformCustomMetadata(
+        uploadFileDto.customMetadata
+      );
+
+      // Convert parentFolderId to Types.ObjectId if it's not null or "null" string
+      const parentFolderId =
+        uploadFileDto.parentFolderId && uploadFileDto.parentFolderId !== 'null'
+          ? new Types.ObjectId(uploadFileDto.parentFolderId)
+          : null;
 
       // Create file metadata in MongoDB
       const createFileDto: CreateFileDto = {
@@ -48,10 +70,10 @@ export class FilesService {
         size: file.size,
         s3Key: uploadResult.path,
         s3Url: uploadResult.url,
-        parentFolderId: uploadFileDto.parentFolderId,
+        parentFolderId,
         customMetadata: transformedMetadata,
-        path: uploadFileDto.parentFolderId
-          ? `${await this.getParentPath(uploadFileDto.parentFolderId)}/${uploadFileDto.name || file.originalname}`
+        path: parentFolderId
+          ? `${await this.getParentPath(parentFolderId.toString())}/${uploadFileDto.name || file.originalname}`
           : uploadFileDto.name || file.originalname,
       };
 
@@ -70,17 +92,26 @@ export class FilesService {
         throw new Error('Folder name is required');
       }
 
+      // Convert parentFolderId to Types.ObjectId if it's not null or "null" string
+      const parentFolderId =
+        createFolderDto.parentFolderId &&
+        createFolderDto.parentFolderId !== 'null'
+          ? new Types.ObjectId(createFolderDto.parentFolderId)
+          : null;
+
       const folderData = {
         name: createFolderDto.name,
         originalName: createFolderDto.name,
         isFolder: true,
         mimeType: 'folder',
         size: 0,
-        path: createFolderDto.parentFolderId
-          ? `${await this.getParentPath(createFolderDto.parentFolderId)}/${createFolderDto.name}`
+        path: parentFolderId
+          ? `${await this.getParentPath(parentFolderId.toString())}/${createFolderDto.name}`
           : createFolderDto.name,
-        parentFolderId: createFolderDto.parentFolderId,
-        customMetadata: createFolderDto.customMetadata,
+        parentFolderId,
+        customMetadata: this.transformCustomMetadata(
+          createFolderDto.customMetadata
+        ),
       };
 
       const newFolder = await this.fileModel.create(folderData);
@@ -123,7 +154,7 @@ export class FilesService {
     try {
       const file = await this.fileModel.findById(id).exec();
       if (!file) {
-        throw new Error('File not found');
+        throw new NotFoundException(`File with ID ${id} not found`);
       }
 
       if (!file.isFolder && file.s3Key) {
@@ -148,22 +179,22 @@ export class FilesService {
 
       // Transform customMetadata values to strings if present
       if (updateFileDto.customMetadata) {
-        updateFileDto.customMetadata = Object.entries(
+        updateFileDto.customMetadata = this.transformCustomMetadata(
           updateFileDto.customMetadata
-        ).reduce(
-          (acc, [key, value]) => {
-            acc[key] =
-              typeof value === 'object' ? JSON.stringify(value) : String(value);
-            return acc;
-          },
-          {} as Record<string, string>
         );
       }
 
-      // Update path if parent folder changed
+      // Convert parentFolderId to Types.ObjectId if it's not null or "null" string
       if (updateFileDto.parentFolderId !== undefined) {
-        updateFileDto.path = updateFileDto.parentFolderId
-          ? `${await this.getParentPath(updateFileDto.parentFolderId)}/${file.name}`
+        const parentFolderId =
+          updateFileDto.parentFolderId &&
+          updateFileDto.parentFolderId !== 'null'
+            ? new Types.ObjectId(updateFileDto.parentFolderId)
+            : null;
+
+        updateFileDto.parentFolderId = parentFolderId;
+        updateFileDto.path = parentFolderId
+          ? `${await this.getParentPath(parentFolderId.toString())}/${file.name}`
           : file.name;
       }
 
@@ -246,7 +277,9 @@ export class FilesService {
       }
 
       if (file.isFolder) {
-        throw new Error('Cannot download a folder');
+        throw new BadRequestException(
+          'Cannot download a folder - please select a file instead'
+        );
       }
 
       const url = await this.s3Service.getSignedUrl(file.s3Key);
