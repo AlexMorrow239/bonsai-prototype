@@ -19,3 +19,12 @@ export type {
   ProjectListResponse,
   ProjectResponse,
 } from "./api";
+export type {
+  FileSystemEntity,
+  FileListResponse,
+  FileResponse,
+  QueryFileParams,
+  UploadFileData,
+  CreateFolderData,
+  UpdateFileData,
+} from "./filesystem";

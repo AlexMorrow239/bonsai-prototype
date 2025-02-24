@@ -10,12 +10,12 @@ import "@/styles/main.scss";
 
 import { MainLayout } from "@/layouts/MainLayout";
 import { queryClient } from "@/lib/query-client";
-import CurrentChat from "@/pages/current-chat/CurrentChat";
-import { CurrentProject } from "@/pages/current-project/CurrentProject";
+import CurrentChat from "@/pages/chat/current-chat/CurrentChat";
+import { NewChat } from "@/pages/chat/new-chat/NewChat";
 import { FileManager } from "@/pages/FileManager/FileManager";
-import { NewChat } from "@/pages/new-chat/NewChat";
-import { NewProject } from "@/pages/new-project/NewProject";
 import NotFound from "@/pages/not-found/NotFound";
+import { CurrentProject } from "@/pages/project/current-project/CurrentProject";
+import { NewProject } from "@/pages/project/new-project/NewProject";
 import { useThemeStore } from "@/stores/themeStore";
 
 const router = createBrowserRouter([

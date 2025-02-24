@@ -3,8 +3,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type { ApiError } from "@/types";
 import type {
+  ApiError,
   CreateFolderData,
   FileListResponse,
   FileResponse,
@@ -12,7 +12,7 @@ import type {
   QueryFileParams,
   UpdateFileData,
   UploadFileData,
-} from "@/types/filesystem";
+} from "@/types";
 
 // Query files in a folder
 export function useFiles(params?: QueryFileParams) {
