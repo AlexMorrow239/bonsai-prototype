@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { FileUploadInterceptor } from '@/common/interceptors/file-upload.interceptor';
+import { WordProcessorInterceptor } from '@/common/interceptors/word-processor.interceptor';
 import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
+import { DocumentProcessorModule } from '@/modules/document-processor/document-processor.module';
 import {
   Project,
   ProjectSchema,
@@ -25,6 +27,7 @@ import { Message, MessageSchema } from './schemas/message.schema';
     ]),
     AwsS3Module,
     LlmModule,
+    DocumentProcessorModule,
   ],
   controllers: [ChatController],
   providers: [
@@ -32,6 +35,7 @@ import { Message, MessageSchema } from './schemas/message.schema';
     MessageService,
     MultipartMessagePipe,
     FileUploadInterceptor,
+    WordProcessorInterceptor,
   ],
   exports: [ChatService, MessageService],
 })

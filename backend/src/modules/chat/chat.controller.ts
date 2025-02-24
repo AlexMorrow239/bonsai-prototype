@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 
 import { FileUploadInterceptor } from '@/common/interceptors/file-upload.interceptor';
+import { WordProcessorInterceptor } from '@/common/interceptors/word-processor.interceptor';
 import { MultipartMessagePipe } from '@/common/pipes/multipart-message.pipe';
 import {
   ChatResponseDto,
@@ -123,7 +124,11 @@ export class ChatController {
   }
 
   @Post(':chatId/messages')
-  @UseInterceptors(FilesInterceptor('files'), FileUploadInterceptor)
+  @UseInterceptors(
+    FilesInterceptor('files'),
+    FileUploadInterceptor,
+    WordProcessorInterceptor
+  )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary:

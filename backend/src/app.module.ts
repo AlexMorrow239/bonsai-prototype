@@ -7,6 +7,7 @@ import { TransformInterceptor } from '@/common/interceptors/transform.intercepto
 import { configValidationSchema } from '@/config/config.schema';
 import configuration from '@/config/configuration';
 import { ChatModule } from '@/modules/chat/chat.module';
+import { DocumentProcessorModule } from '@/modules/document-processor/document-processor.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -31,6 +32,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
     ChatModule,
     ProjectsModule,
     FilesModule,
+    DocumentProcessorModule,
   ],
   controllers: [AppController],
   providers: [
