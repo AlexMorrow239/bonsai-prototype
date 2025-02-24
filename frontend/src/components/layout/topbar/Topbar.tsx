@@ -2,8 +2,9 @@ import { ReactElement } from "react";
 
 import { useLocation } from "react-router-dom";
 
-import ChatTopbar from "@/components/features/chat-topbar/ChatTopbar";
-import ProjectTopbar from "@/components/features/project-topbar/ProjectTopbar";
+import ChatTopbar from "@/components/chat/chat-topbar/ChatTopbar";
+import FileManagerTopbar from "@/components/file-manager/file-manager-topbar/FileManagerTopbar";
+import ProjectTopbar from "@/components/projects/project-topbar/ProjectTopbar";
 
 import "./Topbar.scss";
 
@@ -19,6 +20,11 @@ export const Topbar = (): ReactElement => {
     // Project routes
     if (location.pathname.startsWith("/project")) {
       return <ProjectTopbar />;
+    }
+
+    // File manager route
+    if (location.pathname.startsWith("/files")) {
+      return <FileManagerTopbar />;
     }
 
     // Default topbar for other routes

@@ -4,9 +4,9 @@ import { Navigate, useParams } from "react-router-dom";
 
 import { useDropzone } from "react-dropzone";
 
+import { ChatFileUpload } from "@/components/chat/chat-file-upload/ChatFileUpload";
 import { ChatArea } from "@/components/features/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
-import { FileUpload } from "@/components/features/file-upload/FileUpload";
 
 import { FILE_CONSTRAINTS } from "@/common/constants";
 
@@ -251,7 +251,7 @@ export default function CurrentChat(): ReactElement {
       <ChatArea />
       <ChatPrompt onSubmit={handleMessageSubmit} textareaRef={textareaRef} />
       <div ref={dropzoneRef}>
-        <FileUpload
+        <ChatFileUpload
           chatId={chat._id}
           variant="dropzone"
           isVisible={isDragging}

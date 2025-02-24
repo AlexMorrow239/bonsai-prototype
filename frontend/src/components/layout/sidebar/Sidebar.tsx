@@ -5,8 +5,9 @@ import { useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { ChevronRight, Pin, PinOff } from "lucide-react";
 
+import ChatSidebar from "@/components/chat/chat-sidebar/ChatSidebar";
 import { Button } from "@/components/common/button/Button";
-import ChatSidebar from "@/components/features/chat-sidebar/ChatSidebar";
+import { FileManagerSidebar } from "@/components/file-manager/file-manager-sidebar/FileManagerSidebar";
 
 import "./Sidebar.scss";
 
@@ -31,6 +32,11 @@ export const Sidebar = ({
     ) {
       return <ChatSidebar />;
     }
+
+    if (location.pathname.startsWith("/files")) {
+      return <FileManagerSidebar />;
+    }
+
     return <div>No sidebar content</div>;
   };
 

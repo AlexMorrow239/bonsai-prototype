@@ -1,0 +1,110 @@
+.file-manager {
+  padding: var(--spacing-4);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  background-color: var(--color-background);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--spacing-2);
+  }
+
+  &__view-toggle {
+    display: flex;
+    gap: var(--spacing-2);
+  }
+
+  &__content {
+    flex: 1;
+    overflow: auto;
+
+    &--grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--spacing-4);
+      padding: var(--spacing-2);
+    }
+
+    &--list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+    }
+  }
+}
+
+.file-item {
+  cursor: pointer;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-surface-hover);
+  }
+
+  &.selected {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary);
+  }
+
+  &__icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-2);
+    text-align: center;
+
+    svg {
+      color: var(--color-text-light);
+      transition: color 0.2s ease;
+    }
+  }
+
+  &__info {
+    .file-manager__content--grid & {
+      text-align: center;
+    }
+
+    .file-manager__content--list & {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      align-items: center;
+      gap: var(--spacing-4);
+    }
+  }
+
+  &__name {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  &__type,
+  &__size,
+  &__date {
+    color: var(--color-text-light);
+    font-size: 0.9em;
+  }
+
+  &.selected {
+    .file-item__icon svg {
+      color: var(--color-primary);
+    }
+  }
+
+  &:hover {
+    .file-item__icon svg {
+      color: var(--color-text);
+    }
+  }
+}

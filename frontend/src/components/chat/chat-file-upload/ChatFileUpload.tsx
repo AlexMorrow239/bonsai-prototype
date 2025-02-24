@@ -14,19 +14,19 @@ import { createFileEntry } from "@/utils/fileUtils";
 
 import "./FileUpload.scss";
 
-interface FileUploadProps {
+interface ChatFileUploadProps {
   chatId: string | null;
   variant?: "compact" | "dropzone";
   maxFiles?: number;
   isVisible?: boolean;
 }
 
-export function FileUpload({
+export function ChatFileUpload({
   chatId,
   variant = "compact",
   maxFiles = FILE_CONSTRAINTS.MAX_FILES,
   isVisible = false,
-}: FileUploadProps) {
+}: ChatFileUploadProps) {
   const { addPendingFiles, setDragging } = useFileStore();
   const { addToast } = useUIStore();
 
