@@ -14,7 +14,6 @@ import { useGetChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
 import { simulateAIResponse } from "@/services/aiService";
 import { useChatStore } from "@/stores/chatStore";
-import { useFileStore } from "@/stores/fileStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
@@ -32,8 +31,10 @@ export default function CurrentChat(): ReactElement {
     updateChatPreview,
     setCurrentChat,
     removeMessage: removeChatMessage,
+    isDragging,
+    setDragging,
+    addPendingFiles,
   } = useChatStore();
-  const { isDragging, setDragging, addPendingFiles } = useFileStore();
   const { addMessage, removeMessage: removeStoreMessage } = useMessageStore();
   const { showErrorToast } = useToastActions();
 

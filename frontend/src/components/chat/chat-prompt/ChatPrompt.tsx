@@ -7,7 +7,6 @@ import { UploadedFiles } from "@/components/chat/chat-prompt/uploaded-files/Uplo
 import { Button } from "@/components/common/button/Button";
 
 import { useChatStore } from "@/stores/chatStore";
-import { useFileStore } from "@/stores/fileStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
 
@@ -24,9 +23,8 @@ export function ChatPrompt({
   textareaRef,
   isNewChat = false,
 }: ChatPromptProps): ReactNode {
-  const { currentChat } = useChatStore();
+  const { currentChat, getPendingFiles, clearPendingFiles } = useChatStore();
   const [message, setMessage] = useState("");
-  const { getPendingFiles, clearPendingFiles } = useFileStore();
   const { showErrorToast } = useToastActions();
 
   // Get files based on whether we're in a new chat or existing chat

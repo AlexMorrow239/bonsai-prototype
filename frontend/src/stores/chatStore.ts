@@ -1,31 +1,44 @@
 import { create } from "zustand";
 
 import { useMessageStore } from "@/stores/messageStore";
-import type { Chat, Message } from "@/types";
+import type { Chat, Message, UploadedFile } from "@/types";
 
 interface ChatState {
   currentChat: Chat | null;
   chats: Chat[];
   shouldFocusInput: boolean;
   activeChatId: string | null;
+  // File management state
+  pendingFilesByChat: Record<string, UploadedFile[]>;
+  isDragging: boolean;
 
-  // Actions
+  // Chat Actions
   setCurrentChat: (chat: Chat) => void;
   updateChatPreview: (chatId: string, lastMessage: Message) => void;
   setShouldFocusInput: (value: boolean) => void;
   setActiveChatId: (id: string | null) => void;
   setChats: (chats: Chat[]) => void;
   removeMessage: (chatId: string, messageId: string) => void;
+
+  // File management actions
+  addPendingFiles: (chatId: string | null, files: UploadedFile[]) => void;
+  removePendingFile: (chatId: string | null, fileId: string) => void;
+  clearPendingFiles: (chatId: string | null) => void;
+  getPendingFiles: (chatId: string | null) => UploadedFile[];
+  setDragging: (isDragging: boolean) => void;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
-  // Initial state
+export const useChatStore = create<ChatState>((set, get) => ({
+  // Initial chat state
   currentChat: null,
   chats: [],
   shouldFocusInput: false,
   activeChatId: null,
+  // Initial file management state
+  pendingFilesByChat: {},
+  isDragging: false,
 
-  // Actions
+  // Chat Actions
   setShouldFocusInput: (value) => set({ shouldFocusInput: value }),
   setActiveChatId: (id) => set({ activeChatId: id }),
 
@@ -73,5 +86,53 @@ export const useChatStore = create<ChatState>((set) => ({
       }
       return state;
     });
+  },
+
+  // File management actions
+  addPendingFiles: (chatId, files) => {
+    const key = chatId || "pending";
+    set((state) => {
+      const updatedFiles = [...(state.pendingFilesByChat[key] || []), ...files];
+      return {
+        pendingFilesByChat: {
+          ...state.pendingFilesByChat,
+          [key]: updatedFiles,
+        },
+      };
+    });
+  },
+
+  removePendingFile: (chatId, fileId) => {
+    const key = chatId || "pending";
+    set((state) => {
+      const updatedFiles = (state.pendingFilesByChat[key] || []).filter(
+        (file) => file.file_id !== fileId
+      );
+      return {
+        pendingFilesByChat: {
+          ...state.pendingFilesByChat,
+          [key]: updatedFiles,
+        },
+      };
+    });
+  },
+
+  clearPendingFiles: (chatId) => {
+    const key = chatId || "pending";
+    set((state) => ({
+      pendingFilesByChat: {
+        ...state.pendingFilesByChat,
+        [key]: [],
+      },
+    }));
+  },
+
+  getPendingFiles: (chatId) => {
+    const key = chatId || "pending";
+    return get().pendingFilesByChat[key] || [];
+  },
+
+  setDragging: (isDragging) => {
+    set({ isDragging });
   },
 }));

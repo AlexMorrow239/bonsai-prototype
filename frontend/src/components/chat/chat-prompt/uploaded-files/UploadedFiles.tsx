@@ -12,7 +12,7 @@ import {
 
 import { Button } from "@/components/common/button/Button";
 
-import { useFileStore } from "@/stores/fileStore";
+import { useChatStore } from "@/stores/chatStore";
 import { formatFileSize } from "@/utils/fileUtils";
 
 import "./UploadedFiles.scss";
@@ -22,7 +22,7 @@ interface UploadedFilesProps {
 }
 
 export function UploadedFiles({ chatId }: UploadedFilesProps): ReactNode {
-  const { getPendingFiles, removePendingFile } = useFileStore();
+  const { getPendingFiles, removePendingFile } = useChatStore();
   const files = getPendingFiles(chatId);
 
   if (files.length === 0) return null;

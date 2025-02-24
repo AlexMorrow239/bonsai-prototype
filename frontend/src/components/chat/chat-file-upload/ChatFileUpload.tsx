@@ -8,7 +8,7 @@ import { Button } from "@/components/common/button/Button";
 
 import { FILE_CONSTRAINTS } from "@/common/constants";
 
-import { useFileStore } from "@/stores/fileStore";
+import { useChatStore } from "@/stores/chatStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createFileEntry } from "@/utils/fileUtils";
 
@@ -27,7 +27,7 @@ export function ChatFileUpload({
   maxFiles = FILE_CONSTRAINTS.MAX_FILES,
   isVisible = false,
 }: ChatFileUploadProps) {
-  const { addPendingFiles, setDragging } = useFileStore();
+  const { addPendingFiles, setDragging } = useChatStore();
   const { addToast } = useUIStore();
 
   const handleFilesSelected = async (
