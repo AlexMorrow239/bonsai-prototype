@@ -1,39 +1,71 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { Folder, FolderUp } from "lucide-react";
+import { Folder, FolderUp, LayoutGrid, List } from "lucide-react";
 
 import { ActionModal } from "@/components/common/action-modal/ActionModal";
 import { Button } from "@/components/common/button/Button";
 import { ContextTopbar } from "@/components/common/context-topbar/ContextTopbar";
 import { Dropdown } from "@/components/common/dropdown/Dropdown";
 
+import { useUploadFile } from "@/hooks/api/useFiles";
+import { useFileManagerStore } from "@/stores/fileManagerStore";
 import { useUIStore } from "@/stores/uiStore";
 
 import "./FileManagerTopbar.scss";
 
 export default function FileManagerTopbar() {
   const { showSuccessToast, showErrorToast } = useUIStore();
+  const { viewMode, setViewMode, currentDirectory } = useFileManagerStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadFileMutation = useUploadFile();
 
   // Mock selected file/folder state - replace with actual state management
   const selectedItem = null;
 
-  const handleNewFolder = async () => {
+  const handleNewFolder = () => {
     try {
-      // TODO: Implement new folder creation
-      showSuccessToast("New folder created");
+      // Emit event to FileManager component
+      const event = new CustomEvent("createNewFolder");
+      window.dispatchEvent(event);
     } catch (error) {
       showErrorToast(error);
     }
   };
 
-  const handleUploadFiles = async () => {
+  const handleUploadFiles = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files?.length) return;
+
     try {
-      // TODO: Implement file upload
-      showSuccessToast("Files uploaded successfully");
+      // Upload each file
+      for (const file of files) {
+        await uploadFileMutation.mutateAsync({
+          file,
+          name: file.name,
+          parentFolderId: currentDirectory || undefined,
+        });
+      }
+
+      showSuccessToast(
+        files.length === 1
+          ? "File uploaded successfully"
+          : `${files.length} files uploaded successfully`
+      );
     } catch (error) {
       showErrorToast(error);
+    } finally {
+      // Reset the input so the same file can be uploaded again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -83,6 +115,24 @@ export default function FileManagerTopbar() {
 
   const actions = (
     <div className="file-actions">
+      <div className="file-actions__view-toggle">
+        <Button
+          isIconButton
+          variant={viewMode === "grid" ? "primary" : "secondary"}
+          onClick={() => setViewMode("grid")}
+          title="Grid view"
+        >
+          <LayoutGrid size={18} />
+        </Button>
+        <Button
+          isIconButton
+          variant={viewMode === "list" ? "primary" : "secondary"}
+          onClick={() => setViewMode("list")}
+          title="List view"
+        >
+          <List size={18} />
+        </Button>
+      </div>
       <Button
         variant="ghost"
         size="sm"
@@ -99,6 +149,13 @@ export default function FileManagerTopbar() {
       >
         Upload Files
       </Button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        onChange={handleFileInputChange}
+        style={{ display: "none" }}
+      />
     </div>
   );
 

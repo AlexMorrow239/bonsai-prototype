@@ -44,7 +44,11 @@ const router = createBrowserRouter([
         element: <CurrentProject />,
       },
       {
-        path: "/files",
+        path: "/files/personal",
+        element: <FileManager />,
+      },
+      {
+        path: "/files/shared",
         element: <FileManager />,
       },
     ],

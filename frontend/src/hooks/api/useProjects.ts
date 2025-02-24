@@ -3,24 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type {
-  ApiError,
-  ApiResponse,
-  Project,
-  ProjectListResponse,
-  ProjectResponse,
-} from "@/types";
-
-export function useProjects() {
-  return useQuery<Project[], AxiosError<ApiError>>({
-    queryKey: ["projects", "list"],
-    queryFn: async () => {
-      const response =
-        await apiClient.get<ApiResponse<ProjectListResponse>>(`/projects`);
-      return response.data.data.data;
-    },
-  });
-}
+import type { ApiError, ApiResponse, Project } from "@/types";
 
 interface CreateProjectData {
   name: string;
@@ -33,14 +16,24 @@ interface UpdateProjectData {
   description?: string;
 }
 
+export function useProjects() {
+  return useQuery<Project[], AxiosError<ApiError>>({
+    queryKey: ["projects", "list"],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<Project[]>>(`/projects`);
+      return response.data.data;
+    },
+  });
+}
+
 export function useCreateProject() {
   return useMutation<Project, AxiosError<ApiError>, CreateProjectData>({
     mutationFn: async (projectData) => {
-      const response = await apiClient.post<ApiResponse<ProjectResponse>>(
+      const response = await apiClient.post<ApiResponse<Project>>(
         "/projects",
         projectData
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -48,11 +41,11 @@ export function useCreateProject() {
 export function useUpdateProject() {
   return useMutation<Project, AxiosError<ApiError>, UpdateProjectData>({
     mutationFn: async ({ _id, ...projectData }) => {
-      const response = await apiClient.patch<ApiResponse<ProjectResponse>>(
+      const response = await apiClient.patch<ApiResponse<Project>>(
         `/projects/${_id}`,
         projectData
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -69,10 +62,10 @@ export function useGetProject(projectId: string) {
   return useQuery<Project, AxiosError<ApiError>>({
     queryKey: ["project", projectId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<ProjectResponse>>(
+      const response = await apiClient.get<ApiResponse<Project>>(
         `/projects/${projectId}`
       );
-      return response.data.data.data;
+      return response.data.data;
     },
     enabled: !!projectId,
   });

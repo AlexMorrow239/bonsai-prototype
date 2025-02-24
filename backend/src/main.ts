@@ -62,12 +62,6 @@ function configureGlobalMiddleware(
       forbidUnknownValues: true,
     })
   );
-  app.useGlobalInterceptors(
-    new TransformInterceptor(),
-    new LoggingInterceptor(),
-    new ErrorHandlingInterceptor()
-  );
-  app.useGlobalFilters(new HttpExceptionFilter());
 }
 
 function configureCors(

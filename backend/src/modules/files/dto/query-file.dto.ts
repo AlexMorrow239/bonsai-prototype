@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { IsBoolean, IsMongoId, IsOptional, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
@@ -15,22 +15,41 @@ export class QueryFileDto {
   name?: string;
 
   @ApiProperty({
-    description: 'Filter by parent folder ID',
+    description: 'Filter by parent folder ID (use "null" for root level items)',
     required: false,
     example: '507f1f77bcf86cd799439011',
+    nullable: true,
   })
   @IsOptional()
-  @IsMongoId()
-  @Type(() => Types.ObjectId)
-  parentFolderId?: Types.ObjectId;
+  @Transform(({ value }) => {
+    if (
+      value === 'null' ||
+      value === null ||
+      value === 'undefined' ||
+      value === undefined
+    ) {
+      return null;
+    }
+    try {
+      return new Types.ObjectId(value);
+    } catch (error) {
+      return value; // Let validation handle invalid values
+    }
+  })
+  parentFolderId?: Types.ObjectId | null;
 
   @ApiProperty({
     description: 'Filter for folders only',
     required: false,
     example: true,
   })
-  @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return value;
+  })
   isFolder?: boolean;
 
   @ApiProperty({
@@ -38,8 +57,13 @@ export class QueryFileDto {
     required: false,
     example: false,
   })
-  @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return value;
+  })
   isTrashed?: boolean;
 
   @ApiProperty({
@@ -47,8 +71,13 @@ export class QueryFileDto {
     required: false,
     example: true,
   })
-  @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return value;
+  })
   isStarred?: boolean;
 
   @ApiProperty({
@@ -74,7 +103,12 @@ export class QueryFileDto {
     required: false,
     default: true,
   })
-  @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return value === undefined ? true : value;
+  })
   isActive?: boolean = true;
 }

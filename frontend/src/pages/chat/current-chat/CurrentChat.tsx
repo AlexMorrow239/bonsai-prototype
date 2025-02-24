@@ -12,7 +12,6 @@ import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useGetChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
-import { simulateAIResponse } from "@/services/aiService";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { useToastActions } from "@/stores/uiStore";
@@ -113,29 +112,6 @@ export default function CurrentChat(): ReactElement {
         removeStoreMessage(currentChat._id, tempMessageId);
         addMessage(currentChat._id, userMessage);
         updateChatPreview(currentChat._id, userMessage);
-      }
-
-      try {
-        // Replace Gemini response generation with simulated response
-        const aiContent = await simulateAIResponse(content.trim());
-
-        if (!aiContent) {
-          throw new Error("Empty response from AI");
-        }
-
-        // Send AI response to backend
-        const aiMessage = await sendMessage.mutateAsync({
-          chatId: currentChat._id,
-          content: aiContent,
-          is_ai_response: true,
-        });
-
-        // Add AI response to local state and update chat preview
-        addMessage(currentChat._id, aiMessage);
-        updateChatPreview(currentChat._id, aiMessage);
-      } catch (aiError) {
-        console.error("[Chat] AI response error:", aiError);
-        showErrorToast(aiError, "Failed to generate AI response");
       }
     } catch (error) {
       console.error("[Chat] Message submission error:", error);

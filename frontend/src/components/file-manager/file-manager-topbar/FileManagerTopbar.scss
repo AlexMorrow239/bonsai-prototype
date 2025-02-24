@@ -26,6 +26,14 @@
       color: var(--color-text-light);
     }
   }
+
+  &__view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-right: 1rem;
+    border-right: 1px solid var(--border-color);
+  }
 }
 
 // Style overrides for the context topbar when in file manager
@@ -42,5 +50,13 @@
         }
       }
     }
+  }
+}
+
+.dropdown__item--danger {
+  color: var(--danger-color);
+
+  &:hover {
+    background-color: var(--danger-bg-hover);
   }
 }

@@ -3,23 +3,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type {
-  ApiError,
-  ApiResponse,
-  Chat,
-  ChatListResponse,
-  ChatResponse,
-  NewChat,
-  UpdateChat,
-} from "@/types";
+import type { ApiError, ApiResponse, Chat, NewChat, UpdateChat } from "@/types";
 
 export function useChats() {
   return useQuery<Chat[], AxiosError<ApiError>>({
     queryKey: ["chats", "list"],
     queryFn: async () => {
-      const response =
-        await apiClient.get<ApiResponse<ChatListResponse>>("/chats");
-      return response.data.data.data;
+      const response = await apiClient.get<ApiResponse<Chat[]>>("/chats");
+      return response.data.data;
     },
     retry: false,
     staleTime: 1000,
@@ -29,11 +20,11 @@ export function useChats() {
 export function useCreateChat() {
   return useMutation<Chat, AxiosError<ApiError>, NewChat>({
     mutationFn: async (chatData) => {
-      const response = await apiClient.post<ApiResponse<ChatResponse>>(
+      const response = await apiClient.post<ApiResponse<Chat>>(
         "/chats",
         chatData
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -41,11 +32,11 @@ export function useCreateChat() {
 export function useUpdateChat() {
   return useMutation<Chat, AxiosError<ApiError>, UpdateChat>({
     mutationFn: async ({ id, ...chatData }) => {
-      const response = await apiClient.patch<ApiResponse<ChatResponse>>(
+      const response = await apiClient.patch<ApiResponse<Chat>>(
         `/chats/${id}`,
         chatData
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -62,10 +53,10 @@ export function useGetChat(chatId: string) {
   return useQuery<Chat, AxiosError<ApiError>>({
     queryKey: ["chat", chatId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<ChatResponse>>(
+      const response = await apiClient.get<ApiResponse<Chat>>(
         `/chats/${chatId}`
       );
-      return response.data.data.data;
+      return response.data.data;
     },
     enabled: !!chatId,
   });

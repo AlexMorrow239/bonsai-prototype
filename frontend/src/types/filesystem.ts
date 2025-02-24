@@ -1,56 +1,49 @@
-import { ApiResponse } from "./api";
-
 export interface FileSystemEntity {
   _id: string;
   name: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  s3Key?: string;
-  s3Url?: string;
-  parentFolderId: string | null;
-  isFolder: boolean;
-  isTrashed: boolean;
-  trashedDate?: Date;
-  customMetadata?: Record<string, string>;
   path: string;
+  isFolder: boolean;
+  parentFolderId: string | null;
   isStarred: boolean;
+  isTrashed: boolean;
   isActive: boolean;
+  size?: number;
+  mimetype?: string;
+  url?: string;
+  customMetadata?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FileListResponseData {
-  data: FileSystemEntity[];
-}
-
-export interface FileResponseData {
-  data: FileSystemEntity;
-}
-
-export type FileListResponse = ApiResponse<FileListResponseData>;
-export type FileResponse = ApiResponse<FileResponseData>;
-
-export interface QueryFileParams {
-  parentFolderId?: string;
+export interface CreateFolderData {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  parentFolderId?: string | null;
+  customMetadata?: Record<string, any>;
 }
 
 export interface UploadFileData {
   file: File;
   name?: string;
-  parentFolderId?: string;
-  customMetadata?: Record<string, string>;
-}
-
-export interface CreateFolderData {
-  name: string;
-  parentFolderId?: string;
-  customMetadata?: Record<string, string>;
+  parentFolderId?: string | null;
+  customMetadata?: Record<string, any>;
 }
 
 export interface UpdateFileData {
   _id: string;
   name?: string;
-  parentFolderId?: string;
-  customMetadata?: Record<string, string>;
+  parentFolderId?: string | null;
+  isStarred?: boolean;
+  isTrashed?: boolean;
+  isActive?: boolean;
+  customMetadata?: Record<string, any>;
+}
+
+export type FileListResponse = FileSystemEntity[];
+export type FileResponse = FileSystemEntity;
+
+export interface QueryFileParams {
+  parentFolderId?: string | null;
 }

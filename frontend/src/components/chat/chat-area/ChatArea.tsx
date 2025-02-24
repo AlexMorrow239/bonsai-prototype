@@ -70,9 +70,15 @@ export function ChatArea(): ReactElement {
     <div className="chat-messages">
       {sortedMessages.map((message) =>
         message.is_ai_response ? (
-          <AIMessage key={`ai-${message._id}`} message={message} />
+          <AIMessage
+            key={`ai-${message._id || `pending-${message.created_at}`}`}
+            message={message}
+          />
         ) : (
-          <UserMessage key={`user-${message._id}`} message={message} />
+          <UserMessage
+            key={`user-${message._id || `pending-${message.created_at}`}`}
+            message={message}
+          />
         )
       )}
       <div ref={messagesEndRef} />

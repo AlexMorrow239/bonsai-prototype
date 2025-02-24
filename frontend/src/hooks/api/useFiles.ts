@@ -5,24 +5,36 @@ import type { AxiosError } from "axios";
 import { apiClient } from "@/lib/api-client";
 import type {
   ApiError,
+  ApiResponse,
   CreateFolderData,
-  FileListResponse,
-  FileResponse,
   FileSystemEntity,
-  QueryFileParams,
   UpdateFileData,
   UploadFileData,
 } from "@/types";
+
+export interface QueryFileParams {
+  parentFolderId?: string | null;
+  isFolder?: boolean;
+  isTrashed?: boolean;
+  isStarred?: boolean;
+  isActive?: boolean;
+  mimeType?: string;
+  name?: string;
+  path?: string;
+}
 
 // Query files in a folder
 export function useFiles(params?: QueryFileParams) {
   return useQuery<FileSystemEntity[], AxiosError<ApiError>>({
     queryKey: ["files", "list", params?.parentFolderId],
     queryFn: async () => {
-      const response = await apiClient.get<FileListResponse>("/files", {
-        params,
-      });
-      return response.data.data.data;
+      const response = await apiClient.get<ApiResponse<FileSystemEntity[]>>(
+        "/files",
+        {
+          params,
+        }
+      );
+      return response.data.data;
     },
   });
 }
@@ -32,10 +44,12 @@ export function useFile(fileId: string) {
   return useQuery<FileSystemEntity, AxiosError<ApiError>>({
     queryKey: ["files", fileId],
     queryFn: async () => {
-      const response = await apiClient.get<FileResponse>(`/files/${fileId}`);
-      return response.data.data.data;
+      const response = await apiClient.get<ApiResponse<FileSystemEntity>>(
+        `/files/${fileId}`
+      );
+      return response.data.data;
     },
-    enabled: !!fileId,
+    enabled: !!fileId && fileId !== "",
   });
 }
 
@@ -52,7 +66,7 @@ export function useUploadFile() {
         formData.append("customMetadata", JSON.stringify(data.customMetadata));
       }
 
-      const response = await apiClient.post<FileResponse>(
+      const response = await apiClient.post<ApiResponse<FileSystemEntity>>(
         "/files/upload",
         formData,
         {
@@ -61,7 +75,7 @@ export function useUploadFile() {
           },
         }
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -70,11 +84,11 @@ export function useUploadFile() {
 export function useCreateFolder() {
   return useMutation<FileSystemEntity, AxiosError<ApiError>, CreateFolderData>({
     mutationFn: async (folderData) => {
-      const response = await apiClient.post<FileResponse>(
+      const response = await apiClient.post<ApiResponse<FileSystemEntity>>(
         "/files/folders",
         folderData
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -83,11 +97,11 @@ export function useCreateFolder() {
 export function useUpdateFile() {
   return useMutation<FileSystemEntity, AxiosError<ApiError>, UpdateFileData>({
     mutationFn: async ({ _id, ...fileData }) => {
-      const response = await apiClient.patch<FileResponse>(
+      const response = await apiClient.patch<ApiResponse<FileSystemEntity>>(
         `/files/${_id}`,
         fileData
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -105,10 +119,10 @@ export function useDeleteFile() {
 export function useRestoreFile() {
   return useMutation<FileSystemEntity, AxiosError<ApiError>, string>({
     mutationFn: async (fileId) => {
-      const response = await apiClient.post<FileResponse>(
+      const response = await apiClient.post<ApiResponse<FileSystemEntity>>(
         `/files/${fileId}/restore`
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }
@@ -117,10 +131,10 @@ export function useRestoreFile() {
 export function useToggleFileStar() {
   return useMutation<FileSystemEntity, AxiosError<ApiError>, string>({
     mutationFn: async (fileId) => {
-      const response = await apiClient.post<FileResponse>(
+      const response = await apiClient.post<ApiResponse<FileSystemEntity>>(
         `/files/${fileId}/star`
       );
-      return response.data.data.data;
+      return response.data.data;
     },
   });
 }

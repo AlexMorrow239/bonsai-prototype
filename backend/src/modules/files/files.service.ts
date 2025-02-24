@@ -46,6 +46,61 @@ export class FilesService {
     );
   }
 
+  private normalizePath(path: string): string {
+    // Remove multiple consecutive slashes and ensure no trailing slash
+    return path.replace(/\/+/g, '/').replace(/\/$/, '');
+  }
+
+  private buildQuery(queryFileDto: QueryFileDto): Record<string, any> {
+    const query: Record<string, any> = {};
+
+    // Handle parentFolderId - values are already transformed in DTO
+    if (queryFileDto.parentFolderId === undefined) {
+      query.parentFolderId = null;
+    } else {
+      query.parentFolderId = queryFileDto.parentFolderId;
+    }
+
+    // Handle boolean filters - values are already transformed in DTO
+    if (queryFileDto.isFolder !== undefined) {
+      query.isFolder = queryFileDto.isFolder;
+    }
+    if (queryFileDto.isTrashed !== undefined) {
+      query.isTrashed = queryFileDto.isTrashed;
+    }
+    if (queryFileDto.isStarred !== undefined) {
+      query.isStarred = queryFileDto.isStarred;
+    }
+    if (queryFileDto.isActive !== undefined) {
+      query.isActive = queryFileDto.isActive;
+    } else {
+      // Default to active items if not specified
+      query.isActive = true;
+    }
+
+    // Handle string-based filters with proper regex escaping
+    if (queryFileDto.mimeType) {
+      query.mimeType = queryFileDto.mimeType;
+    }
+    if (queryFileDto.name) {
+      // Escape special regex characters in the name
+      const escapedName = queryFileDto.name.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        '\\$&'
+      );
+      query.name = { $regex: escapedName, $options: 'i' };
+    }
+    if (queryFileDto.path) {
+      // Normalize and escape the path
+      const normalizedPath = this.normalizePath(queryFileDto.path);
+      const escapedPath = normalizedPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match exact path or path with trailing slash or path as a prefix followed by slash
+      query.path = { $regex: `^${escapedPath}(?:/.*)?$`, $options: 'i' };
+    }
+
+    return query;
+  }
+
   async createFile(file: Express.Multer.File, uploadFileDto: UploadFileDto) {
     try {
       // Upload file to S3
@@ -62,9 +117,17 @@ export class FilesService {
           ? new Types.ObjectId(uploadFileDto.parentFolderId)
           : null;
 
+      // Get the normalized path
+      const fileName = uploadFileDto.name || file.originalname;
+      const path = parentFolderId
+        ? this.normalizePath(
+            `${await this.getParentPath(parentFolderId.toString())}/${fileName}`
+          )
+        : fileName;
+
       // Create file metadata in MongoDB
       const createFileDto: CreateFileDto = {
-        name: uploadFileDto.name || file.originalname,
+        name: fileName,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
@@ -72,9 +135,7 @@ export class FilesService {
         s3Url: uploadResult.url,
         parentFolderId,
         customMetadata: transformedMetadata,
-        path: parentFolderId
-          ? `${await this.getParentPath(parentFolderId.toString())}/${uploadFileDto.name || file.originalname}`
-          : uploadFileDto.name || file.originalname,
+        path,
       };
 
       const newFile = await this.fileModel.create(createFileDto);
@@ -99,15 +160,20 @@ export class FilesService {
           ? new Types.ObjectId(createFolderDto.parentFolderId)
           : null;
 
+      // Get the normalized path
+      const path = parentFolderId
+        ? this.normalizePath(
+            `${await this.getParentPath(parentFolderId.toString())}/${createFolderDto.name}`
+          )
+        : createFolderDto.name;
+
       const folderData = {
         name: createFolderDto.name,
         originalName: createFolderDto.name,
         isFolder: true,
         mimeType: 'folder',
         size: 0,
-        path: parentFolderId
-          ? `${await this.getParentPath(parentFolderId.toString())}/${createFolderDto.name}`
-          : createFolderDto.name,
+        path,
         parentFolderId,
         customMetadata: this.transformCustomMetadata(
           createFolderDto.customMetadata
@@ -316,36 +382,5 @@ export class FilesService {
       throw new Error('Parent folder not found');
     }
     return parent.path;
-  }
-
-  private buildQuery(queryFileDto: QueryFileDto): Record<string, any> {
-    const query: Record<string, any> = {};
-
-    if (queryFileDto.parentFolderId) {
-      query.parentFolderId = queryFileDto.parentFolderId;
-    }
-    if (queryFileDto.isFolder !== undefined) {
-      query.isFolder = queryFileDto.isFolder;
-    }
-    if (queryFileDto.isTrashed !== undefined) {
-      query.isTrashed = queryFileDto.isTrashed;
-    }
-    if (queryFileDto.isStarred !== undefined) {
-      query.isStarred = queryFileDto.isStarred;
-    }
-    if (queryFileDto.mimeType) {
-      query.mimeType = queryFileDto.mimeType;
-    }
-    if (queryFileDto.name) {
-      query.name = { $regex: queryFileDto.name, $options: 'i' };
-    }
-    if (queryFileDto.path) {
-      query.path = { $regex: `^${queryFileDto.path}` };
-    }
-    if (queryFileDto.isActive !== undefined) {
-      query.isActive = queryFileDto.isActive;
-    }
-
-    return query;
   }
 }

@@ -1,0 +1,33 @@
+.file-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+
+  &__home {
+    color: var(--color-text-light);
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+
+    .button {
+      color: var(--color-text-light);
+      font-size: 0.9em;
+
+      &:hover {
+        color: var(--color-primary);
+      }
+    }
+  }
+
+  .separator {
+    color: var(--color-text-lighter);
+  }
+}

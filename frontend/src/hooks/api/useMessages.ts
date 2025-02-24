@@ -3,23 +3,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
 import { apiClient } from "@/lib/api-client";
-import type {
-  ApiError,
-  ApiResponse,
-  Message,
-  MessageListResponse,
-  MessageResponse,
-  SendMessageData,
-} from "@/types";
+import type { ApiError, ApiResponse, Message, SendMessageData } from "@/types";
 
 export function useMessages(chatId: string) {
   const query = useQuery<Message[], AxiosError<ApiError>>({
     queryKey: ["messages", chatId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<MessageListResponse>>(
+      const response = await apiClient.get<ApiResponse<Message[]>>(
         `/chats/${chatId}/messages`
       );
-      return response.data.data.data;
+      return response.data.data;
     },
     enabled: !!chatId,
     staleTime: 1000,
@@ -52,7 +45,7 @@ export function useSendMessage() {
         });
       }
 
-      const { data } = await apiClient.post<ApiResponse<MessageResponse>>(
+      const { data } = await apiClient.post<ApiResponse<Message>>(
         `/chats/${chatId}/messages`,
         formData,
         {
@@ -62,7 +55,7 @@ export function useSendMessage() {
         }
       );
 
-      return data.data.data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       // Invalidate the messages query for this chat

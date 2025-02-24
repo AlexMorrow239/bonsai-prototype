@@ -11,52 +11,13 @@ export interface ApiResponse<T> {
 }
 
 // Chat types
-export interface ChatListResponse {
-  data: Chat[];
-  metadata?: {
-    path: string;
-  };
-  timestamp?: string;
-}
-
-export interface ChatResponse {
-  data: Chat;
-  metadata?: {
-    path: string;
-  };
-  timestamp?: string;
-}
+export type ChatListResponse = Chat[];
+export type ChatResponse = Chat;
 
 // Message types
-export interface MessageListResponse {
-  data: Message[];
-  metadata?: {
-    path: string;
-  };
-  timestamp?: string;
-}
-
-export interface MessageResponse {
-  data: Message;
-  metadata?: {
-    path: string;
-  };
-  timestamp?: string;
-}
+export type MessageListResponse = Message[];
+export type MessageResponse = Message;
 
 // Project types
-export interface ProjectListResponse {
-  data: Project[];
-  metadata?: {
-    path: string;
-  };
-  timestamp?: string;
-}
-
-export interface ProjectResponse {
-  data: Project;
-  metadata?: {
-    path: string;
-  };
-  timestamp?: string;
-}
+export type ProjectListResponse = Project[];
+export type ProjectResponse = Project;
