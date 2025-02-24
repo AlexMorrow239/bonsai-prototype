@@ -12,7 +12,6 @@ import { MainLayout } from "@/layouts/MainLayout";
 import { queryClient } from "@/lib/query-client";
 import CurrentChat from "@/pages/current-chat/CurrentChat";
 import { CurrentProject } from "@/pages/current-project/CurrentProject";
-import { ErrorBoundary } from "@/pages/error-boundary/ErrorBoundary";
 import { NewChat } from "@/pages/new-chat/NewChat";
 import { NewProject } from "@/pages/new-project/NewProject";
 import NotFound from "@/pages/not-found/NotFound";
@@ -61,9 +60,7 @@ function App(): ReactNode {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <RouterProvider router={router} />
-      </ErrorBoundary>
+      <RouterProvider router={router} />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
