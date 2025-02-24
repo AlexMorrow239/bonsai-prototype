@@ -12,7 +12,7 @@ import { FileUploadDto } from '@/common/dto/file-upload.dto';
 import { CreateMessageDto } from '@/modules/chat/dto/create-message.dto';
 import { IChat } from '@/modules/chat/schemas/chat.schema';
 import { IMessage } from '@/modules/chat/schemas/message.schema';
-import { AwsS3Service } from '@/services/aws-s3.service';
+import { AwsS3Service } from '@/services/aws-s3/aws-s3.service';
 import { ErrorHandler } from '@/utils/errorHandler.util';
 
 @Injectable()

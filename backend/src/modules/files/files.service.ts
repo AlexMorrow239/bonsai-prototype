@@ -8,7 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { Model, Types } from 'mongoose';
 
-import { AwsS3Service } from '@/services/aws-s3.service';
+import { AwsS3Service } from '@/services/aws-s3/aws-s3.service';
 import { ErrorHandler } from '@/utils/errorHandler.util';
 
 import { CreateFileDto } from './dto/create-file.dto';

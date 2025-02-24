@@ -8,7 +8,7 @@ import {
   Project,
   ProjectSchema,
 } from '@/modules/projects/schemas/project.schema';
-import { AwsS3Service } from '@/services/aws-s3.service';
+import { AwsS3Module } from '@/services/aws-s3/aws-s3.module';
 
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
@@ -28,8 +28,9 @@ import { MessageSchema } from './schemas/message.schema';
         files: 5, // Maximum 5 files per request
       },
     }),
+    AwsS3Module,
   ],
   controllers: [ChatController],
-  providers: [ChatService, MessageService, AwsS3Service, MultipartMessagePipe],
+  providers: [ChatService, MessageService, MultipartMessagePipe],
 })
 export class ChatModule {}
