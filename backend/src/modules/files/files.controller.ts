@@ -76,7 +76,7 @@ export class FilesController {
     @UploadedFile() file: Express.Multer.File,
     @Body(MultipartFilePipe) uploadFileDto: UploadFileDto
   ) {
-    return this.filesService.create(file, uploadFileDto);
+    return this.filesService.createFile(file, uploadFileDto);
   }
 
   @Post('folders')
@@ -127,7 +127,7 @@ export class FilesController {
     description: 'File details retrieved successfully',
   })
   async findOne(@Param('id') id: string) {
-    return this.filesService.findOne(new Types.ObjectId(id));
+    return this.filesService.findById(new Types.ObjectId(id));
   }
 
   @Patch(':id')
@@ -200,7 +200,7 @@ export class FilesController {
     description: 'File content stream',
   })
   async download(@Param('id') id: string) {
-    return this.filesService.download(new Types.ObjectId(id));
+    return this.filesService.downloadFile(new Types.ObjectId(id));
   }
 
   @Post(':id/star')

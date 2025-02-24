@@ -46,7 +46,7 @@ export class FilesService {
     );
   }
 
-  async create(file: Express.Multer.File, uploadFileDto: UploadFileDto) {
+  async createFile(file: Express.Multer.File, uploadFileDto: UploadFileDto) {
     try {
       // Upload file to S3
       const [uploadResult] = await this.s3Service.uploadFiles([file]);
@@ -150,7 +150,7 @@ export class FilesService {
     }
   }
 
-  async findOne(id: Types.ObjectId) {
+  async findById(id: Types.ObjectId) {
     try {
       const file = await this.fileModel.findById(id).exec();
       if (!file) {
@@ -269,7 +269,7 @@ export class FilesService {
     }
   }
 
-  async download(id: Types.ObjectId) {
+  async downloadFile(id: Types.ObjectId) {
     try {
       const file = await this.fileModel.findById(id).exec();
       if (!file) {
