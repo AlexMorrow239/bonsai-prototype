@@ -8,7 +8,8 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { Model, Types } from 'mongoose';
 
-import { CreateMessageDto, FileUploadDto } from '@/modules/chat/dto';
+import { FileUploadDto } from '@/common/dto/file-upload.dto';
+import { CreateMessageDto } from '@/modules/chat/dto/create-message.dto';
 import { IChat } from '@/modules/chat/schemas/chat.schema';
 import { IMessage } from '@/modules/chat/schemas/message.schema';
 import { AwsS3Service } from '@/services/aws-s3.service';

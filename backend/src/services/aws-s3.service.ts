@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-import { FileUploadDto } from '@/modules/chat/dto';
+import { FileUploadDto } from '@/common/dto/file-upload.dto';
 
 @Injectable()
 export class AwsS3Service {

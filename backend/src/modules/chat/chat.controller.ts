@@ -31,7 +31,6 @@ import {
   UpdateChatDto,
 } from '@/modules/chat/dto/';
 import { MessageService } from '@/modules/chat/message.service';
-import { AwsS3Service } from '@/services/aws-s3.service';
 
 import { ChatService } from './chat.service';
 import { IMessage } from './schemas/message.schema';
@@ -42,7 +41,6 @@ export class ChatController {
   constructor(
     private readonly chatService: ChatService,
     private readonly mesageService: MessageService,
-    private readonly awsS3Service: AwsS3Service,
     private readonly multipartMessagePipe: MultipartMessagePipe
   ) {}
 

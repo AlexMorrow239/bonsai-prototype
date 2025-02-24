@@ -6,7 +6,8 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 
-import { CreateMessageDto, FileUploadDto } from '@modules/chat/dto/';
+import { FileUploadDto } from '@/common/dto/file-upload.dto';
+import { CreateMessageDto } from '@/modules/chat/dto/create-message.dto';
 
 @Injectable()
 export class MultipartMessagePipe implements PipeTransform {
