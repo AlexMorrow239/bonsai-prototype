@@ -1,8 +1,8 @@
 import { ReactElement, useEffect, useRef } from "react";
 
+import { AIMessage } from "@/components/chat/chat-area/ai-message/AiMessage";
+import { UserMessage } from "@/components/chat/chat-area/user-message/UserMessage";
 import { ChatLoadingIndicator } from "@/components/common/chat-loader/ChatLoader";
-import { AIMessage } from "@/components/features/chat-area/ai-message/AiMessage";
-import { UserMessage } from "@/components/features/chat-area/user-message/UserMessage";
 
 import { useMessages } from "@/hooks/api/useMessages";
 import { useChatStore } from "@/stores/chatStore";

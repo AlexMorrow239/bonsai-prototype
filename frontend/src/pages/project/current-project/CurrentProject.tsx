@@ -102,12 +102,6 @@ export function CurrentProject(): ReactElement {
               <span className="label">Last Updated</span>
               <span className="value">{formattedUpdatedDate}</span>
             </div>
-            <div className="detail-item">
-              <span className="label">Status</span>
-              <span className="value">
-                {project.is_active ? "Active" : "Archived"}
-              </span>
-            </div>
           </div>
         </section>
       </div>

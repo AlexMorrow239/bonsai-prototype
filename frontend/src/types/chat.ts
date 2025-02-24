@@ -13,7 +13,6 @@ export interface NewChat {
   title: string;
   preview?: string;
   project_id?: string;
-  is_active: boolean;
 }
 
 export interface NewMessage {
@@ -39,6 +38,7 @@ export interface Chat extends NewChat {
 
 export interface Message extends NewMessage {
   _id: string;
+  files?: UploadedFile[];
   created_at: string;
   updated_at: string;
 }

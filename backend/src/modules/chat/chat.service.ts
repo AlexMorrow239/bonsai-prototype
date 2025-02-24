@@ -31,7 +31,7 @@ export class ChatService {
 
   private toChatResponse(chat: IChat): ChatResponseDto {
     return {
-      _id: chat._id as Types.ObjectId,
+      _id: chat._id,
       title: chat.title,
       preview: chat.preview,
       project_id: chat.project_id,
@@ -47,6 +47,8 @@ export class ChatService {
    */
   async createChat(createChatDto: CreateChatDto): Promise<ChatResponseDto> {
     try {
+      this.logger.debug('Creating new chat:', createChatDto);
+
       // Validate project if provided
       if (createChatDto.project_id) {
         if (!Types.ObjectId.isValid(createChatDto.project_id)) {
@@ -65,16 +67,33 @@ export class ChatService {
         }
       }
 
-      const newChat = new this.chatModel({
-        ...createChatDto,
+      // Create chat with default values
+      const chatData = {
+        title: createChatDto.title,
         project_id: createChatDto.project_id
           ? new Types.ObjectId(createChatDto.project_id)
           : undefined,
+        preview: 'New chat created',
+        chat_context: '',
+        is_active: true,
+        last_message_at: new Date(),
+      };
+
+      const newChat = new this.chatModel(chatData);
+      const savedChat = await newChat.save();
+
+      this.logger.debug('Chat created successfully:', {
+        chatId: savedChat._id,
+        title: savedChat.title,
       });
 
-      const chat = await newChat.save();
-      return this.toChatResponse(chat);
+      return this.toChatResponse(savedChat);
     } catch (error) {
+      this.logger.error('Failed to create chat:', {
+        error: error.message,
+        dto: createChatDto,
+      });
+
       ErrorHandler.handleServiceError(
         this.logger,
         error,

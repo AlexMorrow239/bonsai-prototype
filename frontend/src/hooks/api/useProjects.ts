@@ -31,7 +31,6 @@ interface UpdateProjectData {
   _id: string;
   name?: string;
   description?: string;
-  is_active?: boolean;
 }
 
 export function useCreateProject() {

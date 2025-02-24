@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 
 import { ChatFileUpload } from "@/components/chat/chat-file-upload/ChatFileUpload";
-import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
+import { ChatPrompt } from "@/components/chat/chat-prompt/ChatPrompt";
 
 import { FILE_CONSTRAINTS } from "@/common/constants";
 
@@ -164,7 +164,6 @@ export function NewChat(): ReactElement {
       // Create new chat first
       newChat = await createChat.mutateAsync({
         title: title.slice(0, 50),
-        is_active: true,
       });
 
       if (!newChat) {

@@ -2,49 +2,59 @@ import type { ReactNode } from "react";
 
 import { FileIcon, Link2 } from "lucide-react";
 
-import { FileServerData } from "@/types";
+import type { FileServerData, UploadedFile } from "@/types";
 import { formatFileSize } from "@/utils/fileUtils";
 
 import "./MessageFiles.scss";
 
+type MessageFile = FileServerData | UploadedFile;
+
 interface MessageFileProps {
-  file: FileServerData;
+  file: MessageFile;
 }
 
-const MessageFile = ({ file }: MessageFileProps): ReactNode => (
-  <div className="message-file">
-    <FileIcon size={16} className="message-file__icon" />
-    <div className="message-file__info">
-      <div className="message-file__name">{file.name}</div>
-      <div className="message-file__meta">{formatFileSize(file.size)}</div>
+const MessageFile = ({ file }: MessageFileProps): ReactNode => {
+  // Handle both uploaded and server files
+  const fileName = "metadata" in file ? file.metadata.name : file.name;
+  const fileSize = "metadata" in file ? file.metadata.size : file.size;
+  const fileUrl = "url" in file ? file.url : undefined;
+
+  return (
+    <div className="message-file">
+      <FileIcon size={16} className="message-file__icon" />
+      <div className="message-file__info">
+        <div className="message-file__name">{fileName}</div>
+        <div className="message-file__meta">{formatFileSize(fileSize)}</div>
+      </div>
+      {fileUrl && (
+        <a
+          href={fileUrl}
+          download={fileName}
+          className="message-file__download"
+          title="Download file"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Link2 size={14} />
+        </a>
+      )}
     </div>
-    {file.url && (
-      <a
-        href={file.url}
-        download={file.name}
-        className="message-file__download"
-        title="Download file"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Link2 size={14} />
-      </a>
-    )}
-  </div>
-);
+  );
+};
 
 interface MessageFilesProps {
-  files: FileServerData[];
+  files: MessageFile[];
 }
 
 export function MessageFiles({ files }: MessageFilesProps) {
   if (!files?.length) return null;
 
   return (
-    <div className="message-files ">
-      {files.map((file) => (
-        <MessageFile key={file._id} file={file} />
-      ))}
+    <div className="message-files">
+      {files.map((file) => {
+        const fileId = "file_id" in file ? file.file_id : file._id;
+        return <MessageFile key={fileId} file={file} />;
+      })}
     </div>
   );
 }

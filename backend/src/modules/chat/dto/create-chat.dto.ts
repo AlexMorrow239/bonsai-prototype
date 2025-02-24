@@ -1,18 +1,21 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
-import { IsMongoId, IsOptional, IsString } from 'class-validator';
-import { Types } from 'mongoose';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateChatDto {
-  @ApiProperty({ description: 'The title of the chat' })
+  @ApiProperty({
+    description: 'Title of the chat',
+    example: 'My new chat',
+  })
   @IsString()
   title: string;
 
-  @ApiPropertyOptional({
-    description: 'The associated project ID',
-    type: String,
+  @ApiProperty({
+    description: 'ID of the associated project (optional)',
+    required: false,
+    example: '507f1f77bcf86cd799439011',
   })
   @IsOptional()
-  @IsMongoId()
+  @IsString()
   project_id?: string;
 }

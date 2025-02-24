@@ -17,12 +17,13 @@ export interface IChat extends Document {
 @Schema({
   timestamps: true,
   collection: 'chats',
+  versionKey: false,
 })
 export class Chat {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
+  @Prop({ default: 'New chat created' })
   preview: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Project', required: false })
@@ -34,10 +35,13 @@ export class Chat {
   @Prop({ default: Date.now })
   last_message_at: Date;
 
-  @Prop({ required: true, default: '' })
+  @Prop({ default: '' })
   chat_context: string;
 
+  @Prop()
   createdAt: Date;
+
+  @Prop()
   updatedAt: Date;
 }
 

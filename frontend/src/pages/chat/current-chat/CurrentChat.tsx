@@ -4,9 +4,9 @@ import { Navigate, useParams } from "react-router-dom";
 
 import { useDropzone } from "react-dropzone";
 
+import { ChatArea } from "@/components/chat/chat-area/ChatArea";
 import { ChatFileUpload } from "@/components/chat/chat-file-upload/ChatFileUpload";
-import { ChatArea } from "@/components/features/chat-area/ChatArea";
-import { ChatPrompt } from "@/components/features/chat-prompt/ChatPrompt";
+import { ChatPrompt } from "@/components/chat/chat-prompt/ChatPrompt";
 
 import { FILE_CONSTRAINTS } from "@/common/constants";
 

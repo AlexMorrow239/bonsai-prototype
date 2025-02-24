@@ -2,7 +2,6 @@
 export interface NewProject {
   name: string;
   description: string;
-  is_active: boolean;
 }
 
 // Full type including database fields

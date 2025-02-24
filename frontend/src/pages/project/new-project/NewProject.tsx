@@ -20,7 +20,6 @@ export function NewProject(): ReactElement {
   const [formData, setFormData] = useState<NewProjectType>({
     name: "",
     description: "",
-    is_active: true,
   });
 
   const handleInputChange = (

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 
-import { MessageFiles } from "@/components/features/chat-area/message-files/MessageFiles";
+import { MessageFiles } from "@/components/chat/chat-area/message-files/MessageFiles";
 
-import { useMessages } from "@/hooks/api/useMessages";
+import { useSendMessage } from "@/hooks/api/useMessages";
 import type { Message } from "@/types";
 
 import "./UserMessage.scss";
@@ -15,7 +15,7 @@ interface UserMessageProps {
 export function UserMessage({ message }: UserMessageProps): ReactNode {
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const { createMessage } = useMessages(message.chat_id);
+  const sendMessage = useSendMessage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +23,8 @@ export function UserMessage({ message }: UserMessageProps): ReactNode {
     if (!content.trim() && !files.length) return;
 
     try {
-      await createMessage.mutateAsync({
+      await sendMessage.mutateAsync({
+        chatId: message.chat_id,
         content: content.trim(),
         files: files.length ? files : undefined,
       });

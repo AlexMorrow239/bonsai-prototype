@@ -1,4 +1,4 @@
-import type { UploadedFile } from "@/types";
+import type { FileServerData, UploadedFile } from "@/types";
 
 export function createFileEntry(file: File): UploadedFile {
   const fileId = crypto.randomUUID();

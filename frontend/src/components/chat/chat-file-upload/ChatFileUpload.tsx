@@ -12,7 +12,7 @@ import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createFileEntry } from "@/utils/fileUtils";
 
-import "./FileUpload.scss";
+import "./ChatFileUpload.scss";
 
 interface ChatFileUploadProps {
   chatId: string | null;

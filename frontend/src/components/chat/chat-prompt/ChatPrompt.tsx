@@ -3,8 +3,8 @@ import { FormEvent, ReactNode, RefObject, useState } from "react";
 import { Send } from "lucide-react";
 
 import { ChatFileUpload } from "@/components/chat/chat-file-upload/ChatFileUpload";
+import { UploadedFiles } from "@/components/chat/chat-prompt/uploaded-files/UploadedFiles";
 import { Button } from "@/components/common/button/Button";
-import { UploadedFiles } from "@/components/features/chat-prompt/uploaded-files/UploadedFiles";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useFileStore } from "@/stores/fileStore";
