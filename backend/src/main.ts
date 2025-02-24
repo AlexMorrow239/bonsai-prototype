@@ -1,14 +1,8 @@
-import { join } from 'path';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
-import { HttpExceptionFilter } from '@/common/filters/http-exception-filter';
-import { ErrorHandlingInterceptor } from '@/common/interceptors/error-handling.interceptor';
-import { LoggingInterceptor } from '@/common/interceptors/logging.interceptor';
-import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
 
 import { AppModule } from './app.module';
 
@@ -19,18 +13,12 @@ async function bootstrap() {
   // Get config service and setup logger
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
-
-  logger.log('Starting application bootstrap...');
-
   try {
     // Configure global middleware
     configureGlobalMiddleware(app, logger);
 
     // Configure CORS
     configureCors(app, configService, logger);
-
-    // Configure static file serving for uploads
-    configureFileUploads(app, logger);
 
     // Configure and setup Swagger documentation
     setupSwagger(app, logger);
@@ -89,13 +77,6 @@ function configureCors(
   });
 }
 
-function configureFileUploads(app: NestExpressApplication, logger: Logger) {
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
-  logger.log('File upload static serving configured at /uploads');
-}
-
 function setupSwagger(app: NestExpressApplication, logger: Logger) {
   const config = new DocumentBuilder()
     .setTitle('Bonsai API')
@@ -105,8 +86,6 @@ function setupSwagger(app: NestExpressApplication, logger: Logger) {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
-
-  logger.log('Swagger documentation initialized at /api/docs');
 }
 
 async function logServerInformation(
