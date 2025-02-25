@@ -1,7 +1,8 @@
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 
 import { Upload } from "lucide-react";
-import type { FileRejection } from "react-dropzone";
+import type { DropzoneOptions, FileRejection } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/common/button/Button";
@@ -16,21 +17,50 @@ import { createFileEntry } from "@/utils/fileUtils";
 import "./FileUpload.scss";
 
 interface FileUploadProps {
-  chatId: string | null;
-  variant?: "compact" | "dropzone";
+  // Core props
+  onFilesSelected: (files: UploadedFile[]) => Promise<void>;
+  variant?: "icon" | "dropzone" | "button";
   maxFiles?: number;
   isVisible?: boolean;
-  onFilesSelected?: (files: UploadedFile[]) => Promise<void>;
+
+  // Dropzone configuration
+  dropzoneOptions?: Partial<DropzoneOptions>;
+
+  // UI customization
+  buttonTitle?: string;
+  buttonText?: string;
+  dropzoneTitle?: string;
+  dropzoneHints?: string[];
+  iconSize?: number;
+  leftIcon?: ReactNode;
+
+  // Error handling
+  onError?: (error: Error) => void;
 }
 
 export function FileUpload({
-  chatId,
-  variant = "compact",
+  onFilesSelected,
+  variant = "icon",
   maxFiles = FILE_CONSTRAINTS.MAX_FILES,
   isVisible = false,
-  onFilesSelected,
+  dropzoneOptions = {},
+  buttonTitle = `Upload files (max ${maxFiles})`,
+  buttonText,
+  dropzoneTitle = "Drop files here",
+  dropzoneHints = [
+    `Up to ${maxFiles} files supported`,
+    `Max size: ${FILE_CONSTRAINTS.MAX_FILE_SIZE / (1024 * 1024)}MB`,
+  ],
+  iconSize = variant === "icon" ? 16 : 32,
+  leftIcon,
+  onError = (error) => {
+    console.error("[FileUpload] File upload error:", {
+      error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+  },
 }: FileUploadProps) {
-  const { addPendingFiles, setDragging } = useChatStore();
+  const { setDragging } = useChatStore();
   const { addToast } = useUIStore();
 
   const handleFilesSelected = async (
@@ -53,19 +83,9 @@ export function FileUpload({
 
       // Create UploadedFile objects for each selected file
       const uploadedFiles = acceptedFiles.map((file) => createFileEntry(file));
-
-      if (onFilesSelected) {
-        // If callback provided, use it instead of chat store
-        await onFilesSelected(uploadedFiles);
-      } else {
-        // Default behavior for chat
-        await addPendingFiles(chatId, uploadedFiles);
-      }
+      await onFilesSelected(uploadedFiles);
     } catch (error) {
-      console.error("[FileUpload] File upload error:", {
-        error,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      onError(error instanceof Error ? error : new Error(String(error)));
       addToast({
         type: "error",
         message: "Failed to process files",
@@ -73,7 +93,7 @@ export function FileUpload({
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const defaultDropzoneConfig: DropzoneOptions = {
     onDrop: handleFilesSelected,
     maxFiles,
     noClick: variant === "dropzone",
@@ -93,7 +113,49 @@ export function FileUpload({
         [".pptx"],
     },
     multiple: true,
-  });
+    validator: (file) => {
+      // Check if this is an internal drag operation
+      if (
+        file instanceof DataTransferItem &&
+        file.type === "application/json"
+      ) {
+        return {
+          code: "internal-drag",
+          message:
+            "Internal file moves are not handled by the upload component",
+        };
+      }
+      return null;
+    },
+    onDragEnter: (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (dropzoneOptions.onDragEnter) {
+        dropzoneOptions.onDragEnter(event);
+      }
+    },
+    onDragOver: (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      // Always show copy icon for file uploads
+      event.dataTransfer.dropEffect = "copy";
+      if (dropzoneOptions.onDragOver) {
+        dropzoneOptions.onDragOver(event);
+      }
+    },
+    onDragLeave: (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (dropzoneOptions.onDragLeave) {
+        dropzoneOptions.onDragLeave(event);
+      }
+    },
+    ...dropzoneOptions,
+  };
+
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone(
+    defaultDropzoneConfig
+  );
 
   // Reset dragging state when component unmounts
   useEffect(() => {
@@ -109,22 +171,41 @@ export function FileUpload({
           <div
             className={`file-upload__dropzone-content ${isDragActive ? "dragging" : ""}`}
           >
-            <Upload size={32} />
-            <p>Drop files here</p>
-            <span className="file-upload__dropzone-hint">
-              Up to {maxFiles} files supported
-            </span>
-            <span className="file-upload__dropzone-hint">
-              Max size: {FILE_CONSTRAINTS.MAX_FILE_SIZE / (1024 * 1024)}MB
-            </span>
+            <Upload size={iconSize} />
+            <p>{dropzoneTitle}</p>
+            {dropzoneHints.map((hint, index) => (
+              <span key={index} className="file-upload__dropzone-hint">
+                {hint}
+              </span>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
+  if (variant === "button") {
+    return (
+      <div className="file-upload file-upload--button" {...getRootProps()}>
+        <input {...getInputProps()} className="file-upload__input" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            open();
+          }}
+          leftIcon={leftIcon}
+          title={buttonTitle}
+        >
+          {buttonText}
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="file-upload file-upload--compact" {...getRootProps()}>
+    <div className="file-upload file-upload--icon" {...getRootProps()}>
       <input {...getInputProps()} className="file-upload__input" />
       <Button
         variant="ghost"
@@ -134,9 +215,9 @@ export function FileUpload({
           e.stopPropagation();
           open();
         }}
-        title={`Upload files (max ${maxFiles})`}
+        title={buttonTitle}
       >
-        <Upload size={16} />
+        <Upload size={iconSize} />
       </Button>
     </div>
   );

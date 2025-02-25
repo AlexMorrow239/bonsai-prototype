@@ -231,9 +231,63 @@ export function NewChat(): ReactElement {
       />
       <div ref={dropzoneRef} className="file-upload-overlay">
         <FileUpload
-          chatId={`temp-${Date.now()}`}
           variant="dropzone"
           isVisible={isDragging}
+          onFilesSelected={async (files) => {
+            try {
+              await addPendingFiles(null, files);
+            } catch (error) {
+              showErrorToast(error, "Failed to process files");
+            } finally {
+              setDragging(false);
+            }
+          }}
+          onError={(error) => showErrorToast(error, "Failed to process files")}
+          dropzoneOptions={{
+            onDragEnter: (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+
+              // Only count drag events from the window or document
+              if (event.target === document || event.target === window) {
+                dragCounter.current = 1;
+              } else {
+                dragCounter.current++;
+              }
+
+              if (dragCounter.current === 1) {
+                setDragging(true);
+              }
+            },
+            onDragLeave: (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+
+              // Only decrement for non-window/document events
+              if (event.target !== document && event.target !== window) {
+                dragCounter.current--;
+              }
+
+              if (dragCounter.current <= 0) {
+                dragCounter.current = 0;
+                setDragging(false);
+              }
+            },
+            onDropAccepted: () => {
+              dragCounter.current = 0;
+              setDragging(false);
+            },
+            onDropRejected: (fileRejections) => {
+              dragCounter.current = 0;
+              setDragging(false);
+              showErrorToast(
+                new Error(
+                  fileRejections[0]?.errors[0]?.message || "Invalid file type"
+                ),
+                "File upload rejected"
+              );
+            },
+          }}
         />
       </div>
     </main>

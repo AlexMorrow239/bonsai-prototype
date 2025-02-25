@@ -229,9 +229,53 @@ export default function CurrentChat(): ReactElement {
       <ChatPrompt onSubmit={handleMessageSubmit} textareaRef={textareaRef} />
       <div ref={dropzoneRef}>
         <FileUpload
-          chatId={chat._id}
           variant="dropzone"
           isVisible={isDragging}
+          onFilesSelected={async (files) => {
+            try {
+              if (!chat?._id) {
+                showErrorToast(
+                  new Error("No chat selected"),
+                  "Please select or create a chat first"
+                );
+                return;
+              }
+              await addPendingFiles(chat._id, files);
+            } catch (error) {
+              showErrorToast(error, "Failed to process files");
+            }
+          }}
+          onError={(error) => showErrorToast(error, "Failed to process files")}
+          dropzoneOptions={{
+            onDragEnter: (event) => {
+              event.preventDefault();
+              dragCounter.current++;
+              if (dragCounter.current === 1) {
+                setDragging(true);
+              }
+            },
+            onDragLeave: (event) => {
+              event.preventDefault();
+              dragCounter.current--;
+              if (dragCounter.current === 0) {
+                setDragging(false);
+              }
+            },
+            onDropAccepted: () => {
+              dragCounter.current = 0;
+              setDragging(false);
+            },
+            onDropRejected: (fileRejections) => {
+              dragCounter.current = 0;
+              setDragging(false);
+              showErrorToast(
+                new Error(
+                  fileRejections[0]?.errors[0]?.message || "Invalid file type"
+                ),
+                "File upload rejected"
+              );
+            },
+          }}
         />
       </div>
     </main>

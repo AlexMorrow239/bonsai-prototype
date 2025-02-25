@@ -2,6 +2,9 @@ import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
+import clsx from "clsx";
+
+import { FileUpload } from "@/components/common/file-upload/FileUpload";
 import { FileItem } from "@/components/file-manager/file-item/FileItem";
 import { FileManagerBreadcrumb } from "@/components/file-manager/file-manager-breadcrumb/FileManagerBreadcrumb";
 
@@ -10,14 +13,18 @@ import {
   useFile,
   useFiles,
   useMoveFile,
+  useUploadFile,
 } from "@/hooks/api/useFiles";
 import { useFileManagerStore } from "@/stores/fileManagerStore";
 import { useUIStore } from "@/stores/uiStore";
+import type { UploadedFile } from "@/types";
 import type { FileSystemEntity } from "@/types/filesystem";
+import { createFileEntry } from "@/utils/fileUtils";
 
 import "./FileManager.scss";
 
 export const FileManager = (): ReactElement => {
+  // Store hooks
   const { showSuccessToast, showErrorToast } = useUIStore();
   const {
     viewMode,
@@ -29,17 +36,20 @@ export const FileManager = (): ReactElement => {
     moveFile,
     clearMovedFile,
   } = useFileManagerStore();
+
+  // Query hooks
   const queryClient = useQueryClient();
   const moveFileMutation = useMoveFile();
-  const [isDroppingToCurrentDir, setIsDroppingToCurrentDir] = useState(false);
-  const dropCounter = useRef(0);
-
-  const [newFolderName, setNewFolderName] = useState<string | undefined>(
-    undefined
-  );
+  const uploadFileMutation = useUploadFile();
   const createFolderMutation = useCreateFolder();
 
-  // Get files from the backend
+  // Local state
+  const [isDroppingToCurrentDir, setIsDroppingToCurrentDir] = useState(false);
+  const [isInternalDragging, setIsInternalDragging] = useState(false);
+  const [newFolderName, setNewFolderName] = useState<string | undefined>();
+  const dropCounter = useRef(0);
+
+  // Data fetching
   const {
     data: files = [],
     isLoading,
@@ -49,18 +59,224 @@ export const FileManager = (): ReactElement => {
     isActive: true,
   });
 
-  // Get current directory details if we're not at root
   const { data: currentDirDetails } = useFile(currentDirectory || "", {
     enabled: !!currentDirectory,
   });
 
-  // Get parent folder details if we have a current directory
   const parentFolderId = currentDirDetails?.parentFolderId || null;
   const { data: parentDetails } = useFile(parentFolderId || "", {
     enabled: !!parentFolderId,
   });
 
-  // Update path items when directory details change
+  // File operations handlers
+  const handleItemClick = useCallback(
+    (file: FileSystemEntity) => {
+      if (file.isFolder) {
+        navigateToDirectory(file._id);
+        queryClient.invalidateQueries({
+          queryKey: ["files", "list", file._id],
+        });
+        queryClient.invalidateQueries({ queryKey: ["files", file._id] });
+      } else {
+        toggleSelectedItem(file._id);
+      }
+    },
+    [navigateToDirectory, queryClient, toggleSelectedItem]
+  );
+
+  const handleItemDoubleClick = useCallback(
+    (file: FileSystemEntity) => {
+      if (file.isFolder) {
+        handleItemClick(file);
+      }
+      // TODO: Handle file double click (preview/open file)
+    },
+    [handleItemClick]
+  );
+
+  // Folder creation handlers
+  const handleCreateFolder = useCallback(() => {
+    setNewFolderName("New Folder");
+  }, []);
+
+  const handleFinishFolderCreation = useCallback(
+    async (name: string) => {
+      try {
+        await createFolderMutation.mutateAsync({
+          name,
+          originalName: name,
+          mimeType: "folder",
+          size: 0,
+          parentFolderId: currentDirectory || undefined,
+        });
+        showSuccessToast("Folder created successfully");
+      } catch (error) {
+        showErrorToast(error);
+      } finally {
+        setNewFolderName(undefined);
+      }
+    },
+    [createFolderMutation, currentDirectory, showSuccessToast, showErrorToast]
+  );
+
+  // File upload handlers
+  const handleFileUpload = useCallback(
+    async (files: UploadedFile[]) => {
+      try {
+        for (const uploadedFile of files) {
+          if (!uploadedFile.file) continue;
+
+          await uploadFileMutation.mutateAsync({
+            file: uploadedFile.file,
+            name: uploadedFile.metadata.name,
+            parentFolderId: currentDirectory || undefined,
+          });
+        }
+
+        queryClient.invalidateQueries({
+          queryKey: ["files", "list", currentDirectory],
+        });
+
+        showSuccessToast("Files uploaded successfully");
+      } catch (error) {
+        showErrorToast(error, "Failed to upload files");
+      }
+    },
+    [
+      uploadFileMutation,
+      currentDirectory,
+      queryClient,
+      showSuccessToast,
+      showErrorToast,
+    ]
+  );
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const types = Array.from(e.dataTransfer.types);
+    if (types.includes("Files") && !types.includes("application/json")) {
+      dropCounter.current += 1;
+      if (dropCounter.current === 1) {
+        setIsDroppingToCurrentDir(true);
+        setIsInternalDragging(false);
+        document.querySelectorAll(".file-item").forEach((item) => {
+          (item as HTMLElement).style.pointerEvents = "none";
+        });
+      }
+    } else if (types.includes("application/json")) {
+      setIsInternalDragging(true);
+      setIsDroppingToCurrentDir(false);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const types = Array.from(e.dataTransfer.types);
+    if (types.includes("Files") && !types.includes("application/json")) {
+      dropCounter.current -= 1;
+      if (dropCounter.current === 0) {
+        setIsDroppingToCurrentDir(false);
+        document.querySelectorAll(".file-item").forEach((item) => {
+          (item as HTMLElement).style.pointerEvents = "auto";
+        });
+      }
+    } else if (types.includes("application/json")) {
+      setIsInternalDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const types = Array.from(e.dataTransfer.types);
+      if (types.includes("Files") && !types.includes("application/json")) {
+        e.dataTransfer.dropEffect = "copy";
+        e.stopPropagation();
+      } else if (!isDroppingToCurrentDir) {
+        e.dataTransfer.dropEffect = "move";
+      }
+    },
+    [isDroppingToCurrentDir]
+  );
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Reset all drag states
+      setIsDroppingToCurrentDir(false);
+      setIsInternalDragging(false);
+      dropCounter.current = 0;
+      document.querySelectorAll(".file-item").forEach((item) => {
+        (item as HTMLElement).style.pointerEvents = "auto";
+      });
+
+      const types = Array.from(e.dataTransfer.types);
+      if (types.includes("Files") && !types.includes("application/json")) {
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        const uploadedFiles = droppedFiles.map((file) => createFileEntry(file));
+        await handleFileUpload(uploadedFiles);
+        return;
+      }
+
+      if (!isDroppingToCurrentDir) {
+        try {
+          const dragData = e.dataTransfer.getData("application/json");
+          if (!dragData) return;
+
+          const { id: sourceId, parentFolderId: sourceParentId } =
+            JSON.parse(dragData);
+          if (sourceParentId === currentDirectory) return;
+
+          moveFile(sourceId, currentDirectory);
+          await moveFileMutation.mutateAsync({
+            fileId: sourceId,
+            targetFolderId: currentDirectory,
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: ["files", "list", sourceParentId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["files", "list", currentDirectory],
+          });
+
+          clearMovedFile(sourceId);
+        } catch (error) {
+          showErrorToast(error);
+          try {
+            const dragData = e.dataTransfer.getData("application/json");
+            if (dragData) {
+              const { id: sourceId } = JSON.parse(dragData);
+              clearMovedFile(sourceId);
+            }
+          } catch {
+            console.error("Failed to revert file move");
+          }
+        }
+      }
+    },
+    [
+      currentDirectory,
+      moveFile,
+      moveFileMutation,
+      queryClient,
+      clearMovedFile,
+      showErrorToast,
+      handleFileUpload,
+      isDroppingToCurrentDir,
+    ]
+  );
+
+  // Path management
   useEffect(() => {
     if (!currentDirectory || !currentDirDetails) {
       setPathItems([]);
@@ -75,144 +291,15 @@ export const FileManager = (): ReactElement => {
     setPathItems(path);
   }, [currentDirectory, currentDirDetails, parentDetails, setPathItems]);
 
-  const handleItemClick = (file: FileSystemEntity) => {
-    if (file.isFolder) {
-      navigateToDirectory(file._id);
-      // Invalidate queries for the new directory
-      queryClient.invalidateQueries({ queryKey: ["files", "list", file._id] });
-      queryClient.invalidateQueries({ queryKey: ["files", file._id] });
-    } else {
-      toggleSelectedItem(file._id);
-    }
-  };
-
-  const handleItemDoubleClick = (file: FileSystemEntity) => {
-    if (file.isFolder) {
-      handleItemClick(file);
-    }
-    // TODO: Handle file double click (preview/open file)
-  };
-
-  const handleCreateFolder = () => {
-    setNewFolderName("New Folder");
-  };
-
-  const handleFinishFolderCreation = async (name: string) => {
-    try {
-      await createFolderMutation.mutateAsync({
-        name,
-        originalName: name,
-        mimeType: "folder",
-        size: 0,
-        parentFolderId: currentDirectory || undefined,
-      });
-      showSuccessToast("Folder created successfully");
-    } catch (error) {
-      showErrorToast(error);
-    } finally {
-      setNewFolderName(undefined);
-    }
-  };
-
-  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    dropCounter.current += 1;
-    if (dropCounter.current === 1) {
-      setIsDroppingToCurrentDir(true);
-    }
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    dropCounter.current -= 1;
-    if (dropCounter.current === 0) {
-      setIsDroppingToCurrentDir(false);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = "move";
-  }, []);
-
-  const handleDrop = useCallback(
-    async (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDroppingToCurrentDir(false);
-      dropCounter.current = 0;
-
-      try {
-        const dragData = e.dataTransfer.getData("application/json");
-        if (!dragData) return;
-
-        const { id: sourceId, parentFolderId: sourceParentId } =
-          JSON.parse(dragData);
-
-        // Don't do anything if dropping in the same directory
-        if (sourceParentId === currentDirectory) return;
-
-        // Optimistically update UI
-        moveFile(sourceId, currentDirectory);
-
-        // Update server
-        await moveFileMutation.mutateAsync({
-          fileId: sourceId,
-          targetFolderId: currentDirectory,
-        });
-
-        // Invalidate queries for both source and target directories
-        queryClient.invalidateQueries({
-          queryKey: ["files", "list", sourceParentId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["files", "list", currentDirectory],
-        });
-
-        // Clear optimistic state after successful move
-        clearMovedFile(sourceId);
-      } catch (error) {
-        showErrorToast(error);
-        // Get the source file ID from the drag data to revert the move
-        try {
-          const dragData = e.dataTransfer.getData("application/json");
-          if (dragData) {
-            const { id: sourceId } = JSON.parse(dragData);
-            clearMovedFile(sourceId);
-          }
-        } catch {
-          // If we can't get the source ID, we can't revert the move
-          console.error("Failed to revert file move");
-        }
-      }
-    },
-    [
-      currentDirectory,
-      moveFile,
-      moveFileMutation,
-      queryClient,
-      clearMovedFile,
-      showErrorToast,
-    ]
-  );
-
+  // Event listeners
   useEffect(() => {
-    const handleCreateNewFolder = () => {
-      handleCreateFolder();
-    };
-
-    window.addEventListener("createNewFolder", handleCreateNewFolder);
+    window.addEventListener("createNewFolder", handleCreateFolder);
     return () => {
-      window.removeEventListener("createNewFolder", handleCreateNewFolder);
+      window.removeEventListener("createNewFolder", handleCreateFolder);
     };
-  }, []);
+  }, [handleCreateFolder]);
 
-  // Show loading state
+  // Loading and error states
   if (isLoading) {
     return (
       <div className="file-manager">
@@ -224,7 +311,6 @@ export const FileManager = (): ReactElement => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="file-manager">
@@ -236,6 +322,7 @@ export const FileManager = (): ReactElement => {
     );
   }
 
+  // Render helpers
   const renderNewFolder = () => {
     const folder: FileSystemEntity = {
       _id: "new-folder",
@@ -251,13 +338,13 @@ export const FileManager = (): ReactElement => {
       isStarred: false,
       isTrashed: false,
       isActive: true,
-      mimetype: "folder",
+      mimeType: "application/directory",
     };
 
     return (
       <FileItem
         key="new-folder"
-        item={folder}
+        file={folder}
         viewMode={viewMode}
         isSelected={false}
         onClick={() => {}}
@@ -273,21 +360,64 @@ export const FileManager = (): ReactElement => {
     <div className="file-manager">
       <FileManagerBreadcrumb />
       <div
-        className={`file-manager__content file-manager__content--${viewMode} ${
-          isDroppingToCurrentDir ? "file-manager__content--dropping" : ""
-        }`}
+        className={clsx("file-manager__content", {
+          [`file-manager__content--${viewMode}`]: true,
+          "file-manager__content--external-dropping": isDroppingToCurrentDir,
+          "file-manager__content--internal-dragging": isInternalDragging,
+        })}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
+        <div
+          className={clsx("file-manager__upload", {
+            "file-manager__upload--visible": isDroppingToCurrentDir,
+          })}
+        >
+          <div className="file-manager__upload__content">
+            <FileUpload
+              variant="dropzone"
+              isVisible={isDroppingToCurrentDir}
+              onFilesSelected={handleFileUpload}
+              onError={(error) =>
+                showErrorToast(error, "Failed to upload files")
+              }
+              dropzoneOptions={{
+                onDragEnter: handleDragEnter,
+                onDragLeave: handleDragLeave,
+                onDragOver: handleDragOver,
+                onDropAccepted: () => {
+                  dropCounter.current = 0;
+                  setIsDroppingToCurrentDir(false);
+                },
+                onDropRejected: (fileRejections) => {
+                  dropCounter.current = 0;
+                  setIsDroppingToCurrentDir(false);
+                  showErrorToast(
+                    new Error(
+                      fileRejections[0]?.errors[0]?.message ||
+                        "Invalid file type"
+                    ),
+                    "File upload rejected"
+                  );
+                },
+              }}
+              dropzoneTitle="Drop files here to upload"
+              dropzoneHints={[
+                "Files will be uploaded to the current folder",
+                "Supported file types: PDF, DOCX, TXT, XLSX, PPTX",
+              ]}
+            />
+          </div>
+        </div>
         {newFolderName && renderNewFolder()}
-        {files.map((item) => (
+        {files.map((file) => (
           <FileItem
-            key={item._id}
-            item={item}
+            key={file._id}
+            file={file}
             viewMode={viewMode}
-            isSelected={selectedItems.includes(item._id)}
+            isSelected={selectedItems.includes(file._id)}
             onClick={handleItemClick}
             onDoubleClick={handleItemDoubleClick}
           />

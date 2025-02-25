@@ -23,7 +23,8 @@ export function ChatPrompt({
   textareaRef,
   isNewChat = false,
 }: ChatPromptProps): ReactNode {
-  const { currentChat, getPendingFiles, clearPendingFiles } = useChatStore();
+  const { currentChat, getPendingFiles, clearPendingFiles, addPendingFiles } =
+    useChatStore();
   const [message, setMessage] = useState("");
   const { showErrorToast } = useToastActions();
 
@@ -116,10 +117,34 @@ export function ChatPrompt({
           />
           <div className="actions">
             {isNewChat ? (
-              <FileUpload chatId={null} variant="compact" />
+              <FileUpload
+                variant="icon"
+                onFilesSelected={async (files) => {
+                  try {
+                    await addPendingFiles(null, files);
+                  } catch (error) {
+                    showErrorToast(error, "Failed to upload files");
+                  }
+                }}
+                onError={(error) =>
+                  showErrorToast(error, "Failed to upload files")
+                }
+              />
             ) : (
               currentChat && (
-                <FileUpload chatId={currentChat._id} variant="compact" />
+                <FileUpload
+                  variant="icon"
+                  onFilesSelected={async (files) => {
+                    try {
+                      await addPendingFiles(currentChat._id, files);
+                    } catch (error) {
+                      showErrorToast(error, "Failed to upload files");
+                    }
+                  }}
+                  onError={(error) =>
+                    showErrorToast(error, "Failed to upload files")
+                  }
+                />
               )
             )}
             <Button

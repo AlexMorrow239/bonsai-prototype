@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -8,10 +8,12 @@ import { ActionModal } from "@/components/common/action-modal/ActionModal";
 import { Button } from "@/components/common/button/Button";
 import { ContextTopbar } from "@/components/common/context-topbar/ContextTopbar";
 import { Dropdown } from "@/components/common/dropdown/Dropdown";
+import { FileUpload } from "@/components/common/file-upload/FileUpload";
 
 import { useUploadFile } from "@/hooks/api/useFiles";
 import { useFileManagerStore } from "@/stores/fileManagerStore";
 import { useUIStore } from "@/stores/uiStore";
+import { UploadedFile } from "@/types";
 
 import "./FileManagerTopbar.scss";
 
@@ -26,7 +28,6 @@ export default function FileManagerTopbar() {
   } = useFileManagerStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadFileMutation = useUploadFile();
   const queryClient = useQueryClient();
 
@@ -43,50 +44,36 @@ export default function FileManagerTopbar() {
     }
   };
 
-  const handleUploadFiles = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileInputChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    if (!files?.length) return;
-
+  const handleFileUpload = async (files: UploadedFile[]) => {
     try {
-      // Create temporary files for optimistic updates
-      const tempFiles = Array.from(files).map((file) => {
-        const tempId = `temp-file-${Date.now()}-${file.name}`;
-        return {
-          _id: tempId,
-          name: file.name,
-          isFolder: false,
-          size: file.size,
-          updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          path: currentDirectory
-            ? `${currentDirectory}/${file.name}`
-            : file.name,
-          parentFolderId: currentDirectory || null,
-          isStarred: false,
-          isTrashed: false,
-          isActive: true,
-          mimetype: file.type,
-        };
-      });
+      // Convert uploaded files to FileSystemEntity format
+      const tempFiles = files.map((uploadedFile) => ({
+        _id: `temp-file-${Date.now()}-${uploadedFile.metadata.name}`,
+        name: uploadedFile.metadata.name,
+        isFolder: false,
+        size: uploadedFile.metadata.size,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        path: currentDirectory
+          ? `${currentDirectory}/${uploadedFile.metadata.name}`
+          : uploadedFile.metadata.name,
+        parentFolderId: currentDirectory || null,
+        isStarred: false,
+        isTrashed: false,
+        isActive: true,
+        mimetype: uploadedFile.metadata.mimetype,
+        file: uploadedFile.file, // Keep the original file for upload
+      }));
 
       // Add temporary files to the store
       tempFiles.forEach((tempFile) => addTemporaryItem(tempFile));
 
       // Upload each file
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const tempFile = tempFiles[i];
-
+      for (const tempFile of tempFiles) {
         try {
           await uploadFileMutation.mutateAsync({
-            file,
-            name: file.name,
+            file: tempFile.file,
+            name: tempFile.name,
             parentFolderId: currentDirectory || undefined,
           });
 
@@ -111,11 +98,6 @@ export default function FileManagerTopbar() {
       );
     } catch (error) {
       showErrorToast(error);
-    } finally {
-      // Reset the input so the same file can be uploaded again if needed
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
@@ -191,20 +173,12 @@ export default function FileManagerTopbar() {
       >
         New Folder
       </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleUploadFiles}
+      <FileUpload
+        variant="button"
+        onFilesSelected={handleFileUpload}
+        buttonText="Upload Files"
         leftIcon={<FolderUp size={18} />}
-      >
-        Upload Files
-      </Button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        onChange={handleFileInputChange}
-        style={{ display: "none" }}
+        onError={(error) => showErrorToast(error)}
       />
     </div>
   );
