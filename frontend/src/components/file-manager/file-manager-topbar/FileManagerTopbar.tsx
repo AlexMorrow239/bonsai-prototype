@@ -25,14 +25,12 @@ export default function FileManagerTopbar() {
     currentDirectory,
     addTemporaryItem,
     removeTemporaryItem,
+    selectedItems,
   } = useFileManagerStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const uploadFileMutation = useUploadFile();
   const queryClient = useQueryClient();
-
-  // Mock selected file/folder state - replace with actual state management
-  const selectedItem = null;
 
   const handleNewFolder = () => {
     try {
@@ -123,17 +121,19 @@ export default function FileManagerTopbar() {
     }
   };
 
-  const fileDropdown = selectedItem && (
+  const fileDropdown = selectedItems.length > 0 && (
     <Dropdown trigger="File Actions" variant="ghost">
-      <Button
-        variant="ghost"
-        fullWidth
-        onClick={handleRename}
-        disabled={isRenaming}
-        leftIcon={<Folder size={16} />}
-      >
-        Rename
-      </Button>
+      {selectedItems.length === 1 && (
+        <Button
+          variant="ghost"
+          fullWidth
+          onClick={handleRename}
+          disabled={isRenaming}
+          leftIcon={<Folder size={16} />}
+        >
+          Rename
+        </Button>
+      )}
       <Button
         variant="ghost"
         fullWidth

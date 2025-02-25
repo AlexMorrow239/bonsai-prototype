@@ -71,27 +71,25 @@ export const FileManager = (): ReactElement => {
   // File operations handlers
   const handleItemClick = useCallback(
     (file: FileSystemEntity) => {
+      toggleSelectedItem(file._id);
+    },
+    [toggleSelectedItem]
+  );
+
+  const handleItemDoubleClick = useCallback(
+    (file: FileSystemEntity) => {
       if (file.isFolder) {
         navigateToDirectory(file._id);
         queryClient.invalidateQueries({
           queryKey: ["files", "list", file._id],
         });
         queryClient.invalidateQueries({ queryKey: ["files", file._id] });
-      } else {
-        toggleSelectedItem(file._id);
+      } else if (file.url) {
+        // Open file in new tab
+        window.open(file.url, "_blank");
       }
     },
-    [navigateToDirectory, queryClient, toggleSelectedItem]
-  );
-
-  const handleItemDoubleClick = useCallback(
-    (file: FileSystemEntity) => {
-      if (file.isFolder) {
-        handleItemClick(file);
-      }
-      // TODO: Handle file double click (preview/open file)
-    },
-    [handleItemClick]
+    [navigateToDirectory, queryClient]
   );
 
   // Folder creation handlers
