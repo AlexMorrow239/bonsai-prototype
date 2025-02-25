@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 
 import { useDropzone } from "react-dropzone";
 
-import { ChatFileUpload } from "@/components/chat/chat-file-upload/ChatFileUpload";
 import { ChatPrompt } from "@/components/chat/chat-prompt/ChatPrompt";
+import { FileUpload } from "@/components/common/file-upload/FileUpload";
 
 import { FILE_CONSTRAINTS } from "@/common/constants";
 
@@ -230,7 +230,7 @@ export function NewChat(): ReactElement {
         isNewChat={true}
       />
       <div ref={dropzoneRef} className="file-upload-overlay">
-        <ChatFileUpload
+        <FileUpload
           chatId={`temp-${Date.now()}`}
           variant="dropzone"
           isVisible={isDragging}

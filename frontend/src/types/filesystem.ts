@@ -8,7 +8,7 @@ export interface FileSystemEntity {
   isTrashed: boolean;
   isActive: boolean;
   size?: number;
-  mimetype?: string;
+  mimeType?: string;
   url?: string;
   customMetadata?: Record<string, any>;
   createdAt: string;

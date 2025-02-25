@@ -10,23 +10,26 @@ import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useUIStore } from "@/stores/uiStore";
+import { UploadedFile } from "@/types";
 import { createFileEntry } from "@/utils/fileUtils";
 
-import "./ChatFileUpload.scss";
+import "./FileUpload.scss";
 
-interface ChatFileUploadProps {
+interface FileUploadProps {
   chatId: string | null;
   variant?: "compact" | "dropzone";
   maxFiles?: number;
   isVisible?: boolean;
+  onFilesSelected?: (files: UploadedFile[]) => Promise<void>;
 }
 
-export function ChatFileUpload({
+export function FileUpload({
   chatId,
   variant = "compact",
   maxFiles = FILE_CONSTRAINTS.MAX_FILES,
   isVisible = false,
-}: ChatFileUploadProps) {
+  onFilesSelected,
+}: FileUploadProps) {
   const { addPendingFiles, setDragging } = useChatStore();
   const { addToast } = useUIStore();
 
@@ -51,8 +54,13 @@ export function ChatFileUpload({
       // Create UploadedFile objects for each selected file
       const uploadedFiles = acceptedFiles.map((file) => createFileEntry(file));
 
-      // Add files to store
-      await addPendingFiles(chatId, uploadedFiles);
+      if (onFilesSelected) {
+        // If callback provided, use it instead of chat store
+        await onFilesSelected(uploadedFiles);
+      } else {
+        // Default behavior for chat
+        await addPendingFiles(chatId, uploadedFiles);
+      }
     } catch (error) {
       console.error("[FileUpload] File upload error:", {
         error,

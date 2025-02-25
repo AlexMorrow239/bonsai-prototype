@@ -2,9 +2,9 @@ import { FormEvent, ReactNode, RefObject, useState } from "react";
 
 import { Send } from "lucide-react";
 
-import { ChatFileUpload } from "@/components/chat/chat-file-upload/ChatFileUpload";
 import { UploadedFiles } from "@/components/chat/chat-prompt/uploaded-files/UploadedFiles";
 import { Button } from "@/components/common/button/Button";
+import { FileUpload } from "@/components/common/file-upload/FileUpload";
 
 import { useChatStore } from "@/stores/chatStore";
 import { useToastActions } from "@/stores/uiStore";
@@ -116,10 +116,10 @@ export function ChatPrompt({
           />
           <div className="actions">
             {isNewChat ? (
-              <ChatFileUpload chatId={null} variant="compact" />
+              <FileUpload chatId={null} variant="compact" />
             ) : (
               currentChat && (
-                <ChatFileUpload chatId={currentChat._id} variant="compact" />
+                <FileUpload chatId={currentChat._id} variant="compact" />
               )
             )}
             <Button

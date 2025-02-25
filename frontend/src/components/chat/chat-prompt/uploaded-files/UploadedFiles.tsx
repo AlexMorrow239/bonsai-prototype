@@ -1,16 +1,9 @@
 import { ReactNode } from "react";
 
-import {
-  FileAudio,
-  FileIcon,
-  FileImage,
-  FilePen,
-  FileText,
-  FileVideo,
-  X,
-} from "lucide-react";
+import { X } from "lucide-react";
 
 import { Button } from "@/components/common/button/Button";
+import { FileIcon } from "@/components/common/file-icon/FileIcon";
 
 import { useChatStore } from "@/stores/chatStore";
 import { formatFileSize } from "@/utils/fileUtils";
@@ -27,34 +20,16 @@ export function UploadedFiles({ chatId }: UploadedFilesProps): ReactNode {
 
   if (files.length === 0) return null;
 
-  const renderFileIcon = (fileType: string) => {
-    const iconProps = { size: 14, className: "uploaded-files__icon" };
-
-    if (fileType.startsWith("image/")) {
-      return <FileImage {...iconProps} />;
-    }
-    if (fileType.startsWith("video/")) {
-      return <FileVideo {...iconProps} />;
-    }
-    if (fileType.startsWith("audio/")) {
-      return <FileAudio {...iconProps} />;
-    }
-    if (fileType === "application/pdf") {
-      return <FilePen {...iconProps} />;
-    }
-    if (fileType.startsWith("text/")) {
-      return <FileText {...iconProps} />;
-    }
-
-    return <FileIcon {...iconProps} />;
-  };
-
   return (
     <div className="uploaded-files">
       <div className="uploaded-files__list">
         {files.map((file) => (
           <div key={file.file_id} className="uploaded-files__item">
-            {renderFileIcon(file.metadata.mimetype)}
+            <FileIcon
+              mimetype={file.metadata.mimetype}
+              size={14}
+              className="uploaded-files__icon"
+            />
             <span
               className="uploaded-files__filename"
               title={file.metadata.name}

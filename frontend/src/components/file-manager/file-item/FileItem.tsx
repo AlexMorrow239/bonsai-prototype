@@ -1,8 +1,8 @@
-import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useRef, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { File, Folder } from "lucide-react";
+import { FileIcon } from "@/components/common/file-icon/FileIcon";
 
 import { useMoveFile } from "@/hooks/api/useFiles";
 import { useFileManagerStore } from "@/stores/fileManagerStore";
@@ -14,18 +14,18 @@ import { EditableFileName } from "./editable-filename/EditableFileName";
 import "./FileItem.scss";
 
 interface FileItemProps {
-  item: FileSystemEntity;
+  file: FileSystemEntity;
   viewMode: "list" | "grid";
   isSelected: boolean;
-  onClick: (item: FileSystemEntity) => void;
-  onDoubleClick: (item: FileSystemEntity) => void;
+  onClick: (file: FileSystemEntity) => void;
+  onDoubleClick: (file: FileSystemEntity) => void;
   onFinishEditing?: (name: string) => void;
   onCancel?: () => void;
   isEditing?: boolean;
 }
 
 export const FileItem = ({
-  item,
+  file,
   viewMode,
   isSelected,
   onClick,
@@ -49,29 +49,26 @@ export const FileItem = ({
     useFileManagerStore();
   const moveFileMutation = useMoveFile();
 
-  // Hide item if it has been moved from this directory
-  const isHidden = isFileMovedFrom(item._id, currentDirectory);
+  // Hide file if it has been moved from this directory
+  const isHidden = isFileMovedFrom(file._id, currentDirectory);
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      // Prevent click handling on touch devices to avoid double triggering
-      if (isTouchDevice.current) return;
+  const handleClick = useCallback(() => {
+    // Prevent click handling on touch devices to avoid double triggering
+    if (isTouchDevice.current) return;
 
-      if (clickTimeout.current) {
-        // Double click detected
-        window.clearTimeout(clickTimeout.current);
+    if (clickTimeout.current) {
+      // Double click detected
+      window.clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+      onDoubleClick(file);
+    } else {
+      // First click - wait for potential second click
+      clickTimeout.current = window.setTimeout(() => {
         clickTimeout.current = null;
-        onDoubleClick(item);
-      } else {
-        // First click - wait for potential second click
-        clickTimeout.current = window.setTimeout(() => {
-          clickTimeout.current = null;
-          onClick(item);
-        }, 200);
-      }
-    },
-    [item, onClick, onDoubleClick]
-  );
+        onClick(file);
+      }, 200);
+    }
+  }, [file, onClick, onDoubleClick]);
 
   const handleDragStart = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -81,9 +78,9 @@ export const FileItem = ({
       e.dataTransfer.setData(
         "application/json",
         JSON.stringify({
-          id: item._id,
-          name: item.name,
-          isFolder: item.isFolder,
+          id: file._id,
+          name: file.name,
+          isFolder: file.isFolder,
           parentFolderId: currentDirectory,
         })
       );
@@ -95,12 +92,12 @@ export const FileItem = ({
       dragImage.innerHTML = `
         <div class="file-item__drag-icon">
           ${
-            item.isFolder
+            file.isFolder
               ? '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke="currentColor" stroke-width="2" fill="none"/></svg>'
               : '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" stroke="currentColor" stroke-width="2" fill="none"/></svg>'
           }
         </div>
-        <span>${item.name}</span>
+        <span>${file.name}</span>
       `;
       document.body.appendChild(dragImage);
       e.dataTransfer.setDragImage(dragImage, 0, 0);
@@ -109,7 +106,7 @@ export const FileItem = ({
         document.body.removeChild(dragImage);
       });
     },
-    [item, isEditing, isHidden, currentDirectory]
+    [file, isEditing, isHidden, currentDirectory]
   );
 
   const handleDragEnd = useCallback(() => {
@@ -122,14 +119,14 @@ export const FileItem = ({
       e.stopPropagation();
 
       // Only handle drag enter for folders
-      if (!item.isFolder || isEditing || isDragging) return;
+      if (!file.isFolder || isEditing || isDragging) return;
 
       dragCounter.current += 1;
       if (dragCounter.current === 1) {
         setIsDropTarget(true);
       }
     },
-    [item.isFolder, isEditing, isDragging]
+    [file.isFolder, isEditing, isDragging]
   );
 
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -148,10 +145,10 @@ export const FileItem = ({
       e.stopPropagation();
 
       // Only show drop effect for folders
-      if (!item.isFolder || isEditing || isDragging) return;
+      if (!file.isFolder || isEditing || isDragging) return;
       e.dataTransfer.dropEffect = "move";
     },
-    [item.isFolder, isEditing, isDragging]
+    [file.isFolder, isEditing, isDragging]
   );
 
   const handleDrop = useCallback(
@@ -161,7 +158,7 @@ export const FileItem = ({
       setIsDropTarget(false);
       dragCounter.current = 0;
 
-      if (!item.isFolder || isEditing) return;
+      if (!file.isFolder || isEditing) return;
 
       try {
         const dragData = e.dataTransfer.getData("application/json");
@@ -169,15 +166,15 @@ export const FileItem = ({
 
         const { id: sourceId, parentFolderId: sourceParentId } =
           JSON.parse(dragData);
-        if (sourceId === item._id) return; // Can't drop on itself
+        if (sourceId === file._id) return; // Can't drop on itself
 
         // Optimistically update UI
-        moveFile(sourceId, item._id);
+        moveFile(sourceId, file._id);
 
         // Update server
         await moveFileMutation.mutateAsync({
           fileId: sourceId,
-          targetFolderId: item._id,
+          targetFolderId: file._id,
         });
 
         // Invalidate queries for both source and target directories
@@ -185,7 +182,7 @@ export const FileItem = ({
           queryKey: ["files", "list", sourceParentId],
         });
         queryClient.invalidateQueries({
-          queryKey: ["files", "list", item._id],
+          queryKey: ["files", "list", file._id],
         });
 
         // Clear optimistic state after successful move
@@ -193,11 +190,11 @@ export const FileItem = ({
       } catch (error) {
         showErrorToast(error);
         // Revert optimistic update on error
-        clearMovedFile(item._id);
+        clearMovedFile(file._id);
       }
     },
     [
-      item,
+      file,
       isEditing,
       moveFile,
       moveFileMutation,
@@ -224,31 +221,35 @@ export const FileItem = ({
         // Quick tap - handle as single click
         window.clearTimeout(touchTimeout.current);
         touchTimeout.current = null;
-        onClick(item);
+        onClick(file);
       } else {
         // Long press - handle as double click
-        onDoubleClick(item);
+        onDoubleClick(file);
       }
     },
-    [item, onClick, onDoubleClick]
+    [file, onClick, onDoubleClick]
   );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        onClick(item);
+        onClick(file);
       } else if (e.key === "Enter" && e.shiftKey) {
         e.preventDefault();
-        onDoubleClick(item);
+        onDoubleClick(file);
       }
     },
-    [item, onClick, onDoubleClick]
+    [file, onClick, onDoubleClick]
   );
 
   const renderIcon = () => (
     <div className="file-item__icon">
-      {item.isFolder ? <Folder size={iconSize} /> : <File size={iconSize} />}
+      <FileIcon
+        isFolder={file.isFolder}
+        mimetype={file.mimeType}
+        size={iconSize}
+      />
     </div>
   );
 
@@ -256,7 +257,7 @@ export const FileItem = ({
     if (isGrid) {
       return (
         <span className="file-item__details">
-          {item.isFolder ? "Folder" : formatFileSize(item.size)}
+          {file.isFolder ? "Folder" : formatFileSize(file.size)}
         </span>
       );
     }
@@ -264,10 +265,10 @@ export const FileItem = ({
     return (
       <>
         <span className="file-item__size">
-          {item.isFolder ? "-" : formatFileSize(item.size)}
+          {file.isFolder ? "-" : formatFileSize(file.size)}
         </span>
         <span className="file-item__date">
-          {new Date(item.updatedAt).toLocaleString(undefined, {
+          {new Date(file.updatedAt).toLocaleString(undefined, {
             dateStyle: "medium",
             timeStyle: "short",
           })}
@@ -303,7 +304,7 @@ export const FileItem = ({
       {renderIcon()}
       <div className="file-item__info">
         <EditableFileName
-          initialName={item.name}
+          initialName={file.name}
           isEditing={isEditing}
           onFinishEditing={onFinishEditing || (() => {})}
           onCancel={onCancel || (() => {})}

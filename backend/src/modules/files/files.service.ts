@@ -172,7 +172,7 @@ export class FilesService {
         name: createFolderDto.name,
         originalName: createFolderDto.name,
         isFolder: true,
-        mimeType: 'folder',
+        mimeType: 'application/directory',
         size: 0,
         path,
         parentFolderId,

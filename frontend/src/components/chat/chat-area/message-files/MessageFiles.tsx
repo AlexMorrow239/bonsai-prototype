@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
-import { FileIcon, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
+
+import { FileIcon } from "@/components/common/file-icon/FileIcon";
 
 import type { FileServerData, UploadedFile } from "@/types";
 import { formatFileSize } from "@/utils/fileUtils";
@@ -18,6 +20,7 @@ const MessageFile = ({ file }: MessageFileProps): ReactNode => {
   const fileName = "metadata" in file ? file.metadata.name : file.name;
   const fileSize = "metadata" in file ? file.metadata.size : file.size;
   const fileUrl = "url" in file ? file.url : undefined;
+  const mimetype = "metadata" in file ? file.metadata.mimetype : file.mimetype;
 
   const handleClick = () => {
     if (fileUrl) {
@@ -32,7 +35,7 @@ const MessageFile = ({ file }: MessageFileProps): ReactNode => {
       role={fileUrl ? "button" : undefined}
       title={fileUrl ? "Click to open file" : "File not available"}
     >
-      <FileIcon size={16} className="message-file__icon" />
+      <FileIcon mimetype={mimetype} size={16} className="message-file__icon" />
       <div className="message-file__info">
         <div className="message-file__name">{fileName}</div>
         <div className="message-file__meta">{formatFileSize(fileSize)}</div>
