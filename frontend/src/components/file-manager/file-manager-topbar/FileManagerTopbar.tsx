@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import { Folder, FolderUp, LayoutGrid, List } from "lucide-react";
 
 import { ActionModal } from "@/components/common/action-modal/ActionModal";
@@ -15,11 +17,18 @@ import "./FileManagerTopbar.scss";
 
 export default function FileManagerTopbar() {
   const { showSuccessToast, showErrorToast } = useUIStore();
-  const { viewMode, setViewMode, currentDirectory } = useFileManagerStore();
+  const {
+    viewMode,
+    setViewMode,
+    currentDirectory,
+    addTemporaryItem,
+    removeTemporaryItem,
+  } = useFileManagerStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadFileMutation = useUploadFile();
+  const queryClient = useQueryClient();
 
   // Mock selected file/folder state - replace with actual state management
   const selectedItem = null;
@@ -45,14 +54,55 @@ export default function FileManagerTopbar() {
     if (!files?.length) return;
 
     try {
-      // Upload each file
-      for (const file of files) {
-        await uploadFileMutation.mutateAsync({
-          file,
+      // Create temporary files for optimistic updates
+      const tempFiles = Array.from(files).map((file) => {
+        const tempId = `temp-file-${Date.now()}-${file.name}`;
+        return {
+          _id: tempId,
           name: file.name,
-          parentFolderId: currentDirectory || undefined,
-        });
+          isFolder: false,
+          size: file.size,
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          path: currentDirectory
+            ? `${currentDirectory}/${file.name}`
+            : file.name,
+          parentFolderId: currentDirectory || null,
+          isStarred: false,
+          isTrashed: false,
+          isActive: true,
+          mimetype: file.type,
+        };
+      });
+
+      // Add temporary files to the store
+      tempFiles.forEach((tempFile) => addTemporaryItem(tempFile));
+
+      // Upload each file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const tempFile = tempFiles[i];
+
+        try {
+          await uploadFileMutation.mutateAsync({
+            file,
+            name: file.name,
+            parentFolderId: currentDirectory || undefined,
+          });
+
+          // Remove temporary file after successful upload
+          removeTemporaryItem(tempFile._id);
+        } catch (error) {
+          // Remove temporary file on error
+          removeTemporaryItem(tempFile._id);
+          throw error;
+        }
       }
+
+      // Invalidate queries after all uploads are complete
+      queryClient.invalidateQueries({
+        queryKey: ["files", "list", currentDirectory],
+      });
 
       showSuccessToast(
         files.length === 1
