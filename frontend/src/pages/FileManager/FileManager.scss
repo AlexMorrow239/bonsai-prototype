@@ -27,6 +27,23 @@
     flex: 1;
     padding: 1rem;
     overflow-y: auto;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0.5rem;
+      border-radius: 0.5rem;
+      border: 2px dashed var(--color-primary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    &--dropping::after {
+      opacity: 0.5;
+    }
 
     &--grid {
       display: grid;
@@ -52,6 +69,10 @@
 
     &--error {
       color: var(--color-danger);
+    }
+
+    &--dropping {
+      background-color: var(--color-primary-transparent);
     }
   }
 }

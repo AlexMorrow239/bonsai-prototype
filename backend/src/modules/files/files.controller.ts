@@ -24,6 +24,7 @@ import {
 import { Types } from 'mongoose';
 
 import { CreateFileDto } from './dto/create-file.dto';
+import { MoveFileDto } from './dto/move-file.dto';
 import { QueryFileDto } from './dto/query-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
 import { UploadFileDto } from './dto/upload-file.dto';
@@ -219,5 +220,24 @@ export class FilesController {
   })
   async toggleStar(@Param('id') id: string) {
     return this.filesService.toggleStar(new Types.ObjectId(id));
+  }
+
+  @Post(':id/move')
+  @ApiOperation({
+    summary: 'Move file',
+    description: 'Move a file or folder to a different location',
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID of the file to move',
+  })
+  @ApiBody({ type: MoveFileDto })
+  @ApiResponse({
+    status: 200,
+    description: 'File moved successfully',
+  })
+  async moveFile(@Param('id') id: string, @Body() moveFileDto: MoveFileDto) {
+    return this.filesService.moveFile(new Types.ObjectId(id), moveFileDto);
   }
 }

@@ -12,6 +12,7 @@ import { AwsS3Service } from '@/services/aws-s3/aws-s3.service';
 import { ErrorHandler } from '@/utils/errorHandler.util';
 
 import { CreateFileDto } from './dto/create-file.dto';
+import { MoveFileDto } from './dto/move-file.dto';
 import { QueryFileDto } from './dto/query-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
 import { UploadFileDto } from './dto/upload-file.dto';
@@ -372,6 +373,107 @@ export class FilesService {
     } catch (error) {
       ErrorHandler.handleServiceError(this.logger, error, 'toggle star', {
         fileId: id,
+      });
+    }
+  }
+
+  async moveFile(id: Types.ObjectId, moveFileDto: MoveFileDto) {
+    try {
+      const file = await this.fileModel.findById(id).exec();
+      if (!file) {
+        throw new NotFoundException(`File with ID ${id} not found`);
+      }
+
+      // If target folder is specified, verify it exists and is a folder
+      if (moveFileDto.targetFolderId) {
+        const targetFolder = await this.fileModel
+          .findById(moveFileDto.targetFolderId)
+          .exec();
+        if (!targetFolder) {
+          throw new NotFoundException(
+            `Target folder with ID ${moveFileDto.targetFolderId} not found`
+          );
+        }
+        if (!targetFolder.isFolder) {
+          throw new BadRequestException(
+            `Target with ID ${moveFileDto.targetFolderId} is not a folder`
+          );
+        }
+        // Prevent moving a folder into itself or its descendants
+        if (file.isFolder) {
+          const targetPath = await this.getParentPath(
+            moveFileDto.targetFolderId
+          );
+          if (targetPath.startsWith(file.path)) {
+            throw new BadRequestException(
+              'Cannot move a folder into itself or its descendants'
+            );
+          }
+        }
+      }
+
+      // Get the new path
+      const newPath = moveFileDto.targetFolderId
+        ? this.normalizePath(
+            `${await this.getParentPath(moveFileDto.targetFolderId)}/${file.name}`
+          )
+        : file.name;
+
+      // If moving a folder, update paths of all descendants
+      if (file.isFolder) {
+        const descendants = await this.fileModel
+          .find({
+            path: { $regex: `^${file.path}/` },
+          })
+          .exec();
+
+        // Update paths of all descendants
+        await Promise.all(
+          descendants.map((descendant) => {
+            const relativePath = descendant.path.slice(file.path.length);
+            const newDescendantPath = this.normalizePath(
+              `${newPath}${relativePath}`
+            );
+            return this.fileModel
+              .findByIdAndUpdate(
+                descendant._id,
+                { path: newDescendantPath },
+                { new: true }
+              )
+              .exec();
+          })
+        );
+      }
+
+      // Update the file's parent and path
+      const updatedFile = await this.fileModel
+        .findByIdAndUpdate(
+          id,
+          {
+            parentFolderId: moveFileDto.targetFolderId
+              ? new Types.ObjectId(moveFileDto.targetFolderId)
+              : null,
+            path: newPath,
+          },
+          { new: true }
+        )
+        .exec();
+
+      if (!updatedFile) {
+        throw new NotFoundException(`File with ID ${id} not found`);
+      }
+
+      // If it's a file (not a folder) and has an S3 key, include the signed URL
+      if (!updatedFile.isFolder && updatedFile.s3Key) {
+        const url = await this.s3Service.getSignedUrl(updatedFile.s3Key);
+        return { ...updatedFile.toObject(), url };
+      }
+
+      return updatedFile.toObject();
+    } catch (error) {
+      ErrorHandler.handleServiceError(this.logger, error, 'move file', {
+        fileId: id,
+        targetFolderId: moveFileDto.targetFolderId,
       });
     }
   }

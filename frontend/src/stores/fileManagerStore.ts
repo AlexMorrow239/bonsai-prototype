@@ -7,6 +7,7 @@ interface FileManagerState {
   selectedItems: string[];
   currentDirectory: string | null;
   pathItems: FileSystemEntity[];
+  movedFiles: Record<string, string | null>; // Track moved files for optimistic updates
 
   // Actions
   setViewMode: (mode: "grid" | "list") => void;
@@ -16,6 +17,10 @@ interface FileManagerState {
   navigateToDirectory: (directoryId: string | null) => void;
   navigateUp: () => void;
   setPathItems: (items: FileSystemEntity[]) => void;
+  moveFile: (fileId: string, targetFolderId: string | null) => void;
+  clearMovedFile: (fileId: string) => void;
+  isFileMovedFrom: (fileId: string, currentFolderId: string | null) => boolean;
+  isFileMovedTo: (fileId: string, targetFolderId: string | null) => boolean;
 }
 
 export const useFileManagerStore = create<FileManagerState>((set, get) => ({
@@ -23,6 +28,7 @@ export const useFileManagerStore = create<FileManagerState>((set, get) => ({
   selectedItems: [],
   currentDirectory: null,
   pathItems: [],
+  movedFiles: {},
 
   setViewMode: (mode) => set({ viewMode: mode }),
   setSelectedItems: (items) => set({ selectedItems: items }),
@@ -50,5 +56,32 @@ export const useFileManagerStore = create<FileManagerState>((set, get) => ({
     }
     const parentDirectory = pathItems[pathItems.length - 2];
     set({ currentDirectory: parentDirectory._id, selectedItems: [] });
+  },
+
+  // File moving actions
+  moveFile: (fileId, targetFolderId) =>
+    set((state) => ({
+      movedFiles: {
+        ...state.movedFiles,
+        [fileId]: targetFolderId,
+      },
+    })),
+
+  clearMovedFile: (fileId) =>
+    set((state) => {
+      const { [fileId]: _, ...remainingMoves } = state.movedFiles;
+      return { movedFiles: remainingMoves };
+    }),
+
+  isFileMovedFrom: (fileId, currentFolderId) => {
+    const { movedFiles } = get();
+    return (
+      movedFiles[fileId] !== undefined && movedFiles[fileId] !== currentFolderId
+    );
+  },
+
+  isFileMovedTo: (fileId, targetFolderId) => {
+    const { movedFiles } = get();
+    return movedFiles[fileId] === targetFolderId;
   },
 }));

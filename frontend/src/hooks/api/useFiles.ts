@@ -142,6 +142,23 @@ export function useToggleFileStar() {
   });
 }
 
+// Move a file
+export function useMoveFile() {
+  return useMutation<
+    FileSystemEntity,
+    AxiosError<ApiError>,
+    { fileId: string; targetFolderId: string | null }
+  >({
+    mutationFn: async ({ fileId, targetFolderId }) => {
+      const response = await apiClient.post<ApiResponse<FileSystemEntity>>(
+        `/files/${fileId}/move`,
+        { targetFolderId }
+      );
+      return response.data.data;
+    },
+  });
+}
+
 // Download a file
 export function useDownloadFile() {
   return useMutation<Blob, AxiosError<ApiError>, string>({
