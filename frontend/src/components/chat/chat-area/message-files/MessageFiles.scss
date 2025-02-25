@@ -17,9 +17,25 @@
   border-radius: var(--radius-base);
   transition: var(--transition-all);
 
-  &:hover {
-    border-color: var(--color-border-hover);
-    background-color: var(--color-surface);
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--color-border-hover);
+      background-color: var(--color-surface);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+      .message-file__download {
+        opacity: 1;
+        color: var(--color-primary);
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
   }
 
   &__icon {

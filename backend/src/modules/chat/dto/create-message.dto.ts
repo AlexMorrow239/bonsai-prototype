@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { FileUploadDto } from '@/common/dto/file-upload.dto';
+import { FileAttachmentDto } from './file-attachment.dto';
 
 export class CreateMessageDto {
   @ApiProperty({ description: 'The content of the message' })
@@ -24,11 +24,11 @@ export class CreateMessageDto {
 
   @ApiPropertyOptional({
     description: 'Array of files attached to the message',
-    type: [FileUploadDto],
+    type: [FileAttachmentDto],
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => FileUploadDto)
+  @Type(() => FileAttachmentDto)
   @IsOptional()
-  files?: FileUploadDto[];
+  files?: FileAttachmentDto[];
 }

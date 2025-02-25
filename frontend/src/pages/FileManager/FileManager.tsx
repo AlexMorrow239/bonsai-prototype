@@ -1,15 +1,14 @@
 import { ReactElement, useEffect, useState } from "react";
 
-import { File, Folder } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { EditableFileName } from "@/components/file-manager/file-item/EditableFileName";
+import { FileItem } from "@/components/file-manager/file-item/FileItem";
 import { FileManagerBreadcrumb } from "@/components/file-manager/file-manager-breadcrumb/FileManagerBreadcrumb";
 
 import { useCreateFolder, useFile, useFiles } from "@/hooks/api/useFiles";
 import { useFileManagerStore } from "@/stores/fileManagerStore";
 import { useUIStore } from "@/stores/uiStore";
 import type { FileSystemEntity } from "@/types/filesystem";
-import { formatFileSize } from "@/utils/fileUtils";
 
 import "./FileManager.scss";
 
@@ -23,6 +22,7 @@ export const FileManager = (): ReactElement => {
     navigateToDirectory,
     setPathItems,
   } = useFileManagerStore();
+  const queryClient = useQueryClient();
 
   const [newFolderName, setNewFolderName] = useState<string | undefined>(
     undefined
@@ -35,16 +35,20 @@ export const FileManager = (): ReactElement => {
     isLoading,
     error,
   } = useFiles({
-    parentFolderId: currentDirectory || null,
+    parentFolderId: !currentDirectory ? null : currentDirectory,
     isActive: true,
   });
 
   // Get current directory details if we're not at root
-  const { data: currentDirDetails } = useFile(currentDirectory || "");
+  const { data: currentDirDetails } = useFile(currentDirectory || "", {
+    enabled: !!currentDirectory,
+  });
 
   // Get parent folder details if we have a current directory
   const parentFolderId = currentDirDetails?.parentFolderId || null;
-  const { data: parentDetails } = useFile(parentFolderId || "");
+  const { data: parentDetails } = useFile(parentFolderId || "", {
+    enabled: !!parentFolderId,
+  });
 
   // Update path items when directory details change
   useEffect(() => {
@@ -63,8 +67,10 @@ export const FileManager = (): ReactElement => {
 
   const handleItemClick = (file: FileSystemEntity) => {
     if (file.isFolder) {
-      console.log("Navigating to folder:", file._id, file.name);
       navigateToDirectory(file._id);
+      // Invalidate queries for the new directory
+      queryClient.invalidateQueries({ queryKey: ["files", "list", file._id] });
+      queryClient.invalidateQueries({ queryKey: ["files", file._id] });
     } else {
       toggleSelectedItem(file._id);
     }
@@ -72,7 +78,7 @@ export const FileManager = (): ReactElement => {
 
   const handleItemDoubleClick = (file: FileSystemEntity) => {
     if (file.isFolder) {
-      navigateToDirectory(file._id);
+      handleItemClick(file);
     }
     // TODO: Handle file double click (preview/open file)
   };
@@ -133,94 +139,36 @@ export const FileManager = (): ReactElement => {
     );
   }
 
-  const renderListItem = (file: FileSystemEntity) => (
-    <div
-      key={file._id}
-      className={`file-item ${selectedItems.includes(file._id) ? "selected" : ""}`}
-      onClick={() => handleItemClick(file)}
-      onDoubleClick={() => handleItemDoubleClick(file)}
-    >
-      <div className="file-item__icon">
-        {file.isFolder ? <Folder size={20} /> : <File size={20} />}
-      </div>
-      <div className="file-item__info">
-        <EditableFileName
-          initialName={file.name}
-          isEditing={false}
-          onFinishEditing={() => {}}
-          onCancel={() => {}}
-        />
-        <span className="file-item__size">
-          {file.isFolder ? "-" : formatFileSize(file.size)}
-        </span>
-        <span className="file-item__date">
-          {new Date(file.updatedAt).toLocaleString(undefined, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })}
-        </span>
-      </div>
-    </div>
-  );
-
-  const renderGridItem = (file: FileSystemEntity) => (
-    <div
-      key={file._id}
-      className={`file-item file-item--grid ${
-        selectedItems.includes(file._id) ? "selected" : ""
-      }`}
-      onClick={() => handleItemClick(file)}
-      onDoubleClick={() => handleItemDoubleClick(file)}
-    >
-      <div className="file-item__icon">
-        {file.isFolder ? <Folder size={32} /> : <File size={32} />}
-      </div>
-      <div className="file-item__info">
-        <EditableFileName
-          initialName={file.name}
-          isEditing={false}
-          onFinishEditing={() => {}}
-          onCancel={() => {}}
-        />
-        <span className="file-item__details">
-          {file.isFolder ? "Folder" : formatFileSize(file.size)}
-        </span>
-      </div>
-    </div>
-  );
-
   const renderNewFolder = () => {
-    return viewMode === "list" ? (
-      <div key="new-folder" className="file-item">
-        <div className="file-item__icon">
-          <Folder size={20} />
-        </div>
-        <div className="file-item__info">
-          <EditableFileName
-            initialName={newFolderName || ""}
-            isEditing={true}
-            onFinishEditing={handleFinishFolderCreation}
-            onCancel={() => setNewFolderName(undefined)}
-          />
-          <span className="file-item__size">-</span>
-          <span className="file-item__date">Just now</span>
-        </div>
-      </div>
-    ) : (
-      <div key="new-folder" className="file-item file-item--grid">
-        <div className="file-item__icon">
-          <Folder size={32} />
-        </div>
-        <div className="file-item__info">
-          <EditableFileName
-            initialName={newFolderName || ""}
-            isEditing={true}
-            onFinishEditing={handleFinishFolderCreation}
-            onCancel={() => setNewFolderName(undefined)}
-          />
-          <span className="file-item__details">Folder</span>
-        </div>
-      </div>
+    const folder: FileSystemEntity = {
+      _id: "new-folder",
+      name: newFolderName || "",
+      isFolder: true,
+      size: 0,
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      path: currentDirectory
+        ? `${currentDirectory}/${newFolderName}`
+        : newFolderName || "",
+      parentFolderId: currentDirectory || null,
+      isStarred: false,
+      isTrashed: false,
+      isActive: true,
+      mimetype: "folder",
+    };
+
+    return (
+      <FileItem
+        key="new-folder"
+        item={folder}
+        viewMode={viewMode}
+        isSelected={false}
+        onClick={() => {}}
+        onDoubleClick={() => {}}
+        onFinishEditing={handleFinishFolderCreation}
+        onCancel={() => setNewFolderName(undefined)}
+        isEditing={true}
+      />
     );
   };
 
@@ -231,9 +179,16 @@ export const FileManager = (): ReactElement => {
         className={`file-manager__content file-manager__content--${viewMode}`}
       >
         {newFolderName && renderNewFolder()}
-        {files.map((file) =>
-          viewMode === "list" ? renderListItem(file) : renderGridItem(file)
-        )}
+        {files.map((item) => (
+          <FileItem
+            key={item._id}
+            item={item}
+            viewMode={viewMode}
+            isSelected={selectedItems.includes(item._id)}
+            onClick={handleItemClick}
+            onDoubleClick={handleItemDoubleClick}
+          />
+        ))}
       </div>
     </div>
   );

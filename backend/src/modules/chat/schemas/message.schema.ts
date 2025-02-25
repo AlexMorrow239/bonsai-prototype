@@ -7,8 +7,8 @@ interface FileAttachment {
   name: string;
   mimetype: string;
   size: number;
-  url: string;
   path: string;
+  url?: string;
 }
 
 @Schema({
@@ -41,8 +41,8 @@ export class Message {
         name: String,
         mimetype: String,
         size: Number,
-        url: String,
         path: String,
+        url: { type: String, required: false },
       },
     ],
     default: [],

@@ -28,11 +28,12 @@ export class File {
   s3Key?: string; // S3 object key for internal operations
 
   @Prop({
+    type: String,
     required: function (this: File) {
       return !this.isFolder;
     },
   })
-  s3Url?: string; // Pre-signed URL for client access
+  s3Url?: string; // Pre-signed URL for client access (temporary)
 
   @Prop({ type: Types.ObjectId, ref: 'File', default: null })
   parentFolderId: Types.ObjectId | null; // null if in root

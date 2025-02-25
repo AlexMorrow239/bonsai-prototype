@@ -40,7 +40,7 @@ export function useFiles(params?: QueryFileParams) {
 }
 
 // Get a single file by ID
-export function useFile(fileId: string) {
+export function useFile(fileId: string, options: { enabled?: boolean } = {}) {
   return useQuery<FileSystemEntity, AxiosError<ApiError>>({
     queryKey: ["files", fileId],
     queryFn: async () => {
@@ -49,7 +49,10 @@ export function useFile(fileId: string) {
       );
       return response.data.data;
     },
-    enabled: !!fileId && fileId !== "",
+    enabled:
+      options.enabled !== undefined
+        ? options.enabled
+        : !!fileId && fileId !== "",
   });
 }
 

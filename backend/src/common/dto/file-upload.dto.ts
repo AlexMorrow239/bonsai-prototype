@@ -32,10 +32,6 @@ export class FileUploadDto {
   @Max(10 * 1024 * 1024)
   size: number;
 
-  @ApiProperty({ description: 'The temporary signed URL for file access' })
-  @IsString()
-  url: string;
-
   @ApiProperty({ description: 'The S3 file path/key' })
   @IsString()
   path: string;

@@ -19,24 +19,28 @@ const MessageFile = ({ file }: MessageFileProps): ReactNode => {
   const fileSize = "metadata" in file ? file.metadata.size : file.size;
   const fileUrl = "url" in file ? file.url : undefined;
 
+  const handleClick = () => {
+    if (fileUrl) {
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
-    <div className="message-file">
+    <div
+      className={`message-file ${fileUrl ? "clickable" : ""}`}
+      onClick={handleClick}
+      role={fileUrl ? "button" : undefined}
+      title={fileUrl ? "Click to open file" : "File not available"}
+    >
       <FileIcon size={16} className="message-file__icon" />
       <div className="message-file__info">
         <div className="message-file__name">{fileName}</div>
         <div className="message-file__meta">{formatFileSize(fileSize)}</div>
       </div>
       {fileUrl && (
-        <a
-          href={fileUrl}
-          download={fileName}
-          className="message-file__download"
-          title="Download file"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <div className="message-file__download" title="Download file">
           <Link2 size={14} />
-        </a>
+        </div>
       )}
     </div>
   );

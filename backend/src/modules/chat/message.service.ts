@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Model, Types } from 'mongoose';
+import { Document, Model, Types } from 'mongoose';
 
 import { FileUploadDto } from '@/common/dto/file-upload.dto';
 import { CreateMessageDto } from '@/modules/chat/dto/create-message.dto';
+import { FileAttachmentDto } from '@/modules/chat/dto/file-attachment.dto';
 import { IChat } from '@/modules/chat/schemas/chat.schema';
 import { IMessage } from '@/modules/chat/schemas/message.schema';
 import { AwsS3Service } from '@/services/aws-s3/aws-s3.service';
@@ -21,11 +22,26 @@ export class MessageService {
   private readonly logger = new Logger(MessageService.name);
 
   constructor(
-    @InjectModel('Message') private messageModel: Model<IMessage>,
+    @InjectModel('Message') private messageModel: Model<IMessage & Document>,
     @InjectModel('Chat') private chatModel: Model<IChat>,
     private readonly awsS3Service: AwsS3Service,
     private readonly llmService: LlmService
   ) {}
+
+  private async addSignedUrlsToMessage(
+    message: IMessage & Document
+  ): Promise<IMessage> {
+    if (!message.files?.length) return message;
+
+    const messageObj = message.toObject();
+    messageObj.files = await Promise.all(
+      messageObj.files.map(async (file) => ({
+        ...file,
+        url: await this.awsS3Service.getSignedUrl(file.path),
+      }))
+    );
+    return messageObj;
+  }
 
   async createMessage(
     chatId: string,
@@ -50,12 +66,22 @@ export class MessageService {
         throw new NotFoundException(`Chat with ID ${chatId} not found`);
       }
 
-      let uploadedFiles: FileUploadDto[] = [];
+      let uploadedFiles: FileAttachmentDto[] = [];
 
       // Process files if they exist
       if (files?.length) {
         try {
-          uploadedFiles = await this.awsS3Service.uploadFiles(files);
+          const uploadResults = await this.awsS3Service.uploadFiles(files);
+          uploadedFiles = uploadResults.map(
+            ({ _id, name, mimetype, size, path, url }) => ({
+              _id,
+              name,
+              mimetype,
+              size,
+              path,
+              url,
+            })
+          );
           createMessageDto.files = uploadedFiles;
         } catch (uploadError) {
           this.logger.error('File upload failed:', uploadError);
@@ -73,6 +99,8 @@ export class MessageService {
       });
 
       const savedUserMessage = await userMessage.save();
+      const userMessageWithUrls =
+        await this.addSignedUrlsToMessage(savedUserMessage);
 
       // Get AI response from LLM service
       const llmResponse = await this.llmService.query({
@@ -90,6 +118,8 @@ export class MessageService {
       });
 
       const savedAiMessage = await aiMessage.save();
+      const aiMessageWithUrls =
+        await this.addSignedUrlsToMessage(savedAiMessage);
 
       // Update chat metadata and context
       await this.updateChatMetadata(
@@ -101,7 +131,7 @@ export class MessageService {
         llmResponse.updatedSummary
       );
 
-      return [savedUserMessage, savedAiMessage];
+      return [userMessageWithUrls, aiMessageWithUrls];
     } catch (error) {
       // If message creation fails, clean up any uploaded files
       if (createMessageDto.files?.length) {
@@ -125,7 +155,7 @@ export class MessageService {
           .sort({ created_at: -1 });
 
         if (userMessage) {
-          return [userMessage];
+          return [await this.addSignedUrlsToMessage(userMessage)];
         }
       }
 
@@ -139,7 +169,7 @@ export class MessageService {
     }
   }
 
-  private async cleanupMessageFiles(files: FileUploadDto[]): Promise<void> {
+  private async cleanupMessageFiles(files: FileAttachmentDto[]): Promise<void> {
     try {
       this.logger.debug('Starting cleanup of message files', {
         filesToDelete: files,
@@ -193,7 +223,10 @@ export class MessageService {
         throw new NotFoundException(`No messages found for chat ID ${chatId}`);
       }
 
-      return messages;
+      // Add fresh signed URLs to all messages with files
+      return await Promise.all(
+        messages.map((msg) => this.addSignedUrlsToMessage(msg))
+      );
     } catch (error) {
       ErrorHandler.handleServiceError(
         this.logger,
@@ -236,6 +269,27 @@ export class MessageService {
         'update chat metadata',
         { chatId, messageDto },
         [BadRequestException, NotFoundException]
+      );
+    }
+  }
+
+  async getMessagesByChat(chatId: string): Promise<IMessage[]> {
+    try {
+      const messages = await this.messageModel
+        .find({ chat_id: chatId })
+        .sort({ created_at: 1 })
+        .exec();
+
+      // Add fresh signed URLs to all messages with files
+      return await Promise.all(
+        messages.map((msg) => this.addSignedUrlsToMessage(msg))
+      );
+    } catch (error) {
+      ErrorHandler.handleServiceError(
+        this.logger,
+        error,
+        'get messages by chat',
+        { chatId }
       );
     }
   }

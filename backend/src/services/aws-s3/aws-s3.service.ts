@@ -12,6 +12,15 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { FileUploadDto } from '@/common/dto/file-upload.dto';
 
+interface S3UploadResult {
+  _id: string;
+  name: string;
+  mimetype: string;
+  size: number;
+  path: string;
+  url: string;
+}
+
 @Injectable()
 export class AwsS3Service {
   private readonly s3Client: S3Client;
@@ -30,7 +39,8 @@ export class AwsS3Service {
     });
     this.bucketName = this.configService.get<string>('AWS_BUCKET_NAME');
   }
-  async uploadFiles(files: Express.Multer.File[]): Promise<FileUploadDto[]> {
+
+  async uploadFiles(files: Express.Multer.File[]): Promise<S3UploadResult[]> {
     try {
       this.logger.debug(`Attempting to upload ${files.length} files to S3`, {
         fileDetails: files.map((f) => ({
@@ -62,19 +72,19 @@ export class AwsS3Service {
 
           try {
             await this.s3Client.send(command);
-            const fileUrl = await this.getSignedUrl(key);
+            const url = await this.getSignedUrl(key);
 
-            const fileDto = {
+            const result: S3UploadResult = {
               _id: key,
               name: file.originalname,
               mimetype: file.mimetype,
               size: file.size,
-              url: fileUrl,
               path: key,
+              url,
             };
 
-            this.logger.debug(`Successfully uploaded file to S3:`, { fileDto });
-            return fileDto;
+            this.logger.debug(`Successfully uploaded file to S3:`, { result });
+            return result;
           } catch (uploadError) {
             this.logger.error(
               `Failed to upload individual file ${key}: ${uploadError.message}`,

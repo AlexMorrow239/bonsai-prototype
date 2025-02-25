@@ -139,7 +139,7 @@ export class FilesService {
       };
 
       const newFile = await this.fileModel.create(createFileDto);
-      return newFile;
+      return { ...newFile.toObject(), url: uploadResult.url };
     } catch (error) {
       ErrorHandler.handleServiceError(this.logger, error, 'create file', {
         fileName: file.originalname,
