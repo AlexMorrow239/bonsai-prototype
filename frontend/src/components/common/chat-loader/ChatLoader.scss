@@ -1,5 +1,14 @@
 @use "@/styles/abstracts" as *;
 
+.chat-loading-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-6) var(--spacing-4);
+}
+
 .chat-loading {
   padding: var(--spacing-4);
   margin-left: var(--spacing-4);
@@ -47,5 +56,11 @@
   }
   60% {
     opacity: 1;
+  }
+}
+
+@include respond-to("md") {
+  .chat-loading-container {
+    padding: var(--spacing-4);
   }
 }

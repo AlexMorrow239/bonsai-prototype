@@ -17,6 +17,22 @@ export function useChats() {
   });
 }
 
+export function useChatsByProject(projectId?: string) {
+  return useQuery<Chat[], AxiosError<ApiError>>({
+    queryKey: ["chats", "byProject", projectId],
+    queryFn: async () => {
+      if (!projectId) return [];
+      const response = await apiClient.get<ApiResponse<Chat[]>>(
+        `/chats?projectId=${projectId}`
+      );
+      return response.data.data;
+    },
+    enabled: !!projectId,
+    retry: false,
+    staleTime: 1000,
+  });
+}
+
 export function useCreateChat() {
   return useMutation<Chat, AxiosError<ApiError>, NewChat>({
     mutationFn: async (chatData) => {

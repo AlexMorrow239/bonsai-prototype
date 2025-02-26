@@ -63,7 +63,11 @@ export function ChatArea(): ReactElement {
 
   // Show loading indicator while messages are being fetched
   if (isLoading) {
-    return <ChatLoader message="Loading messages..." />;
+    return (
+      <div className="chat-messages">
+        <ChatLoader message="Loading messages..." />
+      </div>
+    );
   }
 
   return (

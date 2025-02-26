@@ -38,15 +38,30 @@ export function UserMessage({ message }: UserMessageProps): ReactNode {
   };
 
   const formattedDate = useMemo(() => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    }).format(new Date(message.created_at));
+    try {
+      // Check if created_at is valid
+      const date = message.created_at
+        ? new Date(message.created_at)
+        : new Date();
+
+      // Verify the date is valid before formatting
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      }).format(date);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   }, [message.created_at]);
 
   return (

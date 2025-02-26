@@ -2,18 +2,25 @@ import { ReactElement, useEffect } from "react";
 
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare, Plus } from "lucide-react";
 
+import { Button } from "@/components/common/button/Button";
+
+import { useChatsByProject } from "@/hooks/api/useChats";
+import { useCreateChat } from "@/hooks/api/useChats";
 import { useGetProject } from "@/hooks/api/useProjects";
+import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useToastActions } from "@/stores/uiStore";
+import { Chat } from "@/types";
 
 import "./CurrentProject.scss";
 
 export function CurrentProject(): ReactElement {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { showErrorToast } = useToastActions();
+  const { showErrorToast, showSuccessToast } = useToastActions();
+  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
 
   const {
     data: project,
@@ -21,6 +28,11 @@ export function CurrentProject(): ReactElement {
     error,
     isLoading,
   } = useGetProject(projectId || "");
+
+  const { data: projectChats, isLoading: isChatsLoading } =
+    useChatsByProject(projectId);
+  const createChatMutation = useCreateChat();
+
   const setCurrentProject = useProjectStore((state) => state.setCurrentProject);
 
   useEffect(() => {
@@ -35,6 +47,31 @@ export function CurrentProject(): ReactElement {
       navigate("/");
     }
   }, [isError, error, navigate, showErrorToast]);
+
+  const createNewChat = () => {
+    if (!projectId) return;
+
+    createChatMutation.mutate(
+      {
+        title: `${project?.name || "Project"} Chat`,
+        project_id: projectId,
+      },
+      {
+        onSuccess: (newChat) => {
+          showSuccessToast("Chat created successfully");
+          navigateToChat(newChat);
+        },
+        onError: (err) => {
+          showErrorToast(err);
+        },
+      }
+    );
+  };
+
+  const navigateToChat = (chat: Chat) => {
+    setCurrentChat(chat);
+    navigate(`/chat/${chat._id}`);
+  };
 
   if (isLoading) {
     return (
@@ -102,6 +139,55 @@ export function CurrentProject(): ReactElement {
               <span className="label">Last Updated</span>
               <span className="value">{formattedUpdatedDate}</span>
             </div>
+          </div>
+        </section>
+
+        <section className="current-project__section">
+          <div className="section-header">
+            <h2>Project Chats</h2>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={createNewChat}
+              leftIcon={<Plus size={16} />}
+            >
+              New Chat
+            </Button>
+          </div>
+          <div className="current-project__chats">
+            {isChatsLoading ? (
+              <div className="loading">Loading chats...</div>
+            ) : !projectChats || projectChats.length === 0 ? (
+              <div className="empty-state">
+                No chats found for this project. Create a new chat to get
+                started.
+              </div>
+            ) : (
+              <div className="chat-list">
+                {projectChats.map((chat) => (
+                  <div
+                    key={chat._id}
+                    className="chat-item"
+                    onClick={() => navigateToChat(chat)}
+                  >
+                    <div className="chat-icon">
+                      <MessageSquare size={18} />
+                    </div>
+                    <div className="chat-info">
+                      <div className="chat-title">{chat.title}</div>
+                      {chat.preview && (
+                        <div className="chat-preview">{chat.preview}</div>
+                      )}
+                      <div className="chat-date">
+                        {new Date(
+                          chat.last_message_at || chat.created_at
+                        ).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </div>

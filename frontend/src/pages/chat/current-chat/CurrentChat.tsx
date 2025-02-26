@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 
 import { ChatArea } from "@/components/chat/chat-area/ChatArea";
 import { ChatPrompt } from "@/components/chat/chat-prompt/ChatPrompt";
+import { ChatLoader } from "@/components/common/chat-loader/ChatLoader";
 import { FileUpload } from "@/components/common/file-upload/FileUpload";
 
 import { FILE_CONSTRAINTS } from "@/common/constants";
@@ -212,7 +213,69 @@ export default function CurrentChat(): ReactElement {
   }
 
   if (isChatLoading) {
-    return <div>Loading chat...</div>;
+    return (
+      <main
+        className={`chat-main ${isDragging ? "is-dragging" : ""}`}
+        {...getRootProps()}
+      >
+        <input {...getInputProps()} />
+        <ChatLoader message="Loading chat..." />
+        <ChatPrompt onSubmit={handleMessageSubmit} textareaRef={textareaRef} />
+        <div ref={dropzoneRef}>
+          <FileUpload
+            variant="dropzone"
+            isVisible={isDragging}
+            onFilesSelected={async (files) => {
+              try {
+                if (!currentChat?._id) {
+                  showErrorToast(
+                    new Error("No chat selected"),
+                    "Please select or create a chat first"
+                  );
+                  return;
+                }
+                await addPendingFiles(currentChat._id, files);
+              } catch (error) {
+                showErrorToast(error, "Failed to process files");
+              }
+            }}
+            onError={(error) =>
+              showErrorToast(error, "Failed to process files")
+            }
+            dropzoneOptions={{
+              onDragEnter: (event) => {
+                event.preventDefault();
+                dragCounter.current++;
+                if (dragCounter.current === 1) {
+                  setDragging(true);
+                }
+              },
+              onDragLeave: (event) => {
+                event.preventDefault();
+                dragCounter.current--;
+                if (dragCounter.current === 0) {
+                  setDragging(false);
+                }
+              },
+              onDropAccepted: () => {
+                dragCounter.current = 0;
+                setDragging(false);
+              },
+              onDropRejected: (fileRejections) => {
+                dragCounter.current = 0;
+                setDragging(false);
+                showErrorToast(
+                  new Error(
+                    fileRejections[0]?.errors[0]?.message || "Invalid file type"
+                  ),
+                  "File upload rejected"
+                );
+              },
+            }}
+          />
+        </div>
+      </main>
+    );
   }
 
   if (!chat) {
@@ -233,14 +296,14 @@ export default function CurrentChat(): ReactElement {
           isVisible={isDragging}
           onFilesSelected={async (files) => {
             try {
-              if (!chat?._id) {
+              if (!currentChat?._id) {
                 showErrorToast(
                   new Error("No chat selected"),
                   "Please select or create a chat first"
                 );
                 return;
               }
-              await addPendingFiles(chat._id, files);
+              await addPendingFiles(currentChat._id, files);
             } catch (error) {
               showErrorToast(error, "Failed to process files");
             }
