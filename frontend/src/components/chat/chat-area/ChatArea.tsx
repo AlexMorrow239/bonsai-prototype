@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useRef } from "react";
 
 import { AIMessage } from "@/components/chat/chat-area/ai-message/AiMessage";
 import { UserMessage } from "@/components/chat/chat-area/user-message/UserMessage";
-import { ChatLoadingIndicator } from "@/components/common/chat-loader/ChatLoader";
+import { ChatLoader } from "@/components/common/chat-loader/ChatLoader";
 
 import { useMessages } from "@/hooks/api/useMessages";
 import { useChatStore } from "@/stores/chatStore";
@@ -63,7 +63,7 @@ export function ChatArea(): ReactElement {
 
   // Show loading indicator while messages are being fetched
   if (isLoading) {
-    return <ChatLoadingIndicator message="Loading messages..." />;
+    return <ChatLoader message="Loading messages..." />;
   }
 
   return (
