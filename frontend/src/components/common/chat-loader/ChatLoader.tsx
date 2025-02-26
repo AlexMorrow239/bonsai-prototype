@@ -2,13 +2,13 @@ import { ReactNode } from "react";
 
 import "./ChatLoader.scss";
 
-interface ChatLoadingIndicatorProps {
+interface ChatLoaderProps {
   message?: string;
 }
 
-export function ChatLoadingIndicator({
+export function ChatLoader({
   message = "Generating",
-}: ChatLoadingIndicatorProps): ReactNode {
+}: ChatLoaderProps): ReactNode {
   return (
     <div className="chat-loading">
       <div className="chat-loading__content">
