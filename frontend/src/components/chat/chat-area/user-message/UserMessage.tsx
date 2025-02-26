@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { MessageFiles } from "@/components/chat/chat-area/message-files/MessageFiles";
 
@@ -37,6 +37,18 @@ export function UserMessage({ message }: UserMessageProps): ReactNode {
     }
   };
 
+  const formattedDate = useMemo(() => {
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }).format(new Date(message.created_at));
+  }, [message.created_at]);
+
   return (
     <div className="message user">
       {message.content && (
@@ -45,7 +57,7 @@ export function UserMessage({ message }: UserMessageProps): ReactNode {
       {message.files && message.files.length > 0 && (
         <MessageFiles files={message.files} />
       )}
-      <div className="message-timestamp">{message.created_at}</div>
+      <div className="message-timestamp">{formattedDate}</div>
       <form onSubmit={handleSubmit}>{/* Form content */}</form>
     </div>
   );
