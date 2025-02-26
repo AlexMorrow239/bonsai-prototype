@@ -74,7 +74,6 @@ export class ChatService {
           ? new Types.ObjectId(createChatDto.project_id)
           : undefined,
         preview: 'New chat created',
-        chat_context: '',
         is_active: true,
         last_message_at: new Date(),
       };

@@ -36,17 +36,12 @@ export class LlmService {
         );
       }
 
-      // Ensure conversationSummary is a string
-      const conversationSummary = request.conversationSummary || '';
-
       const requestBody = {
         query: request.query,
-        conversationSummary,
       };
 
       this.logger.debug('Sending query to LLM service:', {
         query: requestBody.query.substring(0, 50) + '...',
-        summaryLength: requestBody.conversationSummary.length,
         url: `${this.baseUrl}/api/query`,
       });
 

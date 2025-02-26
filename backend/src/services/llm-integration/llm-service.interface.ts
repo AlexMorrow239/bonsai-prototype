@@ -1,6 +1,5 @@
 export interface QueryRequest {
   query: string;
-  conversationSummary: string;
 }
 
 export interface QueryResponse {

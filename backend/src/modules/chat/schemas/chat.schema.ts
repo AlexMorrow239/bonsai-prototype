@@ -9,7 +9,6 @@ export interface IChat extends Document {
   project_id?: Types.ObjectId;
   is_active: boolean;
   last_message_at: Date;
-  chat_context: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,8 +35,6 @@ export class Chat {
   last_message_at: Date;
 
   @Prop({ default: '' })
-  chat_context: string;
-
   @Prop()
   createdAt: Date;
 
