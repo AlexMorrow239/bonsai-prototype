@@ -37,6 +37,6 @@ export const configValidationSchema = Joi.object({
   // LLM Service Configuration
   LLM_SERVICE_URL: Joi.string()
     .uri()
-    .default('http://localhost:3002')
+    .default('http://localhost:5001')
     .description('URL for the LLM service'),
 });

@@ -4,11 +4,10 @@ import { ConfigService } from '@nestjs/config';
 
 import { firstValueFrom } from 'rxjs';
 
-import { AppConfig } from '@/config/configuration';
-
 import {
   FileIngestionRequest,
   FileIngestionResponse,
+  LlmServiceResponse,
   QueryRequest,
   QueryResponse,
 } from './llm-service.interface';
@@ -36,31 +35,40 @@ export class LlmService {
         );
       }
 
+      if (!request.chatId) {
+        throw new HttpException(
+          'Invalid request: chatId is required',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
       const requestBody = {
         query: request.query,
+        chat_id: request.chatId,
       };
 
       this.logger.debug('Sending query to LLM service:', {
         query: requestBody.query.substring(0, 50) + '...',
-        url: `${this.baseUrl}/api/query`,
+        chatId: requestBody.chat_id,
+        url: `${this.baseUrl}/chat`,
       });
 
       const { data } = await firstValueFrom(
-        this.httpService.post<QueryResponse>(
-          `${this.baseUrl}/api/query`,
+        this.httpService.post<LlmServiceResponse>(
+          `${this.baseUrl}/chat`,
           requestBody,
           {
             headers: {
               'Content-Type': 'application/json',
               Accept: 'application/json',
             },
-            timeout: 30000, // 30 second timeout
+            timeout: 3000000, // 30 second timeout
           }
         )
       );
 
       // Validate response data
-      if (!data || !data.llmResponse || !data.updatedSummary) {
+      if (!data || !data.answer) {
         throw new HttpException(
           'Invalid response from LLM service',
           HttpStatus.BAD_GATEWAY
@@ -68,17 +76,19 @@ export class LlmService {
       }
 
       this.logger.debug('Received response from LLM service', {
-        responseLength: data.llmResponse.length,
-        updatedSummaryLength: data.updatedSummary.length,
+        responseLength: data.answer.length,
       });
 
-      return data;
+      return {
+        llmResponse: data.answer,
+        updatedSummary: '', // We no longer use summaries
+      };
     } catch (error) {
       this.logger.error('Failed to communicate with LLM service:', {
         error: error.message,
         code: error.code,
         response: error.response?.data,
-        url: `${this.baseUrl}/api/query`,
+        url: `${this.baseUrl}/chat`,
         requestBody: request,
       });
 

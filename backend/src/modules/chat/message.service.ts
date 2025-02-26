@@ -105,6 +105,7 @@ export class MessageService {
       // Get AI response from LLM service
       const llmResponse = await this.llmService.query({
         query: createMessageDto.content,
+        chatId: chatId,
       });
 
       // Save AI response
