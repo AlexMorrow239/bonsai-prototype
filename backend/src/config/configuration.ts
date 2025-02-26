@@ -47,7 +47,7 @@ export default registerAs('app', () => {
         ? process.env.BACKEND_URL_NETWORK
         : process.env.BACKEND_URL_LOCAL,
       api: process.env.API_URL,
-      llmService: 'http://localhost:5001',
+      llmService: process.env.LLM_SERVICE_URL,
     },
     aws: {
       region: process.env.AWS_REGION,
