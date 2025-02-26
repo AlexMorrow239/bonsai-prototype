@@ -13,7 +13,7 @@ interface ChatState {
   isDragging: boolean;
 
   // Chat Actions
-  setCurrentChat: (chat: Chat) => void;
+  setCurrentChat: (chat: Chat | null) => void;
   updateChatPreview: (chatId: string, lastMessage: Message) => void;
   setShouldFocusInput: (value: boolean) => void;
   setActiveChatId: (id: string | null) => void;
@@ -42,7 +42,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setShouldFocusInput: (value) => set({ shouldFocusInput: value }),
   setActiveChatId: (id) => set({ activeChatId: id }),
 
-  setCurrentChat: (chat: Chat) => {
+  setCurrentChat: (chat) => {
     set({ currentChat: chat });
   },
 

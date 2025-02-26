@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { AxiosError } from "axios";
 
@@ -32,7 +32,7 @@ export function useCreateChat() {
 export function useUpdateChat() {
   return useMutation<Chat, AxiosError<ApiError>, UpdateChat>({
     mutationFn: async ({ id, ...chatData }) => {
-      const response = await apiClient.patch<ApiResponse<Chat>>(
+      const response = await apiClient.put<ApiResponse<Chat>>(
         `/chats/${id}`,
         chatData
       );
@@ -42,9 +42,24 @@ export function useUpdateChat() {
 }
 
 export function useDeleteChat() {
+  const queryClient = useQueryClient();
+
   return useMutation<void, AxiosError<ApiError>, string>({
     mutationFn: async (id) => {
       await apiClient.delete(`/chats/${id}`);
+    },
+    onSuccess: (_, deletedChatId) => {
+      // Update the cache directly to remove the deleted chat
+      queryClient.setQueryData<Chat[]>(["chats", "list"], (oldData) => {
+        if (!oldData) return [];
+        return oldData.filter((chat) => chat._id !== deletedChatId);
+      });
+
+      // Also invalidate the query to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ["chats", "list"] });
+
+      // Remove the specific chat from cache
+      queryClient.removeQueries({ queryKey: ["chat", deletedChatId] });
     },
   });
 }

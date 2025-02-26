@@ -6,17 +6,23 @@ import { ActionModal } from "@/components/common/action-modal/ActionModal";
 import { Button } from "@/components/common/button/Button";
 import { ContextTopbar } from "@/components/common/context-topbar/ContextTopbar";
 import { Dropdown } from "@/components/common/dropdown/Dropdown";
+import { Modal } from "@/components/common/modal/Modal";
 
 import { useDeleteChat, useUpdateChat } from "@/hooks/api/useChats";
 import { useChatStore } from "@/stores/chatStore";
 import { useUIStore } from "@/stores/uiStore";
 
+import "./ChatTopbar.scss";
+
 export default function ChatTopbar() {
   const navigate = useNavigate();
-  const { currentChat, setCurrentChat } = useChatStore();
+  const { currentChat, setCurrentChat, chats, setChats } = useChatStore();
   const { showSuccessToast, showErrorToast } = useUIStore();
   const [isDeleteChatModalOpen, setIsDeleteChatModalOpen] = useState(false);
+  const [isRenameChatModalOpen, setIsRenameChatModalOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [newChatTitle, setNewChatTitle] = useState("");
+  const [inputError, setInputError] = useState("");
 
   // API mutations
   const deleteChatMutation = useDeleteChat();
@@ -35,6 +41,13 @@ export default function ChatTopbar() {
 
     try {
       await deleteChatMutation.mutateAsync(currentChat._id);
+
+      // Update the chats in the store by filtering out the deleted chat
+      setChats(chats.filter((chat) => chat._id !== currentChat._id));
+
+      // Set current chat to null since it's been deleted
+      setCurrentChat(null);
+
       showSuccessToast("Chat deleted successfully");
       setIsDeleteChatModalOpen(false);
       navigate("/chat/new");
@@ -43,21 +56,70 @@ export default function ChatTopbar() {
     }
   };
 
+  const openRenameModal = () => {
+    if (!currentChat) return;
+    setNewChatTitle(currentChat.title || "");
+    setInputError("");
+    setIsRenameChatModalOpen(true);
+  };
+
+  const validateChatTitle = (title: string): boolean => {
+    if (!title.trim()) {
+      setInputError("Chat name cannot be empty");
+      return false;
+    }
+
+    if (title.trim().length > 50) {
+      setInputError("Chat name must be 50 characters or less");
+      return false;
+    }
+
+    setInputError("");
+    return true;
+  };
+
   const handleRenameChat = async () => {
     if (!currentChat?._id) return;
+    if (!validateChatTitle(newChatTitle)) return;
+
     setIsRenaming(true);
 
     try {
       const updatedChat = await updateChatMutation.mutateAsync({
         id: currentChat._id,
-        title: "Renamed Chat", // You'll want to add a proper rename input UI
+        title: newChatTitle.trim(),
       });
+
+      // Update current chat
       setCurrentChat(updatedChat);
+
+      // Update chat in the chats list
+      setChats(
+        chats.map((chat) => (chat._id === updatedChat._id ? updatedChat : chat))
+      );
+
       setIsRenaming(false);
+      setIsRenameChatModalOpen(false);
       showSuccessToast("Chat renamed successfully");
     } catch (error) {
       showErrorToast(error);
       setIsRenaming(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewChatTitle(e.target.value);
+    if (inputError) {
+      validateChatTitle(e.target.value);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !isRenaming) {
+      e.preventDefault();
+      handleRenameChat();
+    } else if (e.key === "Escape" && !isRenaming) {
+      setIsRenameChatModalOpen(false);
     }
   };
 
@@ -66,7 +128,7 @@ export default function ChatTopbar() {
       <Button
         variant="ghost"
         fullWidth
-        onClick={handleRenameChat}
+        onClick={openRenameModal}
         disabled={isRenaming}
       >
         Rename
@@ -82,6 +144,26 @@ export default function ChatTopbar() {
     </Dropdown>
   );
 
+  const renameModalFooter = (
+    <div className="rename-modal__footer">
+      <Button
+        variant="outline"
+        onClick={() => setIsRenameChatModalOpen(false)}
+        disabled={isRenaming}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="primary"
+        onClick={handleRenameChat}
+        disabled={isRenaming || !newChatTitle.trim()}
+        className={isRenaming ? "rename-button--loading" : ""}
+      >
+        {isRenaming ? "Renaming..." : "Rename"}
+      </Button>
+    </div>
+  );
+
   return (
     <>
       <ContextTopbar
@@ -90,6 +172,7 @@ export default function ChatTopbar() {
         newItemTitle="Start new chat"
       />
 
+      {/* Delete Chat Modal */}
       <ActionModal
         isOpen={isDeleteChatModalOpen}
         onClose={() => setIsDeleteChatModalOpen(false)}
@@ -99,6 +182,33 @@ export default function ChatTopbar() {
         onConfirm={handleDeleteChat}
         confirmVariant="danger"
       />
+
+      {/* Rename Chat Modal */}
+      <Modal
+        isOpen={isRenameChatModalOpen}
+        onClose={() => !isRenaming && setIsRenameChatModalOpen(false)}
+        title="Rename Chat"
+        description="Enter a new name for this chat"
+        footer={renameModalFooter}
+        size="sm"
+      >
+        <div className="rename-modal__content">
+          <input
+            type="text"
+            value={newChatTitle}
+            onChange={handleInputChange}
+            placeholder="Chat name"
+            autoFocus
+            className={`rename-chat-input ${inputError ? "has-error" : ""}`}
+            onKeyDown={handleKeyDown}
+            disabled={isRenaming}
+            maxLength={50}
+          />
+          {inputError && (
+            <div className="rename-modal__error">{inputError}</div>
+          )}
+        </div>
+      </Modal>
     </>
   );
 }

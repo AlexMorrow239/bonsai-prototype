@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Folder } from "lucide-react";
 
@@ -17,6 +17,7 @@ import "./ChatSidebar.scss";
 
 export default function ChatSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: chatsData, isLoading: isChatsLoading } = useChats();
   const { data: projectsData, isLoading: isProjectsLoading } = useProjects();
 
@@ -33,12 +34,45 @@ export default function ChatSidebar() {
   const [showActive, setShowActive] = React.useState(true);
   const [showProjects, setShowProjects] = React.useState(true);
 
-  // Update chats when data changes
+  // Update chats when data changes from the API
   useEffect(() => {
     if (chatsData) {
       setChats(chatsData);
     }
   }, [chatsData, setChats]);
+
+  // Handle the case when a chat is deleted
+  useEffect(() => {
+    // If we're on a chat route but the current chat doesn't exist in the chats array
+    // (which means it was deleted), navigate to new chat
+    if (
+      location.pathname.startsWith("/chat/") &&
+      location.pathname !== "/chat/new" &&
+      currentChat &&
+      chats.length > 0 &&
+      !chats.some((chat) => chat._id === currentChat._id)
+    ) {
+      navigate("/chat/new");
+    }
+  }, [chats, currentChat, location.pathname, navigate]);
+
+  // Ensure the sidebar chat list is in sync with the store
+  useEffect(() => {
+    // This effect ensures that when a chat is deleted from another component,
+    // the sidebar updates immediately without waiting for a refetch
+    if (chatsData && chats && chatsData.length !== chats.length) {
+      // If the lengths don't match, sync with the most up-to-date data
+      // This handles both additions and deletions
+      if (chatsData.length > chats.length) {
+        // New chats were added
+        setChats(chatsData);
+      } else if (chats.length > chatsData.length && chatsData.length > 0) {
+        // Some chats might have been deleted but not reflected in the API yet
+        // In this case, we keep the store's version which should be more up-to-date
+        // after a deletion operation
+      }
+    }
+  }, [chatsData, chats, setChats]);
 
   // Update projects when data changes
   useEffect(() => {
@@ -126,12 +160,10 @@ export default function ChatSidebar() {
             isExpanded={showProjects}
             onToggleExpand={() => setShowProjects(!showProjects)}
             currentItemId={currentProject?._id}
-            isRenaming={null}
             onItemClick={handleProjectClick}
             renderItemContent={(item) => (
               <div className="project-title">{item.title}</div>
             )}
-            disableClickWhenRenaming={false}
             leftIcon={<Folder />}
           />
         )}
@@ -148,12 +180,10 @@ export default function ChatSidebar() {
             isExpanded={showActive}
             onToggleExpand={() => setShowActive(!showActive)}
             currentItemId={currentChat?._id}
-            isRenaming={null}
             onItemClick={handleChatClick}
             renderItemContent={(item) => (
               <div className="chat-title">{item.title}</div>
             )}
-            disableClickWhenRenaming={false}
           />
         )}
       </div>

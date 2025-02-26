@@ -30,6 +30,28 @@ const logger = {
 // Mock data storage
 const chatLogs = {};
 
+// Latency simulation configuration
+const LATENCY_CONFIG = {
+  enabled: true,
+  minDelay: 1000, // Minimum delay in milliseconds
+  maxDelay: 2000, // Maximum delay in milliseconds
+};
+
+// Utility function to simulate network latency
+function simulateLatency() {
+  if (!LATENCY_CONFIG.enabled) {
+    return Promise.resolve();
+  }
+
+  const delay = Math.floor(
+    Math.random() * (LATENCY_CONFIG.maxDelay - LATENCY_CONFIG.minDelay) +
+      LATENCY_CONFIG.minDelay
+  );
+
+  logger.debug(`Simulating latency: ${delay}ms`);
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
 // Utility functions
 function appendChatToFile(chatId, query, answer) {
   if (!chatId) return;
@@ -73,7 +95,7 @@ function dict(headers) {
 }
 
 // Ingest Endpoint
-app.post("/ingest", (req, res) => {
+app.post("/ingest", async (req, res) => {
   logger.debug(
     `Received ingest request. Headers: ${JSON.stringify(dict(req.headers))}`
   );
@@ -88,6 +110,9 @@ app.post("/ingest", (req, res) => {
   }
 
   try {
+    // Simulate network latency
+    await simulateLatency();
+
     const processedUrls = [];
 
     // Mock processing each URL
@@ -122,7 +147,7 @@ app.post("/ingest", (req, res) => {
 });
 
 // Chat Endpoint
-app.post("/chat", (req, res) => {
+app.post("/chat", async (req, res) => {
   logger.debug(
     `Received chat request. Headers: ${JSON.stringify(dict(req.headers))}`
   );
@@ -152,6 +177,10 @@ app.post("/chat", (req, res) => {
 
     // Generate mock answer
     logger.debug("Calling retriever for answer");
+
+    // Simulate network latency
+    await simulateLatency();
+
     const answer = `This is a mock response to your query: "${query}". In a real implementation, this would use RAG to generate a contextual answer.`;
     logger.debug(`Got answer from retriever: ${answer.substring(0, 100)}...`);
 
@@ -169,7 +198,7 @@ app.post("/chat", (req, res) => {
 });
 
 // History Endpoint
-app.get("/history/:chatId", (req, res) => {
+app.get("/history/:chatId", async (req, res) => {
   const chatId = req.params.chatId;
   logger.debug(`Received history request for chat_id: ${chatId}`);
 
@@ -179,6 +208,9 @@ app.get("/history/:chatId", (req, res) => {
   }
 
   try {
+    // Simulate network latency
+    await simulateLatency();
+
     const chatHistory = readEntireChat(chatId);
     return res.json({ history: chatHistory });
   } catch (e) {

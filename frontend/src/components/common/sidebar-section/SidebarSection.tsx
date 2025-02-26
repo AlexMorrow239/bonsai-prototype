@@ -1,3 +1,5 @@
+import clsx from "clsx";
+
 import { Button } from "@/components/common/button/Button";
 
 import "./SidebarSection.scss";
@@ -13,11 +15,9 @@ interface SidebarSectionProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   currentItemId?: string;
-  isRenaming: string | null;
   onItemClick: (itemId: string) => void;
   renderItemContent: (item: ItemConfig) => React.ReactNode;
   buttonClassName?: string;
-  disableClickWhenRenaming?: boolean;
   leftIcon?: React.ReactNode;
 }
 
@@ -27,11 +27,9 @@ export function SidebarSection({
   isExpanded,
   onToggleExpand,
   currentItemId,
-  isRenaming,
   onItemClick,
   renderItemContent,
   buttonClassName = "generic-item",
-  disableClickWhenRenaming = true,
   leftIcon,
 }: SidebarSectionProps) {
   if (items.length === 0) return null;
@@ -48,13 +46,11 @@ export function SidebarSection({
             <Button
               key={item.id}
               variant="ghost"
-              className={`${buttonClassName} ${
-                currentItemId === item.id ? "active" : ""
-              }`}
+              className={clsx(buttonClassName, {
+                active: currentItemId === item.id,
+              })}
               onClick={() => {
-                if (!(disableClickWhenRenaming && isRenaming)) {
-                  onItemClick(item.id);
-                }
+                onItemClick(item.id);
               }}
               leftIcon={leftIcon}
             >
