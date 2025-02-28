@@ -39,7 +39,6 @@ export function FileIcon({
   size = 24,
   className,
 }: FileIconProps): ReactElement {
-  // console.log(mimetype);
   const iconProps = {
     size,
     className,

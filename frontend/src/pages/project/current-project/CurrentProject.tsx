@@ -60,8 +60,6 @@ export function CurrentProject(): ReactElement {
     // Make sure the current project is set in the store before navigating
     setCurrentProject(project);
 
-    console.log("createNewChat", projectId, project);
-
     // Pass the project ID as a URL parameter
     navigate(`/chat/new?projectId=${projectId}`);
   };

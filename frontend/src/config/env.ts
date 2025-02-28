@@ -3,7 +3,6 @@ import { z } from "zod";
 const envSchema = z.object({
   // API Configuration
   VITE_API_URL: z.string().min(1),
-  VITE_GEMINI_API_KEY: z.string().min(1),
 });
 
 function validateEnv() {
@@ -32,7 +31,6 @@ declare global {
 
 export const config = {
   apiUrl: env.VITE_API_URL,
-  geminiApiKey: env.VITE_GEMINI_API_KEY,
 } as const;
 
 // Validate required environment variables

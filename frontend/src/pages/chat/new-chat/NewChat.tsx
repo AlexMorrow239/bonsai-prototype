@@ -55,7 +55,6 @@ export function NewChat(): ReactElement {
   useEffect(() => {
     if (projectIdFromUrl) {
       if (projectFromUrl) {
-        console.log("Setting project from URL:", projectFromUrl);
         setCurrentProject(projectFromUrl);
       }
     } else if (!currentProject) {
@@ -69,16 +68,6 @@ export function NewChat(): ReactElement {
     setCurrentProject,
     clearCurrentProject,
   ]);
-
-  // Log current project when component mounts
-  useEffect(() => {
-    console.log(
-      "NewChat mounted, currentProject:",
-      currentProject,
-      "projectIdFromUrl:",
-      projectIdFromUrl
-    );
-  }, [currentProject, projectIdFromUrl]);
 
   const handleFilesSelected = async (acceptedFiles: File[]) => {
     try {
@@ -199,13 +188,6 @@ export function NewChat(): ReactElement {
     content: string,
     files?: UploadedFile[]
   ) => {
-    console.log("handleFirstMessage", {
-      content,
-      currentProject,
-      projectFromUrl,
-      projectIdFromUrl,
-    });
-
     const hasContent = content.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
@@ -227,8 +209,6 @@ export function NewChat(): ReactElement {
         title: title.slice(0, 50),
         ...(currentProject && { project_id: currentProject._id }),
       };
-
-      console.log("Creating chat with data:", chatData);
 
       // Create new chat first
       newChat = await createChat.mutateAsync(chatData);
