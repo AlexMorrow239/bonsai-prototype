@@ -40,6 +40,37 @@
       font-size: var(--font-size-lg);
     }
   }
+
+  &__project-context {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #4a6cf7;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+
+      strong {
+        color: #4a6cf7;
+      }
+    }
+  }
+
+  &__loading {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #f7a74a;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #f7a74a;
+    }
+  }
 }
 
 .file-upload-overlay {

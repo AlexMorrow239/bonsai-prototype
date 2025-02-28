@@ -7,7 +7,6 @@ import { ArrowLeft, MessageSquare, Plus } from "lucide-react";
 import { Button } from "@/components/common/button/Button";
 
 import { useChatsByProject } from "@/hooks/api/useChats";
-import { useCreateChat } from "@/hooks/api/useChats";
 import { useGetProject } from "@/hooks/api/useProjects";
 import { useChatStore } from "@/stores/chatStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -19,7 +18,7 @@ import "./CurrentProject.scss";
 export function CurrentProject(): ReactElement {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { showErrorToast, showSuccessToast } = useToastActions();
+  const { showErrorToast } = useToastActions();
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
 
   const {
@@ -31,15 +30,22 @@ export function CurrentProject(): ReactElement {
 
   const { data: projectChats, isLoading: isChatsLoading } =
     useChatsByProject(projectId);
-  const createChatMutation = useCreateChat();
 
   const setCurrentProject = useProjectStore((state) => state.setCurrentProject);
+  const clearCurrentProject = useProjectStore(
+    (state) => state.clearCurrentProject
+  );
 
   useEffect(() => {
     if (project) {
       setCurrentProject(project);
     }
-  }, [project, setCurrentProject]);
+
+    // Clear current project when component unmounts
+    return () => {
+      clearCurrentProject();
+    };
+  }, [project, setCurrentProject, clearCurrentProject]);
 
   useEffect(() => {
     if (isError) {
@@ -49,23 +55,15 @@ export function CurrentProject(): ReactElement {
   }, [isError, error, navigate, showErrorToast]);
 
   const createNewChat = () => {
-    if (!projectId) return;
+    if (!projectId || !project) return;
 
-    createChatMutation.mutate(
-      {
-        title: `${project?.name || "Project"} Chat`,
-        project_id: projectId,
-      },
-      {
-        onSuccess: (newChat) => {
-          showSuccessToast("Chat created successfully");
-          navigateToChat(newChat);
-        },
-        onError: (err) => {
-          showErrorToast(err);
-        },
-      }
-    );
+    // Make sure the current project is set in the store before navigating
+    setCurrentProject(project);
+
+    console.log("createNewChat", projectId, project);
+
+    // Pass the project ID as a URL parameter
+    navigate(`/chat/new?projectId=${projectId}`);
   };
 
   const navigateToChat = (chat: Chat) => {

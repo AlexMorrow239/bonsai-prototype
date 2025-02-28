@@ -49,6 +49,8 @@ export class ChatService {
     try {
       this.logger.debug('Creating new chat:', createChatDto);
 
+      let projectId = undefined;
+
       // Validate project if provided
       if (createChatDto.project_id) {
         if (!Types.ObjectId.isValid(createChatDto.project_id)) {
@@ -65,14 +67,19 @@ export class ChatService {
             `Project with ID ${createChatDto.project_id} not found`
           );
         }
+
+        projectId = new Types.ObjectId(createChatDto.project_id);
+        this.logger.debug(
+          `Chat will be associated with project: ${createChatDto.project_id}`
+        );
+      } else {
+        this.logger.debug('Creating chat without project association');
       }
 
       // Create chat with default values
       const chatData = {
         title: createChatDto.title,
-        project_id: createChatDto.project_id
-          ? new Types.ObjectId(createChatDto.project_id)
-          : undefined,
+        project_id: projectId,
         preview: 'New chat created',
         is_active: true,
         last_message_at: new Date(),
@@ -84,6 +91,7 @@ export class ChatService {
       this.logger.debug('Chat created successfully:', {
         chatId: savedChat._id,
         title: savedChat.title,
+        hasProjectAssociation: !!savedChat.project_id,
       });
 
       return this.toChatResponse(savedChat);

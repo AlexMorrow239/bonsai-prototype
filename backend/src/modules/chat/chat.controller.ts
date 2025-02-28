@@ -67,8 +67,16 @@ export class ChatController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new chat' })
-  @ApiBody({ type: CreateChatDto })
+  @ApiOperation({
+    summary: 'Create a new chat',
+    description:
+      'Creates a new chat that can either be associated with a project (by providing project_id) or standalone (without project association).',
+  })
+  @ApiBody({
+    type: CreateChatDto,
+    description:
+      'Chat creation data. If project_id is provided, the chat will be associated with that project. If project_id is omitted, a standalone chat will be created.',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'The chat has been successfully created.',
@@ -76,7 +84,11 @@ export class ChatController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data.',
+    description: 'Invalid input data or invalid project ID format.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Project not found when project_id is provided.',
   })
   async createChat(
     @Body() createChatDto: CreateChatDto

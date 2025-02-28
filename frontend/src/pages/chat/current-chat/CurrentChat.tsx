@@ -13,8 +13,10 @@ import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useGetChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
+import { useGetProject } from "@/hooks/api/useProjects";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
+import { useProjectStore } from "@/stores/projectStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { UploadedFile } from "@/types";
 import { createFileEntry } from "@/utils/fileUtils";
@@ -25,7 +27,6 @@ export default function CurrentChat(): ReactElement {
   const { chatId } = useParams();
   const {
     currentChat,
-    chats,
     shouldFocusInput,
     setShouldFocusInput,
     updateChatPreview,
@@ -37,6 +38,7 @@ export default function CurrentChat(): ReactElement {
   } = useChatStore();
   const { addMessage, removeMessage: removeStoreMessage } = useMessageStore();
   const { showErrorToast } = useToastActions();
+  const { setCurrentProject, clearCurrentProject } = useProjectStore();
 
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dragCounter = useRef(0);
@@ -45,24 +47,42 @@ export default function CurrentChat(): ReactElement {
   const sendMessage = useSendMessage();
   const { data: chat, isLoading: isChatLoading } = useGetChat(chatId || "");
 
+  // Fetch project data if chat has a project association
+  const { data: project } = useGetProject(chat?.project_id || "");
+
+  // Only enable project query when chat has a project_id
+  const hasProjectAssociation = !!chat?.project_id;
+
   // Update current chat when needed
   useEffect(() => {
     if (!chatId) return;
 
     if (chat) {
-      // If we have the chat data, make sure currentChat matches
-      if (currentChat?._id !== chat._id) {
-        console.warn("Chat synchronization issue detected - fixing...");
-        setCurrentChat(chat);
-      }
-    } else if (!currentChat || currentChat._id !== chatId) {
-      // If we don't have chat data yet but have chatId, fetch it first
-      const chatFromStore = chats.find((c) => c._id === chatId);
-      if (chatFromStore) {
-        setCurrentChat(chatFromStore);
+      setCurrentChat(chat);
+
+      // If chat has a project association and we have project data, update the project store
+      if (hasProjectAssociation && project) {
+        setCurrentProject(project);
+      } else if (!hasProjectAssociation) {
+        // If chat has no project association, clear the current project
+        clearCurrentProject();
       }
     }
-  }, [chatId, chat, currentChat, chats, setCurrentChat]);
+
+    // Clean up when component unmounts
+    return () => {
+      setCurrentChat(null);
+      clearCurrentProject();
+    };
+  }, [
+    chatId,
+    chat,
+    project,
+    hasProjectAssociation,
+    setCurrentChat,
+    setCurrentProject,
+    clearCurrentProject,
+  ]);
 
   const handleMessageSubmit = async (
     content: string,
@@ -79,7 +99,6 @@ export default function CurrentChat(): ReactElement {
     const hasContent = content.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
-    // Move tempMessageId declaration outside try block so it's accessible in catch
     const tempMessageId = `temp-${Date.now()}`;
 
     try {

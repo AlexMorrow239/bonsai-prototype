@@ -1,6 +1,6 @@
-import { ReactElement, useEffect, useRef } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useDropzone } from "react-dropzone";
 
@@ -11,8 +11,10 @@ import { FILE_CONSTRAINTS } from "@/common/constants";
 
 import { useCreateChat } from "@/hooks/api/useChats";
 import { useSendMessage } from "@/hooks/api/useMessages";
+import { useGetProject } from "@/hooks/api/useProjects";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
+import { useProjectStore } from "@/stores/projectStore";
 import { useToastActions } from "@/stores/uiStore";
 import type { Message, UploadedFile } from "@/types";
 import { createFileEntry } from "@/utils/fileUtils";
@@ -23,6 +25,9 @@ export function NewChat(): ReactElement {
   const textareaRef = useRef<HTMLTextAreaElement>({} as HTMLTextAreaElement);
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const dragCounter = useRef(0);
+  const [chatCreated, setChatCreated] = useState(false);
+  const [searchParams] = useSearchParams();
+  const projectIdFromUrl = searchParams.get("projectId");
 
   const { showErrorToast } = useToastActions();
   const { addMessage, removeMessage: removeStoreMessage } = useMessageStore();
@@ -33,10 +38,47 @@ export function NewChat(): ReactElement {
     chats,
     removeMessage: removeChatMessage,
   } = useChatStore();
+  const currentProject = useProjectStore((state) => state.currentProject);
+  const setCurrentProject = useProjectStore((state) => state.setCurrentProject);
+  const clearCurrentProject = useProjectStore(
+    (state) => state.clearCurrentProject
+  );
   const navigate = useNavigate();
 
   const createChat = useCreateChat();
   const sendMessage = useSendMessage();
+
+  // Fetch project data if we have a project ID from the URL
+  const { data: projectFromUrl } = useGetProject(projectIdFromUrl || "");
+
+  // Set the current project from URL if available
+  useEffect(() => {
+    if (projectIdFromUrl) {
+      if (projectFromUrl) {
+        console.log("Setting project from URL:", projectFromUrl);
+        setCurrentProject(projectFromUrl);
+      }
+    } else if (!currentProject) {
+      // If no project ID in URL and no current project, make sure it's cleared
+      clearCurrentProject();
+    }
+  }, [
+    projectFromUrl,
+    projectIdFromUrl,
+    currentProject,
+    setCurrentProject,
+    clearCurrentProject,
+  ]);
+
+  // Log current project when component mounts
+  useEffect(() => {
+    console.log(
+      "NewChat mounted, currentProject:",
+      currentProject,
+      "projectIdFromUrl:",
+      projectIdFromUrl
+    );
+  }, [currentProject, projectIdFromUrl]);
 
   const handleFilesSelected = async (acceptedFiles: File[]) => {
     try {
@@ -144,10 +186,26 @@ export function NewChat(): ReactElement {
     };
   }, [setDragging]);
 
+  // Clear current project when component unmounts, but only if no chat was created
+  useEffect(() => {
+    return () => {
+      if (!chatCreated) {
+        clearCurrentProject();
+      }
+    };
+  }, [chatCreated, clearCurrentProject]);
+
   const handleFirstMessage = async (
     content: string,
     files?: UploadedFile[]
   ) => {
+    console.log("handleFirstMessage", {
+      content,
+      currentProject,
+      projectFromUrl,
+      projectIdFromUrl,
+    });
+
     const hasContent = content.trim().length > 0 || (files && files.length > 0);
     if (!hasContent) return;
 
@@ -155,18 +213,32 @@ export function NewChat(): ReactElement {
     let newChat;
 
     try {
-      // Create chat title from content or first file name
-      const title =
+      // Create chat title from content or first file name or use project name
+      let title =
         content.trim() || (files && files[0]?.metadata.name) || "New Chat";
 
-      // Create new chat first
-      newChat = await createChat.mutateAsync({
+      // If we have a current project, use its name in the title
+      if (currentProject) {
+        title = `${currentProject.name} - ${title.slice(0, 30)}`;
+      }
+
+      // Create new chat with project association if a current project exists
+      const chatData = {
         title: title.slice(0, 50),
-      });
+        ...(currentProject && { project_id: currentProject._id }),
+      };
+
+      console.log("Creating chat with data:", chatData);
+
+      // Create new chat first
+      newChat = await createChat.mutateAsync(chatData);
 
       if (!newChat) {
         throw new Error("Failed to create chat");
       }
+
+      // Mark that a chat was created so we don't clear the project context on unmount
+      setChatCreated(true);
 
       // Add message to local store first with temporary ID
       const pendingMessage: Message = {
@@ -222,7 +294,20 @@ export function NewChat(): ReactElement {
       <input {...getInputProps()} />
       <div className="new-chat__content">
         <h1>Start a New Chat</h1>
-        <p>Type your message to begin a new conversation</p>
+        {projectIdFromUrl && !currentProject ? (
+          <div className="new-chat__loading">
+            <p>Loading project information...</p>
+          </div>
+        ) : currentProject ? (
+          <div className="new-chat__project-context">
+            <p>
+              This chat will be associated with project:{" "}
+              <strong>{currentProject.name}</strong>
+            </p>
+          </div>
+        ) : (
+          <p>Type your message to begin a new conversation</p>
+        )}
       </div>
       <ChatPrompt
         onSubmit={handleFirstMessage}

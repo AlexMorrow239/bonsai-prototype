@@ -25,20 +25,28 @@ export function ChatArea(): ReactElement {
   // Combine and deduplicate messages, preferring server messages
   const allMessages = [
     ...serverMessages,
-    ...localMessages.filter(
-      (msg) =>
-        !serverMessages.some(
-          (m) =>
-            // Check both _id and content to handle pending messages
-            m._id === msg._id ||
-            (m.content === msg.content &&
-              m.is_ai_response === msg.is_ai_response &&
-              Math.abs(
-                new Date(m.created_at).getTime() -
-                  new Date(msg.created_at).getTime()
-              ) < 1000)
-        )
-    ),
+    ...localMessages.filter((msg) => {
+      // Ensure message has required fields
+      if (!msg || !msg.content) {
+        console.warn("Filtering out invalid message:", msg);
+        return false;
+      }
+
+      return !serverMessages.some(
+        (m) =>
+          // Match by ID if both have valid IDs
+          (msg._id && m._id && msg._id === m._id) ||
+          // For temp messages, match by content and timestamp
+          (msg._id &&
+            msg._id.startsWith("temp-") &&
+            m.content === msg.content &&
+            m.is_ai_response === msg.is_ai_response &&
+            Math.abs(
+              new Date(m.created_at).getTime() -
+                new Date(msg.created_at).getTime()
+            ) < 5000)
+      );
+    }),
   ].filter(Boolean);
 
   // Sort messages by creation date
